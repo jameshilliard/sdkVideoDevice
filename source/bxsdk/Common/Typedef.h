@@ -1,0 +1,91 @@
+#ifndef _TYPEDEF_H_
+#define _TYPEDEF_H_
+
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <pthread.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <sys/socket.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <arpa/inet.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <net/if.h>
+#include <sys/ioctl.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <signal.h>
+#include <stddef.h>
+#include <time.h>
+#include <unistd.h>
+#include <stdarg.h>
+#include <sys/statfs.h>
+#include "DeviceConfig.h"
+
+
+typedef unsigned char	uchar;
+typedef unsigned char	byte;
+typedef unsigned char	BOOLEAN;
+typedef unsigned char	BYTE;
+typedef unsigned char	INT8U;
+typedef signed 	 char	INT8S;
+typedef unsigned char	UCHAR;
+typedef char			SCHAR;
+
+typedef unsigned short	ushort;
+typedef	unsigned short	WORD;
+typedef unsigned short	INT16U;
+typedef signed 	 short	INT16S;	
+
+typedef unsigned int	uint;
+typedef unsigned int	UINT;
+typedef unsigned int	INT32U;
+typedef signed   int	INT32S;
+typedef long long		INT64S;
+typedef long long		__int64;
+
+typedef unsigned long	DWORD;
+typedef signed 	 long	SLONG;
+typedef unsigned long	ULONG;
+
+typedef UINT			WPARAM;
+typedef INT32S			LPARAM;
+typedef int				HANDLE;
+typedef void *			LPVOID;
+typedef const 	void*	LPCVOID;
+typedef const 	char*	LPCTSTR;
+typedef char*			LPTSTR;
+
+
+#define PACKED(n) __attribute__( ( packed, aligned(n) ) )
+
+typedef enum {
+	FALSE	= 0,
+	TRUE	= 1,
+}BOOL;
+
+enum ERR_CODE
+{
+	ERR_QUEUE_EMPTY = 1,
+	ERR_QUEUE_FULL,
+	ERR_QUEUE,
+	ERR_QUEUE_TOOSMALL,
+	ERR_QUEUE_SYMBNOFIND,
+	ERR_MEMLACK,
+	ERR_SPACELACK,
+	ERR_SHMGET,
+	ERR_SHMAT,
+	ERR_PAR,
+	ERR_CFG,
+	ERR_THREAD,
+};
+
+#define MIN(a,b) ((a)<(b))?(a):(b)
+#define MAX(a,b) ((a)>(b))?(a):(b)
+
+
+#endif

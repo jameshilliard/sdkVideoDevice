@@ -1,0 +1,118 @@
+#ifndef _SERVERDEFINE_H_
+#define _SERVERDEFINE_H_
+#include "../Common/Typedef.h"
+
+
+
+#define PARAM_MAXUSER 				50
+#define PARAM_MAXSECRET			32
+#define PARAM_MAXSERVERNO			32 
+
+#define MSG_HEAD_VERSION			0x1
+#define MSG_HEAD_PLATFORM			0x7
+
+typedef enum {
+	StatusIdle = 1,
+	StatusConnRoute,
+	StatusConnControl,
+	StatusWaitConn,
+	StatusWorking,
+	StatusDisConn,
+}SOCKET_WORK_STATUS;
+
+typedef enum {
+	LOGIN_ACK_SUCCESS=1,
+	LOGIN_ACK_ERROR_USER=-1,
+	LOGIN_ACK_ERROR_SECRET=-2,
+	LOGIN_ACK_ERROR_SERVERNO=-3,
+}MSG_LOGIN_ACK_STATUS;
+
+typedef enum {
+	MSG_ACK_ERROR_STATUS_PACKET=-1000,
+}MSG_ACK_ERROR_STATUS;
+
+
+typedef enum {
+	ROUTE_PROTOCAL_GET_ROUTE						=	0x0010,	//获取路由请求
+	ROUTE_PROTOCAL_GET_ROUTE_ACK					=	0x0011,	//获取路由应
+}ROUTE_PROTOCAL_NUMBER;
+
+#define 	MSGVERSION_0		0x0
+#define 	MSGVERSION_1		0x1
+
+typedef enum {
+	CONTROL_PROTOCAL_DEVICE_IDENTITY_VERIFY		=	0x3300,	//身份验证请求
+	CONTROL_PROTOCAL_DEVICE_IDENTITY_VERIFY_ACK	=	0x3301,	//身份验证应答
+	CONTROL_PROTOCAL_KEEPALIVE 					= 	0x0000,	//心跳
+	CONTROL_PROTOCAL_KEEPALIVE_ACK 				= 	0x0001,	//心跳应答
+	CONTROL_PROTOCAL_SETTIMEOUTDURATION			= 	0x0003,	//设置心跳超时时间请求
+	CONTROL_PROTOCAL_SETTIMEOUTDURATION_ACK		= 	0x0004,//设置心跳超时时间应答,
+	CONTROL_PROTOCAL_DEVICE_REGISTER           	= 	0x3303,//注册设备请求
+	CONTROL_PROTOCAL_DEVICE_REGISTER_ACK        = 	0x3304,//注册设备应答
+	CONTROL_PROTOCAL_UPDATE_CHANNEL_CONFIG      = 	0x3306,  //更新通道配置请求
+	CONTROL_PROTOCAL_UPDATE_CHANNEL_CONFIG_ACK	= 	0x3307, //更新通道配置应答
+	CONTROL_PROTOCAL_PUBLISH_CHANNEL_STATE		= 	0x3050,   //发布通道上线请求
+	CONTROL_PROTOCAL_PUBLISH_CHANNEL_STATE_ACK	= 	0x3051,  //发布通道上线应答
+	CONTROL_PROTOCAL_GET_ENCODE_CONFIG_TABLE    = 	0x301C,   //获取编码配置参数表请求
+	CONTROL_PROTOCAL_GET_ENCODE_CONFIG_TABLE_ACK=	0x301D,  //获取编码配置参数表应答,
+	CONTROL_PROTOCAL_OPEN_CHANNEL_PREVIEW 		= 	0x3A01,   //开启通道远程预览通知
+	CONTROL_PROTOCAL_CLOSE_CHANNEL_PREVIEW 		= 	0x3A03,  //关闭通道远程预览通知
+	CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY		= 	0x3053,   //远程预览失败通知
+	CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY_ACK	= 	0x3054, //远程预览失败通知应答
+	CONTROL_PROTOCAL_UPLOAD_CHANNEL_KEYFRAME 	= 	0x3A0C,   //上传关键帧通知
+	CONTROL_PROTOCAL_OPEN_CHANNEL_TALK          = 	0x3110,   //开启通道远程对讲通知
+	CONTROL_PROTOCAL_OPEN_CHANNEL_TALK_ACK      = 	0x3111,  //开启通道远程对讲应答
+	CONTROL_PROTOCAL_CLOSE_CHANNEL_TALK       	= 	0x3A19,    //关闭通道远程对讲通知
+	CONTROL_PROTOCAL_TALK_FAILURE_NOTIFY        = 	0x3113,    //远程对讲失败通知
+	CONTROL_PROTOCAL_TALK_FAILURE_NOTIFY_ACK    = 	0x3114,    //远程对讲失败通知应答
+	CONTROL_PROTOCAL_GET_CHANNEL_CONFIG         = 	0x3309,       //获取通道配置通知
+	CONTROL_PROTOCAL_GET_CHANNEL_CONFIG_ACK     = 	0x330A,      //获取通道配置应答
+	CONTROL_PROTOCAL_SET_CHANNEL_CONFIG       	= 	0x330C,      //修改通道配置通知
+	CONTROL_PROTOCAL_SET_CHANNEL_CONFIG_ACK  	= 	0x330D,     //修改通道配置应答,
+	CONTROL_PROTOCAL_CHANGE_CHANNEL_IMAGE_QUALITY				= 0x3069,  //切换通道画质通知
+	CONTROL_PROTOCAL_CHANGE_CHANNEL_IMAGE_QUALITY_ACK			= 0x306A,  //切换通道画质通知应答,
+	CONTROL_PROTOCAL_COLLECT_YUNTAI_CONTROL     				= 0x3060, //云台控制
+	CONTROL_PROTOCAL_COLLECT_YUNTAI_CONTROL_ACK 				= 0x3061,
+	CONTROL_PROTOCAL_COLLECT_YUNTAI_CONTROL_ERROR_ACK 			= 0x3062,
+	CONTROL_PROTOCAL_COLLECT_PRESET_CRUISE_CONTROL				= 0x3063, //预置点，巡航
+	CONTROL_PROTOCAL_COLLECT_PRESET_CRUISE_CONTROL_ACK      	= 0x3064,
+	CONTROL_PROTOCAL_COLLECT_PRESET_CRUISE_CONTROL_ERROR_ACK 	= 0x3065,
+}CONTROL_PROTOCAL_NUMBER;
+
+//消息头
+typedef struct MsgHead_
+{
+	unsigned short uHeadLen;//消息头长度，目前消息头长度固定为10个字节，该字段为预留字段
+	unsigned char  cMsgVersion;//消息版本
+	unsigned char  cPlatform;//平台类型 设备端填"6"
+	unsigned short uMsgType;//消息类型
+	unsigned short uMsgSeq;//消息序列号
+	unsigned short uBodyLen;//消息体长度，如果无消息体填0
+}PACKED(1) MsgHead;
+
+#define		ROUTESERVERPORT		5002
+#define		CONTROLSERVERPORT	5000
+#define 	SZYPORT				8006
+
+#define 	ROUTESERVER			"www.benxunshida.com"
+#define 	USER				"pick@testdevice"
+//#define 	USER				"pick@sd3"
+
+#define		SECRET				"123456"
+#define 	SERVERNO0			"hk000000"
+
+//#define 	SERVERNO0			"hk000000"
+//#define 	SERVERNO1			"hk000001"
+//#define 	SERVERNO2			"hk000002"
+
+#define		DEVICEPRODUCT					"bxsd"
+#define 	DEVICEMODEL 					"9100"
+#define 	DEVICETYPE						"IPC"
+#define		DEFAULTDEVICEMACADDR			"94-DE-80-53-0A-90"
+#define		DEVICECHANNELNUM				1
+#define		DEVICECHANNELSTARTNUM			1
+
+
+
+#endif
+
