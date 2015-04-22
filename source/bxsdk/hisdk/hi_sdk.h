@@ -30,14 +30,17 @@
 #  ifdef __cplusplus
 extern "C" {
 #  endif /* __cplusplus */
-	int getUnameAndPassWord(char * path,char uname[64],char password[64]);
-	int getIPAndPort(char * path,char ip[64],char port[64]);
-	int InitHiSDKServer(HI_U32 *u32Handle);
-	int ReleaseHiSDKServer(HI_U32 *u32Handle);
-	int startVideoStream(HI_U32 *u32Handle,HI_S_Video_Ext sVideo);
-	int stopVideoStream(HI_U32 *u32Handle);
-	int setVideoParam(HI_U32 *u32Handle,HI_S_Video_Ext sVideo);
-	int getVideoParam(HI_U32 *u32Handle,HI_S_Video_Ext *sVideo);
+	//int getUnameAndPassWord(char * path,char uname[64],char password[64]);
+	//int getIPAndPort(char * path,char ip[64],char port[64]);
+	//int InitHiSDKServer(HI_U32 *u32Handle);
+	int initHiSDKVideoAllChannel();
+	int ReleaseHiSDKVideoAllChannel();
+	//int ReleaseHiSDKServer(HI_U32 *u32Handle);
+	int startVideoStream(HI_S_Video_Ext sVideo);
+	int MakeKeyFrame();
+	//int stopVideoStream(HI_U32 *u32Handle);
+	//int setVideoParam(HI_U32 *u32Handle,HI_S_Video_Ext sVideo);
+	//int getVideoParam(HI_U32 *u32Handle,HI_S_Video_Ext *sVideo);
 
 #  ifdef __cplusplus
 }

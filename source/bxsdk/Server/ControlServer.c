@@ -11,7 +11,6 @@
 
 
 
-extern HI_U32 u32Handle;
 PRTMPUnit pRtmpServer;
 static BOOL startControlServer=TRUE;
 PRTMPUnit pRtmpServer=NULL;
@@ -261,7 +260,78 @@ static int get_OPEN_CHANNEL_PREVIEW(MsgHead *vMsgHead,LPCTSTR msgBuffer,MsgBody_
 	return iRet;
 }
 
+static int get_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG(MsgHead *vMsgHead,LPCTSTR msgBuffer,MsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG *pParam)
+{
+	if(msgBuffer==NULL)
+		return -MSG_ACK_ERROR_STATUS_PACKET;
+	int iRet=0; 
+	char leftString[256]={0,}; 
+	char left2String[SOCKET_PARKET_SIZE]={0,};
+	char channelIdString[32]={0,};
+	char blFlagString[32]={0,};
+	char blCbrString[32]={0,};
+	char u32WidthString[32]={0,};
+	char u32HeightString[32]={0,};
+	char u32BitrateString[32]={0,};
+	char u32FrameString[32]={0,};
+	char u32ImgQualityString[32]={0,};
 	
+	//[通道ID:码流类型:分辨率长:分辨率宽:编码方式:码率:质量:帧率:帧间隔]
+	iRet=sscanf(msgBuffer,"[%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^']']",
+				channelIdString,blFlagString,u32WidthString,u32HeightString,blCbrString,
+				u32BitrateString,u32ImgQualityString,u32FrameString,leftString);
+	if(iRet<5)
+	{
+		iRet=MSG_ACK_ERROR_STATUS_PACKET;
+	}
+	else
+	{
+
+		pParam->m_channelId=atoi(channelIdString);
+		pParam->m_video.u32Channel=atoi(channelIdString);
+		pParam->m_video.u32Stream=atoi(blFlagString);
+		pParam->m_video.u32Bitrate=atoi(u32BitrateString);
+		pParam->m_video.u32Frame=atoi(u32FrameString);
+		pParam->m_video.blCbr=(atoi(blCbrString)==0) ? HI_TRUE : HI_FALSE;
+		pParam->m_video.u32ImgQuality=atoi(u32ImgQualityString);
+		pParam->m_video.u32Width=atoi(u32WidthString);
+		pParam->m_video.u32Height=atoi(u32HeightString);
+		
+		LPCTSTR where=strchr(leftString,PARAMEQUALSYMBOL);
+		if(where==NULL)
+		{
+			iRet=sscanf(leftString,"%d",&pParam->m_video.u32Iframe);
+			if(iRet!=1)
+			{
+				iRet=MSG_ACK_ERROR_STATUS_PACKET;
+			}
+			else
+				iRet=0;
+		}
+		else
+		{
+			
+			iRet=sscanf(leftString,"%d:%s",&pParam->m_video.u32Iframe,left2String);
+			if(iRet!=2)
+			{
+				iRet=MSG_ACK_ERROR_STATUS_PACKET;
+			}
+			else
+				iRet=0;
+		
+		}
+
+	}
+	if(iRet==0)
+	{
+		pParam->m_isValid=1;
+	}
+	else
+	{
+		pParam->m_isValid=0;
+	}
+	return iRet;
+}
 static int getDeviceIdenTityVerifyPacket(MsgBody_DEVICE_IDENTITY_VERIFY *pMsgBody_DEVICE_IDENTITY_VERIFY,LPTSTR packetBuffer,unsigned short *packetLength)
 {
 	if(pMsgBody_DEVICE_IDENTITY_VERIFY->m_user==NULL || pMsgBody_DEVICE_IDENTITY_VERIFY->m_secret==NULL || pMsgBody_DEVICE_IDENTITY_VERIFY->m_serverNo==NULL)
@@ -664,7 +734,7 @@ static void *P_CtrlSocketThread()
 									LOGOUT("get_DEVICE_REGISTER_ACK is %d",iRet);
 								
 								printfVideoParam("server setvideo",globalDeviceStatus.m_openChannelPreviewAck.m_video);
-								startVideoStream(&u32Handle,globalDeviceStatus.m_openChannelPreviewAck.m_video);
+								startVideoStream(globalDeviceStatus.m_openChannelPreviewAck.m_video);
 								char rtmpAddr[1256]={0,};
 								sprintf(rtmpAddr,"rtmp://%s:%d/%s/%d",globalDeviceStatus.m_openChannelPreviewAck.m_rtmpIp,globalDeviceStatus.m_openChannelPreviewAck.m_rtmpPort
 														 ,globalDeviceStatus.m_openChannelPreviewAck.m_rtmpPath,globalDeviceStatus.m_openChannelPreviewAck.m_channelId/*, globalDeviceStatus.m_openChannelPreviewAck.m_rtmpUUID*/);
@@ -691,8 +761,27 @@ static void *P_CtrlSocketThread()
 							}
 								break;
 							case 	CONTROL_PROTOCAL_UPLOAD_CHANNEL_KEYFRAME:
-								startVideoStream(&u32Handle,globalDeviceStatus.m_openChannelPreviewAck.m_video);
+								iRet=MakeKeyFrame();
+								LOGOUT("make key Frame iRet:%d",iRet);
 								break;
+							case	CONTROL_PROTOCAL_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG:
+							{
+								HI_S_Video_Ext deviceVedeioEx[]= {
+										1,0, 100,8 ,50,HI_TRUE,1,1280,710,
+									  	1,1, 200,12,50,HI_TRUE,1,640,352,
+									  	1,2, 500,16,50,HI_TRUE,1,320,176
+								};
+								MsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG;
+								memset(&mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG,0,sizeof(mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG));
+								iRet=get_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG(&recMsgHead,recMsgBuffer,&mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG);
+								if(iRet!=0) 
+									LOGOUT("get_DEVICE_REGISTER_ACK is %d",iRet);
+								if(mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG.m_video.u32Stream>=0 && mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG.m_video.u32Stream<=2)
+									mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG.m_video=deviceVedeioEx[2-mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG.m_video.u32Stream];
+								printfVideoParam("server setvideo",mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG.m_video);
+								startVideoStream(mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG.m_video);
+								break;
+							}
 							case	CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY_ACK:
 								break;
 							case	CONTROL_PROTOCAL_OPEN_CHANNEL_TALK_ACK:
@@ -764,7 +853,6 @@ int InitControlServer()
 {
 	int iRet;
 	pthread_t pCtrlThreadWork;
-	
 	startControlServer=TRUE;
 	iRet = pthread_create(&pCtrlThreadWork, NULL, P_CtrlSocketThread, NULL);
 	if(iRet)
@@ -773,6 +861,12 @@ int InitControlServer()
 		return -3;
 	}
 	pthread_detach(pCtrlThreadWork);
+	return 0;
+}
+int ReleaseControlServer()
+{
+	startControlServer=FALSE;
+	sleep(1);
 	return 0;
 }
 

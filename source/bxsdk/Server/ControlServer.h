@@ -85,6 +85,14 @@ typedef struct MsgBody_OPEN_CHANNEL_PREVIEW_
 	unsigned int 	m_isValid;
 }MsgBody_OPEN_CHANNEL_PREVIEW_ACK;
 
+typedef struct MsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG_
+{
+	unsigned int 	m_channelId;
+	HI_S_Video_Ext  m_video;
+	unsigned int 	m_isValid;
+}MsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG;
+
+
 typedef struct MsgBody_SETTIMEOUTDURATION_
 {
 	unsigned int 	m_uMsgType;//消息类型
@@ -136,6 +144,7 @@ typedef struct MsgGlobal_Device_
 extern "C" {
 #  endif /* __cplusplus */
 	int InitControlServer();
+	int ReleaseControlServer();
 #  ifdef __cplusplus
 }
 #  endif /* __cplusplus */

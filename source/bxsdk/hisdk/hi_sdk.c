@@ -1,33 +1,54 @@
+#include <stdio.h>
+#include <sys/syscall.h>//Linux system call for thread id
+#include <assert.h>
+#include <pthread.h>
 #include "hi_sdk.h"
 #include "../LogOut/LogOut.h"
 #include "../rtmp/RtmpDLL.h"
 
 
 
-extern PRTMPUnit pRtmpServer;
+extern PRTMPUnit 	pRtmpServer;
+static HI_U32 		u32HandleHight=0;
+static HI_U32 		u32HandleMid=0;
+static HI_U32 		u32HandleLow=0;
+static HI_U32 		u32ChannelFlag=0;  // 1 hight 2 mid 3 low
+static HI_S_Video_Ext curVideoParam;
 
-#if 0
-typedef struct HI_VideoEx
+int getVideoParam(HI_U32 *u32Handle,HI_S_Video_Ext *sVideo)
 {
-	HI_U32 u32Channel;      /* 通道 */
-	HI_BOOL blFlag;          /* 主、次码流  */
-	HI_U32 u32Bitrate;	/* 码流 */
-	HI_U32 u32Frame;    /* 帧率 */
-	HI_U32 u32Iframe;	/* 主帧间隔1-300 */
-	HI_BOOL blCbr;	    /* 码流模式、HI_TRUE为固定码流，HI_FALSE为可变码流 */		
-	HI_U32 u32ImgQuality;	/* 编码质量1-6 */
-	HI_U32 u32Width;
-	HI_U32 u32Height;
-} HI_S_VideoEx;
-
-const HI_VideoEx deviceVedeioEx[]= {
-										{1,HI_TRUE,}
-									  	{1280,720},
-									  	{640,352},
-									 	{320,176}
-									};
-#endif
-
+	HI_S32 s32Ret = HI_SUCCESS;
+	int iRet=-1;
+	s32Ret=HI_NET_DEV_GetConfig(*u32Handle,HI_NET_DEV_CMD_VIDEO_PARAM_EXT,sVideo,sizeof(HI_S_Video_Ext));
+	if (s32Ret != HI_SUCCESS)
+	{
+		LOGOUT("HI_NET_DEV_GetConfig is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);
+		iRet=ReleaseHiSDKServer(u32Handle);
+		iRet=InitHiSDKServer(u32Handle);
+		if(iRet==0)
+		{
+			s32Ret=HI_NET_DEV_GetConfig(*u32Handle,HI_NET_DEV_CMD_VIDEO_PARAM_EXT,sVideo,sizeof(HI_S_Video_Ext));
+			
+			if (s32Ret != HI_SUCCESS)
+			{
+				LOGOUT("HI_NET_DEV_GetConfig is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);
+				iRet=ReleaseHiSDKServer(u32Handle);
+				return -2;
+			}
+			else
+			{
+				return 0;
+			}	
+		}
+		else
+		{
+			LOGOUT("InitHiSDKServer is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);
+			*u32Handle = 0;
+			return -3;
+		}
+	}  	
+	return 0;
+}
 
 HI_S32 OnEventCallback(HI_U32 u32Handle, /* 句柄 */
                                 HI_U32 u32Event,      /* 事件 */
@@ -53,9 +74,10 @@ HI_S32 OnStreamCallback(HI_U32 u32Handle, /* 句柄 */
                                 )
 {
 
+
 	HI_S_AVFrame* pstruAV = HI_NULL;
 	HI_S_SysHeader* pstruSys = HI_NULL;
-	
+	HI_U32 validU32Handle=0;
 
 	if (u32DataType == HI_NET_DEV_AV_DATA)
 	{
@@ -63,13 +85,36 @@ HI_S32 OnStreamCallback(HI_U32 u32Handle, /* 句柄 */
 
 		if (pstruAV->u32AVFrameFlag == HI_NET_DEV_VIDEO_FRAME_FLAG)
 		{
+
+			//printf("child thread lwpid=%u\n",syscall(SYS_gettid));
+			//printf("child thread tid=%u\n",pthread_self());
 			//printf("Video %u PTS: %u \n", pstruAV->u32VFrameType, pstruAV->u32AVFramePTS);
 			//SaveRecordFile("Video.hx", pu8Buffer, u32Length);
-			if(pRtmpServer!=NULL)
+			switch(u32ChannelFlag)
 			{
-				SendVideoUnit(pRtmpServer,pu8Buffer+sizeof(HI_S_AVFrame),u32Length-sizeof(HI_S_AVFrame),pstruAV->u32AVFramePTS);
-				if(pstruAV->u32VFrameType==1)
-					LOGOUT("Get Video %u PTS: %u \n", pstruAV->u32VFrameType, pstruAV->u32AVFramePTS);
+				case 1:
+						validU32Handle=u32HandleHight;
+						break;
+						
+				case 2:
+						validU32Handle=u32HandleMid;
+						break;
+				case 3:
+						validU32Handle=u32HandleLow;
+						break;	
+				default:
+						validU32Handle=u32HandleMid;
+						break;
+			}
+			if(validU32Handle==u32Handle)
+			{
+				if(pRtmpServer!=NULL)
+				{
+					SendVideoUnit(pRtmpServer,pu8Buffer+sizeof(HI_S_AVFrame),u32Length-sizeof(HI_S_AVFrame),pstruAV->u32AVFramePTS);
+					if(pstruAV->u32VFrameType==1)
+						LOGOUT("Get Video %u PTS: %u \n", pstruAV->u32VFrameType, pstruAV->u32AVFramePTS);
+				}
+
 			}
 		}
 		else
@@ -196,12 +241,13 @@ int getIPAndPort(char * path,char ip[64],char port[64])
 	return iRet;
 }
 
-int InitHiSDKServer(HI_U32 *u32Handle)
+
+int InitHiSDKServer(HI_U32 *u32Handle,HI_U32 u32Stream)
 {
     HI_S32 s32Ret = HI_SUCCESS;
 	HI_U32 a;
-    HI_NET_DEV_Init();
-
+	HI_S_STREAM_INFO_EXT struStreamInfo;
+	
 	char uname[64]={0,};
 	char password[64]={0,};
 	memset(uname,0,sizeof(uname));
@@ -232,15 +278,22 @@ int InitHiSDKServer(HI_U32 *u32Handle)
 	if(strlen(port)==0)
 		memcpy(port,IPPORT,MIN(sizeof(port),strlen(IPPORT)));
 	HI_U16 u16Port=atoi(port);
+	if(*u32Handle!=0)
+	{
+		s32Ret = HI_NET_DEV_Logout(*u32Handle);
+		if (s32Ret != HI_SUCCESS)
+		{
+			LOGOUT("HI_NET_DEV_Logout is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);	
+		}	
+	}
     s32Ret = HI_NET_DEV_Login(u32Handle,uname,password,ip,u16Port);
     if(s32Ret != HI_SUCCESS)
     {
-        HI_NET_DEV_DeInit();
 		*u32Handle=0;
 		LOGOUT("HI_NET_DEV_Login is failure 0x%x",s32Ret);
 		return -1;
     }
-	#if 0
+	
 	s32Ret=HI_NET_DEV_SetEventCallBack(*u32Handle, OnEventCallback, &a);
 	if(s32Ret != HI_SUCCESS)
 	{
@@ -250,15 +303,10 @@ int InitHiSDKServer(HI_U32 *u32Handle)
 		{
 			LOGOUT("HI_NET_DEV_Logout is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);	
 		}	
-		s32Ret = HI_NET_DEV_DeInit();
-		if (s32Ret != HI_SUCCESS)
-		{
-			LOGOUT("HI_NET_DEV_DeInit is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);	
-		}	
 		*u32Handle = 0;
 		return -2;
 	}
-	#endif
+	
 	s32Ret=HI_NET_DEV_SetStreamCallBack(*u32Handle, OnStreamCallback, &a);
 	if(s32Ret != HI_SUCCESS)
 	{
@@ -268,15 +316,10 @@ int InitHiSDKServer(HI_U32 *u32Handle)
 		{
 			LOGOUT("HI_NET_DEV_Logout is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);	
 		}	
-		s32Ret = HI_NET_DEV_DeInit();
-		if (s32Ret != HI_SUCCESS)
-		{
-			LOGOUT("HI_NET_DEV_DeInit is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);	
-		}	
 		*u32Handle = 0;
 		return -3;
 	}
-	#if 0
+	//#if 0
 	s32Ret=HI_NET_DEV_SetDataCallBack(*u32Handle, OnDataCallback, &a);
 	if(s32Ret != HI_SUCCESS)
 	{
@@ -286,55 +329,50 @@ int InitHiSDKServer(HI_U32 *u32Handle)
 		{
 			LOGOUT("HI_NET_DEV_Logout is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);	
 		}	
-		s32Ret = HI_NET_DEV_DeInit();
-		if (s32Ret != HI_SUCCESS)
-		{
-			LOGOUT("HI_NET_DEV_DeInit is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);	
-		}	
 		*u32Handle = 0;
 		return -4;
 	}
-	#endif
-	return 0;
-}
-
-int getVideoParam(HI_U32 *u32Handle,HI_S_Video_Ext *sVideo)
-{
-	HI_S32 s32Ret = HI_SUCCESS;
-	int iRet=-1;
-	s32Ret=HI_NET_DEV_GetConfig(*u32Handle,HI_NET_DEV_CMD_VIDEO_PARAM_EXT,sVideo,sizeof(HI_S_Video_Ext));
+	//#endif
+	struStreamInfo.u32Stream = u32Stream;
+	struStreamInfo.u32Channel = HI_NET_DEV_CHANNEL_1;
+	struStreamInfo.u32Mode = HI_NET_DEV_STREAM_MODE_TCP;
+	struStreamInfo.u8Type = HI_NET_DEV_STREAM_VIDEO_AUDIO;
+	s32Ret = HI_NET_DEV_StartStreamExt(*u32Handle, &struStreamInfo);
 	if (s32Ret != HI_SUCCESS)
 	{
-		LOGOUT("HI_NET_DEV_GetConfig is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);
+		LOGOUT("HI_NET_DEV_StartStream is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);
 		iRet=ReleaseHiSDKServer(u32Handle);
-		iRet=InitHiSDKServer(u32Handle);
-		if(iRet==0)
-		{
-			s32Ret=HI_NET_DEV_GetConfig(*u32Handle,HI_NET_DEV_CMD_VIDEO_PARAM_EXT,sVideo,sizeof(HI_S_Video_Ext));
-			
-			if (s32Ret != HI_SUCCESS)
-			{
-				LOGOUT("HI_NET_DEV_GetConfig is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);
-				iRet=ReleaseHiSDKServer(u32Handle);
-				return -2;
-			}
-			else
-			{
-				return 0;
-			}	
-		}
-		else
+		if(iRet!=0)
 		{
 			LOGOUT("InitHiSDKServer is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);
 			*u32Handle = 0;
 			return -3;
 		}
-	}  	
+	}
 	return 0;
 }
 
-
-int setVideoParam(HI_U32 *u32Handle,HI_S_Video_Ext sVideo)
+int ReleaseHiSDKServer(HI_U32 *u32Handle)
+{
+	
+	HI_S32 s32Ret = HI_SUCCESS;
+	if(*u32Handle != 0)
+	{
+		s32Ret = HI_NET_DEV_StopStream(*u32Handle);
+		if (s32Ret != HI_SUCCESS)
+		{
+			LOGOUT("HI_NET_DEV_StopStream is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);	
+		}
+		s32Ret = HI_NET_DEV_Logout(*u32Handle);
+		if (s32Ret != HI_SUCCESS)
+		{
+			LOGOUT("HI_NET_DEV_Logout is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);	
+		}	
+		*u32Handle=0;
+	}
+	return 0;
+}
+int setVideoParam(HI_U32 *u32Handle,HI_S_Video_Ext sVideo,HI_U32 u32Steam)
 {
 	HI_S32 s32Ret = HI_SUCCESS;
 	int iRet=-1;
@@ -344,7 +382,7 @@ int setVideoParam(HI_U32 *u32Handle,HI_S_Video_Ext sVideo)
 	{
 		LOGOUT("HI_NET_DEV_SetConfig is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);
 		iRet=ReleaseHiSDKServer(u32Handle);
-		iRet=InitHiSDKServer(u32Handle);
+		iRet=InitHiSDKServer(u32Handle,u32Steam);
 		if(iRet==0)
 		{
 			s32Ret=HI_NET_DEV_SetConfig(*u32Handle,HI_NET_DEV_CMD_VIDEO_PARAM_EXT,&sVideo,sizeof(HI_S_Video_Ext));
@@ -370,97 +408,112 @@ int setVideoParam(HI_U32 *u32Handle,HI_S_Video_Ext sVideo)
 	return 0;
 }
 
-HI_U32 u32SaveStream=10; 
-int startVideoStream(HI_U32 *u32Handle,HI_S_Video_Ext sVideo)
+int startVideoStream(HI_S_Video_Ext sVideo)
 {
 	HI_S32 s32Ret = HI_SUCCESS;
-	HI_S_STREAM_INFO_EXT struStreamInfo;
 	int iRet=-1;
 	HI_U32 a;
-	int isImageValid=0;
+	HI_U32 *ptrU32Handle=NULL;
 
 	if(sVideo.u32Width==DEVICEWIDTHBIG && sVideo.u32Height==DEVICEHIGHHBIG)
 	{
 		
 		sVideo.u32Stream=0;
-		struStreamInfo.u32Stream=0;
 		sVideo.u32Width=DEVICEWIDTHBIG;
 		sVideo.u32Height=DEVICEHIGHHBIG;
-		isImageValid=1;
+		u32ChannelFlag=1;
+		ptrU32Handle=&u32HandleHight;
+		
 	}
 	else if(sVideo.u32Width==DEVICEWIDTHMID && sVideo.u32Height==DEVICEHIGHHMID)
 	{
 		sVideo.u32Stream=1;
-		struStreamInfo.u32Stream=0;
-		isImageValid=1;
+		u32ChannelFlag=2;
+		ptrU32Handle=&u32HandleMid;
 	}
+	
 	else if(sVideo.u32Width==DEVICEWIDTHSMALL && sVideo.u32Height==DEVICEHIGHHSMALL)
 	{
-		sVideo.u32Stream=1;
-		struStreamInfo.u32Stream=2;
-		isImageValid=1;
+		sVideo.u32Stream=2;
+		u32ChannelFlag=3;
+		ptrU32Handle=&u32HandleLow;
 	}
+	
 	else
 	{
-		struStreamInfo.u32Stream=1;
 		sVideo.u32Stream=1;
 		sVideo.u32Width=DEVICEWIDTHMID;
 		sVideo.u32Height=DEVICEHIGHHMID;
-		isImageValid=1;
+		u32ChannelFlag=2;
+		ptrU32Handle=&u32HandleMid;
 	}
-
-	if(u32SaveStream!=struStreamInfo.u32Stream)
+	curVideoParam=sVideo;
+	if(*ptrU32Handle == 0)
 	{
-		ReleaseHiSDKServer(u32Handle);
-	}
-	
-	if(*u32Handle == 0)
-	{
-		iRet=InitHiSDKServer(u32Handle);
+		iRet=InitHiSDKServer(ptrU32Handle,sVideo.u32Stream);
 		if(iRet!=0)
 		{
-			LOGOUT("InitHiSDKServer is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);
-			*u32Handle = 0;
+			LOGOUT("InitHiSDKServer is failure handle:%u,failcode:0x%x",*ptrU32Handle,iRet);
+			ptrU32Handle = 0;
 			return -1;
 		}
-		LOGOUT("InitHiSDKServer over %u",*u32Handle);
+		LOGOUT("InitHiSDKServer channle=%d over %u",u32ChannelFlag,*ptrU32Handle);
 	}
-	setVideoParam(u32Handle,sVideo);	
 	
-	struStreamInfo.u32Channel = HI_NET_DEV_CHANNEL_1;
-	struStreamInfo.u32Mode = HI_NET_DEV_STREAM_MODE_TCP;
-	struStreamInfo.u8Type = HI_NET_DEV_STREAM_VIDEO_AUDIO;
-	s32Ret = HI_NET_DEV_StartStreamExt(*u32Handle, &struStreamInfo);
-	u32SaveStream=struStreamInfo.u32Stream;
+	iRet=setVideoParam(ptrU32Handle,sVideo,sVideo.u32Stream);
+	if(iRet!=0)
+		LOGOUT("setVideoParam channle=%d over %u",u32ChannelFlag,*ptrU32Handle);
+	iRet=MakeKeyFrame();
+	if(iRet!=0)
+		LOGOUT("MakeKeyFrame channle=%d over %u",u32ChannelFlag,*ptrU32Handle);
+	return iRet;
+
+}
+
+int MakeKeyFrame()
+{
+	HI_U32 *ptrU32Handle=NULL;
+	HI_S_Video_Ext sVideo;
+	HI_U32 u32Channel=0;
+	HI_S32 s32Ret = HI_SUCCESS;
+	
+	if( curVideoParam.u32Height==0)
+	{
+		return -1;
+	}
+	sVideo=curVideoParam;
+	if(sVideo.u32Width==DEVICEWIDTHBIG && sVideo.u32Height==DEVICEHIGHHBIG)
+	{
+		ptrU32Handle=&u32HandleHight;
+		u32Channel=11;
+	}
+	else if(sVideo.u32Width==DEVICEWIDTHMID && sVideo.u32Height==DEVICEHIGHHMID)
+	{
+		ptrU32Handle=&u32HandleMid;
+		u32Channel=12;
+	}
+	
+	else if(sVideo.u32Width==DEVICEWIDTHSMALL && sVideo.u32Height==DEVICEHIGHHSMALL)
+	{
+		ptrU32Handle=&u32HandleLow;
+		u32Channel=13;
+	}
+	else
+	{
+		ptrU32Handle=&u32HandleMid;
+		u32Channel=12;
+	}
+	s32Ret=HI_NET_DEV_MakeKeyFrame(*ptrU32Handle,u32Channel);
 	if (s32Ret != HI_SUCCESS)
 	{
-		LOGOUT("HI_NET_DEV_StartStream is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);
-		iRet=ReleaseHiSDKServer(u32Handle);
-		iRet=InitHiSDKServer(u32Handle);
-		if(iRet==0)
-		{
-			s32Ret =  HI_NET_DEV_StartStreamExt(*u32Handle, &struStreamInfo);
-			if (s32Ret != HI_SUCCESS)
-			{
-				LOGOUT("HI_NET_DEV_StartStream is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);
-				iRet=ReleaseHiSDKServer(u32Handle);
-				return -2;
-			}
-			else
-			{
-				return 0;
-			}	
-		}
-		else
-		{
-			LOGOUT("InitHiSDKServer is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);
-			*u32Handle = 0;
-			return -3;
-		}
-	}   
+		LOGOUT("HI_NET_DEV_MakeKeyFrame is failure handle:%u,failcode:0x%x",*ptrU32Handle,s32Ret);
+		return -2;
+	}
+	else
+	{
+		return 0;
+	}	
 	
-	return 0;
-
 }
 
 int stopVideoStream(HI_U32 *u32Handle)
@@ -476,26 +529,38 @@ int stopVideoStream(HI_U32 *u32Handle)
     return 0;
 }
 
-int ReleaseHiSDKServer(HI_U32 *u32Handle)
+int InitHiSDKVideoAllChannel()
 {
-	
-	HI_S32 s32Ret = HI_SUCCESS;
-	if(*u32Handle != 0)
-	{
-		s32Ret = HI_NET_DEV_StopStream(*u32Handle);
-		if (s32Ret != HI_SUCCESS)
-		{
-			LOGOUT("HI_NET_DEV_StopStream is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);	
-		}
-		s32Ret = HI_NET_DEV_Logout(*u32Handle);
-		if (s32Ret != HI_SUCCESS)
-		{
-			LOGOUT("HI_NET_DEV_Logout is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);	
-		}	
-		*u32Handle=0;
-	}
-	return 0;
-}
-    
+	HI_NET_DEV_Init();
+	memset(&curVideoParam,0,sizeof(curVideoParam));
+	int iRet=InitHiSDKServer(&u32HandleHight,0);
+	if(iRet!=0)
+		LOGOUT("InitHiSDKServer Hight is faliure,iRet=%d",iRet);
+	iRet=InitHiSDKServer(&u32HandleMid,1);
+	if(iRet!=0)
+		LOGOUT("InitHiSDKServer Mid is faliure,iRet=%d",iRet);
+	iRet=InitHiSDKServer(&u32HandleLow,2);
+	if(iRet!=0)
+		LOGOUT("InitHiSDKServer Low is faliure,iRet=%d",iRet);
+	LOGOUT("hight handle 0x%x=%d,mid handle 0x%x=%d,low handle 0x%x=%d",&u32HandleHight,u32HandleHight,
+			&u32HandleMid,u32HandleMid,&u32HandleLow,u32HandleLow);
+	return iRet;
+}  
 
+
+int ReleaseHiSDKVideoAllChannel()
+{
+	int iRet=ReleaseHiSDKServer(&u32HandleHight);
+	if(iRet!=0)
+		LOGOUT("ReleaseHiSDKServer Hight is faliure,iRet=%d",iRet);
+	iRet= ReleaseHiSDKServer(&u32HandleMid);
+	if(iRet!=0)
+		LOGOUT("ReleaseHiSDKServer Mid is faliure,iRet=%d",iRet);
+	iRet=ReleaseHiSDKServer(&u32HandleLow);
+	if(iRet!=0)
+		LOGOUT(" ReleaseHiSDKServer Low is faliure,iRet=%d",iRet);
+	HI_NET_DEV_DeInit();
+	return iRet;
+
+}
 
