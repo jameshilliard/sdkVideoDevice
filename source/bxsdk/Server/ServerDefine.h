@@ -95,7 +95,7 @@ typedef struct MsgHead_
 #define		CONTROLSERVERPORT	5000
 #define 	SZYPORT				8006
 
-#define 	ROUTESERVER			"www.benxunshida.com"
+#define 	ROUTESERVER		"www.benxunshida.com"
 #define 	USER				"pick@testdevice"
 //#define 	USER				"pick@sd3"
 

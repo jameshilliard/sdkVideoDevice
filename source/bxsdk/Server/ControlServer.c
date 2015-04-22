@@ -14,7 +14,7 @@
 PRTMPUnit pRtmpServer;
 static BOOL startControlServer=TRUE;
 PRTMPUnit pRtmpServer=NULL;
-
+char serverNo[64]={0,};
 static int isValidPacket(LPTSTR recBuffer,DWORD recLength,MsgHead *vMsgHead,LPTSTR msgBuffer,DWORD msgLength)
 {
 	if(recBuffer==NULL || vMsgHead==NULL || msgBuffer==NULL)
@@ -94,6 +94,43 @@ static int getParamFormString(LPTSTR msgBuffer,String_Array_Param *pStringArrayP
 }
 #endif
 
+#define 	SERVERFILE					"/mnt/mtd/ipc/conf/config_platform.ini"
+int getServerNo(char * path,char serverNo[64])
+{
+	FILE * fp;  
+	char * line = NULL;  
+	size_t len = 0;  
+	ssize_t read;  
+	int count=0;
+	char *findPtr=NULL;
+	int iRet=-1;
+	fp = fopen(path, "r");  
+	if(fp == NULL)  
+		return -1;
+	while((read = getline(&line, &len, fp)) != -1) 
+	{    
+		 if(strstr(line,"uid")==line)
+		 {
+			findPtr=strchr(line,'"');
+			if(findPtr!=NULL)
+			{
+				iRet=sscanf(findPtr,"\"%s\"",serverNo);
+				if(iRet==1)
+				{
+					printf("serverNo is %s\n",serverNo);
+					iRet=0;
+					break;
+				}
+				
+			}
+		 }
+	}  
+	if (line)  
+	 	free(line);  
+	if(fp != NULL)
+		fclose(fp);
+	return iRet;
+}
 static long long getTimeStamp(void)
 {
 	time_t time_of_day;
@@ -602,7 +639,7 @@ static void *P_CtrlSocketThread()
 			mMsgBody_DEVICE_IDENTITY_VERIFY.m_uMsgType=CONTROL_PROTOCAL_DEVICE_IDENTITY_VERIFY;
 			mMsgBody_DEVICE_IDENTITY_VERIFY.m_user=USER;
 			mMsgBody_DEVICE_IDENTITY_VERIFY.m_secret=SECRET;
-			mMsgBody_DEVICE_IDENTITY_VERIFY.m_serverNo=SERVERNO0;
+			mMsgBody_DEVICE_IDENTITY_VERIFY.m_serverNo=serverNo;
 			iRet=sendConServerMessage(socketId,CONTROL_PROTOCAL_DEVICE_IDENTITY_VERIFY,(void *)&mMsgBody_DEVICE_IDENTITY_VERIFY);
 			if(iRet==0)
 			{
@@ -611,11 +648,11 @@ static void *P_CtrlSocketThread()
 				nowTimeMs=getTickCountMs();
 				lastSendBeatTimeMs=nowTimeMs;
 				lastRecvBeatTimeMs=nowTimeMs;
-				LOGOUT("sendConnectServerLoginMessage %d %s %s %s",socketId,USER,SECRET,SERVERNO0);
+				LOGOUT("sendConnectServerLoginMessage %d %s %s %s",socketId,USER,SECRET,serverNo);
 			}
 			else
 			{
-				LOGOUT("sendConnectServerLoginMessage pushdata error %d %s %s %s",socketId,USER,SECRET,SERVERNO0);
+				LOGOUT("sendConnectServerLoginMessage pushdata error %d %s %s %s",socketId,USER,SECRET,serverNo);
 				clientStaus=StatusDisConn;
 			}
 		}
@@ -661,7 +698,7 @@ static void *P_CtrlSocketThread()
 								mMsgBody_DEVICE_REGISTER.m_deviceProduct=DEVICEPRODUCT;
 								mMsgBody_DEVICE_REGISTER.m_deviceModel=DEVICEMODEL;
 								mMsgBody_DEVICE_REGISTER.m_deviceMacAddr=deviceNetInfo.m_MACAddress;
-								mMsgBody_DEVICE_REGISTER.m_deviceServerNo=SERVERNO0;
+								mMsgBody_DEVICE_REGISTER.m_deviceServerNo=serverNo;
 								mMsgBody_DEVICE_REGISTER.m_deviceChannelStartNum=DEVICECHANNELSTARTNUM;
 								mMsgBody_DEVICE_REGISTER.m_deviceType=DEVICETYPE;
 								mMsgBody_DEVICE_REGISTER.m_deviceChannelNum=DEVICECHANNELNUM;
@@ -853,6 +890,12 @@ int InitControlServer()
 {
 	int iRet;
 	pthread_t pCtrlThreadWork;
+	memset(serverNo,0,sizeof(serverNo));
+	iRet=getServerNo(SERVERFILE,serverNo);
+	if(iRet!=0)
+	{
+		LOGOUT("getServerNo is error iRet=%d",iRet);
+	}
 	startControlServer=TRUE;
 	iRet = pthread_create(&pCtrlThreadWork, NULL, P_CtrlSocketThread, NULL);
 	if(iRet)

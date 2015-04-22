@@ -144,7 +144,6 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 	return HI_SUCCESS;
 }
 
-
 int getUnameAndPassWord(char * path,char uname[64],char password[64])
 {
 	FILE * fp;  
@@ -160,7 +159,7 @@ int getUnameAndPassWord(char * path,char uname[64],char password[64])
 		return -1;
 	while((read = getline(&line, &len, fp)) != -1) 
 	{    
-		 if(strstr(line,"username")!=NULL)
+		 if(strstr(line,"username")==line)
 		 {
 			findPtr=strchr(line,'"');
 			if(findPtr!=NULL)
@@ -172,7 +171,7 @@ int getUnameAndPassWord(char * path,char uname[64],char password[64])
 			}
 		 }
 		 
-		 if(strstr(line,"password")!=NULL)
+		 if(strstr(line,"password")==line)
 		 {
 			findPtr=strchr(line,'"');
 			if(findPtr!=NULL)
@@ -209,7 +208,7 @@ int getIPAndPort(char * path,char ip[64],char port[64])
 		return -1;
 	while((read = getline(&line, &len, fp)) != -1) 
 	{    
-		 if(strstr(line,"ipaddr")!=NULL)
+		 if(strstr(line,"ipaddr")==line)
 		 {
 			findPtr=strchr(line,'"');
 			if(findPtr!=NULL)
@@ -219,7 +218,7 @@ int getIPAndPort(char * path,char ip[64],char port[64])
 			}
 		 }
 		 
-		 if(strstr(line,"httpport")!=NULL)
+		 if(strstr(line,"httpport")==line)
 		 {
 			findPtr=strchr(line,'"');
 			if(findPtr!=NULL)
