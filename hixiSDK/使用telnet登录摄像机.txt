@@ -1,0 +1,8 @@
+
+1、在开始菜单——“运行”——打开下拉框输入  telnet 摄像机IP 进入DOS模式
+
+2、IPCamera login: 输入用户名admin, Password: HX2105（字母要大写）
+
+3、在提示Welcome to HiLinux.后，输入 su，Password: 2105hichip
+
+
