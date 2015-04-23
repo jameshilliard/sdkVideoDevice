@@ -111,8 +111,8 @@ HI_S32 OnStreamCallback(HI_U32 u32Handle, /* ¾ä±ú */
 				if(pRtmpServer!=NULL)
 				{
 					SendVideoUnit(pRtmpServer,pu8Buffer+sizeof(HI_S_AVFrame),u32Length-sizeof(HI_S_AVFrame),pstruAV->u32AVFramePTS);
-					if(pstruAV->u32VFrameType==1)
-						LOGOUT("Get Video %u PTS: %u \n", pstruAV->u32VFrameType, pstruAV->u32AVFramePTS);
+					//if(pstruAV->u32VFrameType==1)
+					//	LOGOUT("Get Video %u PTS: %u \n", pstruAV->u32VFrameType, pstruAV->u32AVFramePTS);
 				}
 
 			}
@@ -437,34 +437,56 @@ int startVideoStream(HI_S_Video_Ext sVideo)
 		u32ChannelFlag=3;
 		ptrU32Handle=&u32HandleLow;
 	}
-	
 	else
 	{
-		sVideo.u32Stream=1;
-		sVideo.u32Width=DEVICEWIDTHMID;
-		sVideo.u32Height=DEVICEHIGHHMID;
-		u32ChannelFlag=2;
-		ptrU32Handle=&u32HandleMid;
+		LOGOUT("set video invlid width=%d height=%d",sVideo.u32Width,sVideo.u32Height);
+		return -1;
 	}
+	if(sVideo.u32ImgQuality<1 || sVideo.u32ImgQuality>6)
+	{
+		LOGOUT("set video invlid u32ImgQuality=%d",sVideo.u32ImgQuality);
+		return -1;
+	}
+	if(sVideo.u32Bitrate==0)
+	{
+		LOGOUT("set video invlid u32Bitrate");
+		return -1;
+	}	
+	if(sVideo.u32Frame==0)
+	{
+		LOGOUT("set video invlid u32Frame");
+		return -1;
+	}
+	if(sVideo.u32Iframe==0)
+	{
+		LOGOUT("set video invlid u32Iframe");
+		return -1;
+	}	
 	curVideoParam=sVideo;
 	if(*ptrU32Handle == 0)
 	{
 		iRet=InitHiSDKServer(ptrU32Handle,sVideo.u32Stream);
 		if(iRet!=0)
 		{
-			LOGOUT("InitHiSDKServer is failure handle:%u,failcode:0x%x",*ptrU32Handle,iRet);
+			LOGOUT("InitHiSDKServer channle=%d is failure handle:%u,failcode:0x%x",u32ChannelFlag,*ptrU32Handle,iRet);
 			ptrU32Handle = 0;
-			return -1;
+			return -2;
 		}
 		LOGOUT("InitHiSDKServer channle=%d over %u",u32ChannelFlag,*ptrU32Handle);
 	}
 	
 	iRet=setVideoParam(ptrU32Handle,sVideo,sVideo.u32Stream);
 	if(iRet!=0)
+	{
 		LOGOUT("setVideoParam channle=%d over %u",u32ChannelFlag,*ptrU32Handle);
+		iRet=-3;
+	}	
 	iRet=MakeKeyFrame();
 	if(iRet!=0)
-		LOGOUT("MakeKeyFrame channle=%d over %u",u32ChannelFlag,*ptrU32Handle);
+	{	
+		LOGOUT("MakeKeyFrame channle=%d over %u iRet=%d",u32ChannelFlag,*ptrU32Handle,iRet);
+		iRet=-4;
+	}
 	return iRet;
 
 }

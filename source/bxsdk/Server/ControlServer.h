@@ -82,8 +82,19 @@ typedef struct MsgBody_OPEN_CHANNEL_PREVIEW_
 	char 			m_rtmpPath[PARAMSIZE];	
 	char 			m_rtmpUUID[PARAMSIZE];	
 	HI_S_Video_Ext    m_video;
+	char 			m_serverStamp[PARAMSIZE];
 	unsigned int 	m_isValid;
 }MsgBody_OPEN_CHANNEL_PREVIEW_ACK;
+
+
+typedef struct MsgBody_PREVIEW_FAILURE_NOTIFY_
+{
+	unsigned int 	m_uMsgType;//消息类型
+	unsigned int 	m_channelId;
+	int 			m_failureType;//-1 失败-2 码流配置失败（超出支持）
+	char 			m_serverStamp[PARAMSIZE];		
+}MsgBody_PREVIEW_FAILURE_NOTIFY;
+
 
 typedef struct MsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG_
 {

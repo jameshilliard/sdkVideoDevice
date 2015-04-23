@@ -60,7 +60,7 @@ typedef enum {
 	CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY		= 	0x3053,   //远程预览失败通知
 	CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY_ACK	= 	0x3054, //远程预览失败通知应答
 	CONTROL_PROTOCAL_UPLOAD_CHANNEL_KEYFRAME 	= 	0x3A0C,   //上传关键帧通知
-	CONTROL_PROTOCAL_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG  	= 	0x3A27,//切换通道画质配置通知
+	CONTROL_PROTOCAL_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG  	= 	0x3A26,//切换通道画质配置通知
 	CONTROL_PROTOCAL_OPEN_CHANNEL_TALK          = 	0x3110,   //开启通道远程对讲通知
 	CONTROL_PROTOCAL_OPEN_CHANNEL_TALK_ACK      = 	0x3111,  //开启通道远程对讲应答
 	CONTROL_PROTOCAL_CLOSE_CHANNEL_TALK       	= 	0x3A19,    //关闭通道远程对讲通知
@@ -93,9 +93,9 @@ typedef struct MsgHead_
 
 #define		ROUTESERVERPORT		5002
 #define		CONTROLSERVERPORT	5000
-#define 	SZYPORT				8006
 
-#define 	ROUTESERVER		"www.benxunshida.com"
+//#define 	ROUTESERVER			"www.benxunshida.com"
+#define 	ROUTESERVER			"121.43.234.112"
 #define 	USER				"pick@testdevice"
 //#define 	USER				"pick@sd3"
 
@@ -106,7 +106,7 @@ typedef struct MsgHead_
 //#define 	SERVERNO1			"hk000001"
 //#define 	SERVERNO2			"hk000002"
 
-#define		DEVICEPRODUCT					"bxsd"
+#define		DEVICEPRODUCT					"BXSD"
 #define 	DEVICEMODEL 					"9100"
 #define 	DEVICETYPE						"IPC"
 #define		DEFAULTDEVICEMACADDR			"94-DE-80-53-0A-90"

@@ -15,6 +15,14 @@ PRTMPUnit pRtmpServer;
 static BOOL startControlServer=TRUE;
 PRTMPUnit pRtmpServer=NULL;
 char serverNo[64]={0,};
+static unsigned int beatPrintfTimes=0;
+//HI_S_Video_Ext deviceVedeioEx[]= {
+//		1,0, 100,8 ,50,HI_TRUE,1,1280,710,
+//		1,1, 200,12,50,HI_TRUE,1,640,352,
+//		1,2, 500,16,50,HI_TRUE,1,320,176
+//};
+
+
 static int isValidPacket(LPTSTR recBuffer,DWORD recLength,MsgHead *vMsgHead,LPTSTR msgBuffer,DWORD msgLength)
 {
 	if(recBuffer==NULL || vMsgHead==NULL || msgBuffer==NULL)
@@ -30,71 +38,8 @@ static int isValidPacket(LPTSTR recBuffer,DWORD recLength,MsgHead *vMsgHead,LPTS
 	return 0;
 }
 
-#if 0
-static int getStringArrayParam(String_Param * pStringParam)
-{
-	if(pStringParam->m_StartAddr==NULL || pStringParam->m_OverAddr==NULL)
-		return -1;
-	if(pStringParam->m_StartAddr>pStringParam->m_OverAddr)
-		return -2;
-	INT16U i=0;
-	LPTSTR ptrStartSymbol=pStringParam->m_StartAddr;
-	LPTSTR ptrNextStartSymbol=ptrStartSymbol;
-	for(i=0;i<PARAMNUM;i++)
-	{
-		ptrNextStartSymbol=memchr(ptrStartSymbol,PARAMEQUALSYMBOL,pStringParam->m_OverAddr-ptrStartSymbol+1);
-		if(ptrNextStartSymbol!=NULL)
-		{
-			pStringParam->m_paramStartAddr[i]=ptrStartSymbol;
-			pStringParam->m_paramOverAddr[i]=ptrNextStartSymbol-1;
-			pStringParam->m_validParamNum++;
-			if((ptrNextStartSymbol+1)<=pStringParam->m_OverAddr)
-				ptrStartSymbol=ptrNextStartSymbol+1;
-			else
-				break;
-		}
-		else
-		{
-			pStringParam->m_paramStartAddr[i]=ptrStartSymbol;
-			pStringParam->m_paramOverAddr[i]=pStringParam->m_OverAddr;
-			pStringParam->m_validParamNum++;
-			break;
-		}
-	}	
-	return 0;
-}
-	
-static int getParamFormString(LPTSTR msgBuffer,String_Array_Param *pStringArrayParam)
-{
-	if(msgBuffer==NULL || pStringArrayParam==NULL)
-		return -1;
-	INT16U msgLength=strlen(msgBuffer);
-	if((msgBuffer[0]!=PARAMSTARTSYMBOL) || (msgBuffer[msgLength-1]!=PARAMOVERSYMBOL))
-		return -2;
-	LPTSTR ptrMidStartSymbol=strchr(msgBuffer);
-	if(ptrMidStartSymbol==NULL)
-	{
-		pStringArrayParam->m_validArrayParamNum=1;
-		pStringArrayParam->m_stringArrayParam[0].m_validParamNum=0;
-		pStringArrayParam->m_stringArrayParam[0].m_StartAddr=msgBuffer+1;
-		pStringArrayParam->m_stringArrayParam[0].m_OverAddr=msgBuffer+msgLength-1;
-		getStringArrayParam(&pStringArrayParam->m_stringArrayParam[0]);
-	}
-	else
-	{
-		LPTSTR ptrEuqualStartSymbol=strchr(msgBuffer);
-		if(ptrEuqualStartSymbol!=NULL)
-		{
-			if(ptrEuqualStartSymbol<ptrMidStartSymbol)
-		}
-		
-		
-	}
-	return 0;
-}
-#endif
-
 #define 	SERVERFILE					"/mnt/mtd/ipc/conf/config_platform.ini"
+
 int getServerNo(char * path,char serverNo[64])
 {
 	FILE * fp;  
@@ -237,12 +182,14 @@ static int get_OPEN_CHANNEL_PREVIEW(MsgHead *vMsgHead,LPCTSTR msgBuffer,MsgBody_
 	char u32BitrateString[32]={0,};
 	char u32FrameString[32]={0,};
 	char u32ImgQualityString[32]={0,};
+	char u32IFrameString[32]={0,};
 	
 	//[112.124.113.127:1935:live:100:benxun123456:0:1080:720:32:6:12:60]
-	//[121.43.234.112:1935:live:1739:12345678:1:640:352:0:200:1:12:128] 
-	iRet=sscanf(msgBuffer,"[%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^']']",
+	
+	//[121.43.234.112:1935:live:1739:12345678:1:320:176:0:100:1:8:128:1429778918924] 
+	iRet=sscanf(msgBuffer,"[%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^']']",
 				pParam->m_rtmpIp,rtmpPortString,pParam->m_rtmpPath,channelIdString,pParam->m_rtmpUUID,blFlagString
-				,u32WidthString,u32HeightString,blCbrString,u32BitrateString,u32ImgQualityString,u32FrameString,leftString);
+				,u32WidthString,u32HeightString,blCbrString,u32BitrateString,u32ImgQualityString,u32FrameString,u32IFrameString,leftString);
 	if(iRet<12)
 	{
 		iRet=MSG_ACK_ERROR_STATUS_PACKET;
@@ -260,11 +207,12 @@ static int get_OPEN_CHANNEL_PREVIEW(MsgHead *vMsgHead,LPCTSTR msgBuffer,MsgBody_
 		pParam->m_video.u32ImgQuality=atoi(u32ImgQualityString);
 		pParam->m_video.u32Width=atoi(u32WidthString);
 		pParam->m_video.u32Height=atoi(u32HeightString);
+		pParam->m_video.u32Iframe=atoi(u32IFrameString);
 		
 		LPCTSTR where=strchr(leftString,PARAMEQUALSYMBOL);
 		if(where==NULL)
 		{
-			iRet=sscanf(leftString,"%d",&pParam->m_video.u32Iframe);
+			iRet=sscanf(leftString,"%['0-9']",pParam->m_serverStamp);
 			if(iRet!=1)
 			{
 				iRet=MSG_ACK_ERROR_STATUS_PACKET;
@@ -275,7 +223,7 @@ static int get_OPEN_CHANNEL_PREVIEW(MsgHead *vMsgHead,LPCTSTR msgBuffer,MsgBody_
 		else
 		{
 			
-			iRet=sscanf(leftString,"%d:%s",&pParam->m_video.u32Iframe,left2String);
+			iRet=sscanf(leftString,"%['0-9']:%s",pParam->m_serverStamp,left2String);
 			if(iRet!=2)
 			{
 				iRet=MSG_ACK_ERROR_STATUS_PACKET;
@@ -494,6 +442,14 @@ static int sendConServerMessage(int socketId,unsigned short uMsgType,void *pData
 		}
 			break;
 		case 	CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY:
+			if(pData==NULL) break;
+			MsgBody_PREVIEW_FAILURE_NOTIFY *pMsgBody_PREVIEW_FAILURE_NOTIFY=(MsgBody_PREVIEW_FAILURE_NOTIFY *)pData;
+			if(pMsgBody_PREVIEW_FAILURE_NOTIFY->m_uMsgType!=CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY)
+				return -CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY;
+			sprintf(socketBuffer+sizeof(MsgHead),"[{%d:%d:%s}]",pMsgBody_PREVIEW_FAILURE_NOTIFY->m_channelId,
+					pMsgBody_PREVIEW_FAILURE_NOTIFY->m_failureType,pMsgBody_PREVIEW_FAILURE_NOTIFY->m_serverStamp);
+			packetLength=strlen(socketBuffer+sizeof(MsgHead));
+			iRet=0;
 			break;
 		case 	CONTROL_PROTOCAL_OPEN_CHANNEL_TALK:
 			break;
@@ -521,9 +477,24 @@ static int sendConServerMessage(int socketId,unsigned short uMsgType,void *pData
 	{
 		msgHead.uBodyLen=packetLength;
 		memcpy(socketBuffer,&msgHead,sizeof(MsgHead));
-		LOGOUT("send:uHeadLen=0x%x,cMsgVersion=0x%x,cPlatform=0x%x,uMsgType=0x%x,uMsgSeq=0x%x,uBodyLen=0x%x,msgBody=%s",
-			    msgHead.uHeadLen,msgHead.cMsgVersion,msgHead.cPlatform,msgHead.uMsgType
-			    ,msgHead.uMsgSeq,msgHead.uBodyLen,socketBuffer+sizeof(MsgHead));
+		if(msgHead.uMsgType!=CONTROL_PROTOCAL_KEEPALIVE)
+		{
+			LOGOUT("send:uHeadLen=0x%x,cMsgVersion=0x%x,cPlatform=0x%x,uMsgType=0x%x,uMsgSeq=0x%x,uBodyLen=0x%x,msgBody=%s",
+					msgHead.uHeadLen,msgHead.cMsgVersion,msgHead.cPlatform,msgHead.uMsgType
+					,msgHead.uMsgSeq,msgHead.uBodyLen,socketBuffer+sizeof(MsgHead));
+
+		}
+		else
+		{
+			beatPrintfTimes++;
+			if(beatPrintfTimes==20)
+			{
+				LOGOUT("send:uHeadLen=0x%x,cMsgVersion=0x%x,cPlatform=0x%x,uMsgType=0x%x,uMsgSeq=0x%x,uBodyLen=0x%x,msgBody=%s",
+						msgHead.uHeadLen,msgHead.cMsgVersion,msgHead.cPlatform,msgHead.uMsgType
+						,msgHead.uMsgSeq,msgHead.uBodyLen,socketBuffer+sizeof(MsgHead));
+
+			}
+		}
 	}
 	else
 		return iRet;
@@ -547,14 +518,18 @@ static void *P_CtrlSocketThread()
 	INT32S	iRet=0;
 	char controlServer[128]={0,};
 	BOOL reConFlag=TRUE;
-	INT32U 	sleepTimeUs=200*1000;
+	INT32U 	sleepTimeSecnod=0;
 	int	socketId=0;
 	DWORD v_dwSymb;
 	char  recBuffer[SOCKET_PARKET_SIZE];
 	char  recMsgBuffer[SOCKET_PARKET_SIZE];
+	char  sendOtherMsgBuffer[SOCKET_PARKET_SIZE];
+	char  curServerStampBuffer[SOCKET_PARKET_SIZE];
+	unsigned short uOtherMsgType=0;//消息类型
 	MsgHead recMsgHead;
 	DWORD length;
 	BOOL  beatTimeTwoSend=FALSE;
+	BOOL  bSendBeatFlag=FALSE;
 	//BOOL  timeStampFristFlag=FALSE;
 	int  	loginStatus=MSG_ACK_ERROR_STATUS_PACKET;
 	DWORD 	lastSendBeatTimeMs=0;	
@@ -562,6 +537,10 @@ static void *P_CtrlSocketThread()
 	DWORD	nowTimeMs=0;
 	Device_Net_Info deviceNetInfo;
 	MsgGlobal_Device globalDeviceStatus;
+	
+	unsigned short curMsgType=0;//消息类型
+	DWORD 	curMsgSendTime=0;//消息类型
+	
 	memset(&deviceNetInfo,0,sizeof(deviceNetInfo));
 	iRet=GetDeviceNetInfo(deviceNetInfo.m_IPAddress, deviceNetInfo.m_Subnet,deviceNetInfo.m_MACAddress,deviceNetInfo.m_GateWay,deviceNetInfo.m_BcastAddr);
 	if(iRet!=0)
@@ -569,39 +548,34 @@ static void *P_CtrlSocketThread()
 		memset(&deviceNetInfo,0,sizeof(deviceNetInfo));
 		memcpy(&deviceNetInfo.m_MACAddress,DEFAULTDEVICEMACADDR,MIN(sizeof(deviceNetInfo.m_MACAddress),strlen(DEFAULTDEVICEMACADDR)));
 	}
-	#if 0
-	memset(recMsgBuffer,0,sizeof(recMsgBuffer));
-	memcpy(recMsgBuffer,"[112.124.113.127:1935:live:100:benxun123456:0:1080:720:32:6:12:60]",strlen("[112.124.113.127:1935:live:100:benxun123456:0:1080:720:32:6:12:60]"));
-	memset(&globalDeviceStatus.m_openChannelPreviewAck,0,sizeof(globalDeviceStatus.m_openChannelPreviewAck));
-	iRet=get_OPEN_CHANNEL_PREVIEW(&recMsgHead,recMsgBuffer,&globalDeviceStatus.m_openChannelPreviewAck);
-	if(iRet!=0) 
-		LOGOUT("get_DEVICE_REGISTER_ACK is %d",iRet);
-	LOGOUT("get_DEVICE_REGISTER_ACK is %s    %d",globalDeviceStatus.m_openChannelPreviewAck.m_rtmpIp,globalDeviceStatus.m_openChannelPreviewAck.m_rtmpPort);
-	char rtmpAddr[1256]={0,};
-	sprintf(rtmpAddr,"rtmp://%s:%d/%s",globalDeviceStatus.m_openChannelPreviewAck.m_rtmpIp,globalDeviceStatus.m_openChannelPreviewAck.m_rtmpPort
-							 ,globalDeviceStatus.m_openChannelPreviewAck.m_rtmpPath);
-	LOGOUT("rtmpAddr:%s---\n", rtmpAddr);
-	#endif
-	
 	while(startControlServer)
 	{
 		switch(clientStaus)
 		{
 		case StatusIdle:
 		{
-			clientStaus=StatusConnRoute;	
+			clientStaus=StatusConnRoute;
+			bSendBeatFlag=FALSE;
+			curMsgType=0;
+			beatPrintfTimes=0;
+			if(sleepTimeSecnod!=0)
+			{
+				LOGOUT("cmd sleep %d sencod",sleepTimeSecnod);
+				sleep(sleepTimeSecnod);
+				sleepTimeSecnod=0;
+			}	
 		}
 		break;
 		case StatusConnRoute:
 		{
 			if(reConFlag)
 			{
-				//iRet=GetControlServer(ROUTESERVER,ROUTESERVERPORT,USER,controlServer,sizeof(controlServer));
+				iRet=GetControlServer(ROUTESERVER,ROUTESERVERPORT,USER,controlServer,sizeof(controlServer));
 				//测试服务器121.43.234.112
-				memset(controlServer,0,sizeof(controlServer));
-				memcpy(controlServer,"121.43.234.112",strlen("121.43.234.112"));
-				iRet=0;
-				LOGOUT("use test Server");
+				//memset(controlServer,0,sizeof(controlServer));
+				//memcpy(controlServer,"121.43.234.112",strlen("121.43.234.112"));
+				//iRet=0;
+				//LOGOUT("use test Server");
 				if(iRet==0)
 				{	
 					reConFlag=FALSE;
@@ -609,12 +583,7 @@ static void *P_CtrlSocketThread()
 					LOGOUT("ControlServer Change statusConn %s start",controlServer);
 					break;
 				}
-				//test
-				reConFlag=FALSE;
-				clientStaus=StatusConnControl;
-				LOGOUT("GetControlServer %d over %s",iRet, controlServer);
 			}
-			sleep(5);
 		}
 		break;
 		case StatusConnControl:
@@ -622,6 +591,7 @@ static void *P_CtrlSocketThread()
 			socketId=CreateConnect(controlServer,CONTROLSERVERPORT,128*1024,1000000000);
 			if(socketId<0)
 			{
+				sleep(1);
 				reConFlag=TRUE;
 				clientStaus=StatusIdle;
 				LOGOUT("connect ControlServer %s failure",controlServer);
@@ -635,6 +605,8 @@ static void *P_CtrlSocketThread()
 		break;
 		case StatusWaitConn:
 		{
+			curMsgType=CONTROL_PROTOCAL_DEVICE_IDENTITY_VERIFY;
+			curMsgSendTime=getTickCountMs();
 			MsgBody_DEVICE_IDENTITY_VERIFY mMsgBody_DEVICE_IDENTITY_VERIFY;
 			mMsgBody_DEVICE_IDENTITY_VERIFY.m_uMsgType=CONTROL_PROTOCAL_DEVICE_IDENTITY_VERIFY;
 			mMsgBody_DEVICE_IDENTITY_VERIFY.m_user=USER;
@@ -652,8 +624,9 @@ static void *P_CtrlSocketThread()
 			}
 			else
 			{
-				LOGOUT("sendConnectServerLoginMessage pushdata error %d %s %s %s",socketId,USER,SECRET,serverNo);
+				sleep(1);
 				clientStaus=StatusDisConn;
+				LOGOUT("sendConnectServerLoginMessage pushdata error %d %s %s %s",socketId,USER,SECRET,serverNo);
 			}
 		}
 		break;
@@ -669,16 +642,40 @@ static void *P_CtrlSocketThread()
 					iRet=isValidPacket(recBuffer,length,&recMsgHead,recMsgBuffer,sizeof(recMsgBuffer));
 					if(iRet==0)
 					{
-						LOGOUT("recv:uHeadLen=0x%x,cMsgVersion=0x%x,cPlatform=0x%x,uMsgType=0x%x,uMsgSeq=0x%x,uBodyLen=0x%x,msgBody=%s",
-					    recMsgHead.uHeadLen,recMsgHead.cMsgVersion,recMsgHead.cPlatform,recMsgHead.uMsgType
-					    ,recMsgHead.uMsgSeq,recMsgHead.uBodyLen,recMsgBuffer);
+						if(recMsgHead.uMsgType!=CONTROL_PROTOCAL_KEEPALIVE_ACK)
+						{
+							LOGOUT("recv:uHeadLen=0x%x,cMsgVersion=0x%x,cPlatform=0x%x,uMsgType=0x%x,uMsgSeq=0x%x,uBodyLen=0x%x,msgBody=%s",
+							recMsgHead.uHeadLen,recMsgHead.cMsgVersion,recMsgHead.cPlatform,recMsgHead.uMsgType
+							,recMsgHead.uMsgSeq,recMsgHead.uBodyLen,recMsgBuffer);
+						}
+						else
+						{
+							if(beatPrintfTimes==20)
+							{
+								LOGOUT("recv:uHeadLen=0x%x,cMsgVersion=0x%x,cPlatform=0x%x,uMsgType=0x%x,uMsgSeq=0x%x,uBodyLen=0x%x,msgBody=%s",
+								recMsgHead.uHeadLen,recMsgHead.cMsgVersion,recMsgHead.cPlatform,recMsgHead.uMsgType
+								,recMsgHead.uMsgSeq,recMsgHead.uBodyLen,recMsgBuffer);
+								beatPrintfTimes=0;
+							}
+						}
 						switch(recMsgHead.uMsgType)
 						{
 							case 	CONTROL_PROTOCAL_DEVICE_IDENTITY_VERIFY_ACK:
+							lastRecvBeatTimeMs=nowTimeMs;
 							{
+								if(curMsgType==CONTROL_PROTOCAL_DEVICE_IDENTITY_VERIFY)
+									curMsgType=0;
 								iRet=get_DEVICE_IDENTITY_VERIFY_ACK(&recMsgHead,recMsgBuffer,&loginStatus);
 								if(iRet!=0) 
 									LOGOUT("reloveConServerLoginMessageAck is %d",iRet);
+								if(loginStatus==-1 || loginStatus==-2 || loginStatus==-3)
+								{
+									clientStaus=StatusDisConn;
+									sleepTimeSecnod=60;
+									break;
+								}
+								curMsgType=CONTROL_PROTOCAL_SETTIMEOUTDURATION;
+								curMsgSendTime=nowTimeMs;
 								MsgBody_SETTIMEOUTDURATION mMsgBody_SETTIMEOUTDURATION;
 								mMsgBody_SETTIMEOUTDURATION.m_uMsgType=CONTROL_PROTOCAL_SETTIMEOUTDURATION;
 								mMsgBody_SETTIMEOUTDURATION.m_durationSecond=BEATSERVERTIMEOUT;
@@ -693,7 +690,13 @@ static void *P_CtrlSocketThread()
 								break;
 							case	CONTROL_PROTOCAL_SETTIMEOUTDURATION_ACK:
 							{
+								if(curMsgType==CONTROL_PROTOCAL_SETTIMEOUTDURATION)
+									curMsgType=0;
+								lastRecvBeatTimeMs=nowTimeMs;
+								bSendBeatFlag=TRUE;
 								MsgBody_DEVICE_REGISTER mMsgBody_DEVICE_REGISTER;
+								curMsgType=CONTROL_PROTOCAL_DEVICE_REGISTER;
+								curMsgSendTime=nowTimeMs;
 								mMsgBody_DEVICE_REGISTER.m_uMsgType=CONTROL_PROTOCAL_DEVICE_REGISTER;
 								mMsgBody_DEVICE_REGISTER.m_deviceProduct=DEVICEPRODUCT;
 								mMsgBody_DEVICE_REGISTER.m_deviceModel=DEVICEMODEL;
@@ -709,12 +712,27 @@ static void *P_CtrlSocketThread()
 								break;
 							case	CONTROL_PROTOCAL_DEVICE_REGISTER_ACK:
 							{
+								if(curMsgType==CONTROL_PROTOCAL_DEVICE_REGISTER)
+									curMsgType=0;
+								lastRecvBeatTimeMs=nowTimeMs;
 								//MsgBody_DEVICE_REGISTER_ACK mMSG_ACK_ERROR_STATUS_PACKET;
 								memset(&globalDeviceStatus.m_deviceRegisterAck,0,sizeof(globalDeviceStatus.m_deviceRegisterAck));
 								iRet=get_DEVICE_REGISTER_ACK(&recMsgHead,recMsgBuffer,&globalDeviceStatus.m_deviceRegisterAck);
 								if(iRet!=0) 
 								{
 									LOGOUT("get_DEVICE_REGISTER_ACK is %d",iRet);
+								}
+								if(globalDeviceStatus.m_deviceRegisterAck.m_registerStatus==-1)
+								{
+									clientStaus=StatusDisConn;
+									sleepTimeSecnod=60;
+									break;
+								}
+								else if(globalDeviceStatus.m_deviceRegisterAck.m_registerStatus==0)
+								{
+									clientStaus=StatusDisConn;
+									sleepTimeSecnod=1;
+									break;
 								}
 								#if 0
 								MsgBody_GET_ENCODE_CONFIG_TABLE mMsgBody_GET_ENCODE_CONFIG_TABLE;
@@ -725,20 +743,116 @@ static void *P_CtrlSocketThread()
 									LOGOUT("sendConServerMessage CONTROL_PROTOCAL_GET_ENCODE_CONFIG_TABLE is %d",iRet);	
 								timeStampFristFlag=FALSE;
 								#endif
+								curMsgType=CONTROL_PROTOCAL_PUBLISH_CHANNEL_STATE;
+								curMsgSendTime=nowTimeMs;
 								MsgBody_PUBLISH_CHANNEL_STATE mMsgBody_PUBLISH_CHANNEL_STATE;
 								mMsgBody_PUBLISH_CHANNEL_STATE.m_uMsgType=CONTROL_PROTOCAL_PUBLISH_CHANNEL_STATE;
 								mMsgBody_PUBLISH_CHANNEL_STATE.m_channelId=globalDeviceStatus.m_deviceRegisterAck.m_channelId;
-								//mMsgBody_PUBLISH_CHANNEL_STATE.m_channelId=1739;
 								mMsgBody_PUBLISH_CHANNEL_STATE.m_liveStatus=0;
 								iRet=sendConServerMessage(socketId,CONTROL_PROTOCAL_PUBLISH_CHANNEL_STATE,&mMsgBody_PUBLISH_CHANNEL_STATE);
 								if(iRet!=0) 
 									LOGOUT("sendConServerMessage CONTROL_PROTOCAL_PUBLISH_CHANNEL_STATE is %d",iRet);	
 							}
 								break;
-							case 	CONTROL_PROTOCAL_PUBLISH_CHANNEL_STATE_ACK:
-								
+							case	CONTROL_PROTOCAL_PUBLISH_CHANNEL_STATE_ACK:
+								if(curMsgType==CONTROL_PROTOCAL_PUBLISH_CHANNEL_STATE)
+									curMsgType=0;	
 								break;
-							case	CONTROL_PROTOCAL_UPDATE_CHANNEL_CONFIG_ACK:
+							case	CONTROL_PROTOCAL_GET_ENCODE_CONFIG_TABLE_ACK:
+							{
+								if(curMsgType==CONTROL_PROTOCAL_PUBLISH_CHANNEL_STATE)
+									curMsgType=0;
+								lastRecvBeatTimeMs=nowTimeMs;
+								MsgBody_PUBLISH_CHANNEL_STATE mMsgBody_PUBLISH_CHANNEL_STATE;
+								mMsgBody_PUBLISH_CHANNEL_STATE.m_uMsgType=CONTROL_PROTOCAL_PUBLISH_CHANNEL_STATE;
+								mMsgBody_PUBLISH_CHANNEL_STATE.m_channelId=globalDeviceStatus.m_deviceRegisterAck.m_channelId;
+								mMsgBody_PUBLISH_CHANNEL_STATE.m_liveStatus=0;
+								iRet=sendConServerMessage(socketId,CONTROL_PROTOCAL_PUBLISH_CHANNEL_STATE,&mMsgBody_PUBLISH_CHANNEL_STATE);
+								if(iRet!=0) 
+									LOGOUT("sendConServerMessage CONTROL_PROTOCAL_PUBLISH_CHANNEL_STATE is %d",iRet);	
+							}
+								break;
+							case 	CONTROL_PROTOCAL_OPEN_CHANNEL_PREVIEW:
+							{
+								lastRecvBeatTimeMs=nowTimeMs;
+								//MsgBody_OPEN_CHANNEL_PREVIEW_ACK mMsgBody_OPEN_CHANNEL_PREVIEW;
+								memset(&globalDeviceStatus.m_openChannelPreviewAck,0,sizeof(globalDeviceStatus.m_openChannelPreviewAck));
+								iRet=get_OPEN_CHANNEL_PREVIEW(&recMsgHead,recMsgBuffer,&globalDeviceStatus.m_openChannelPreviewAck);
+								if(iRet!=0) 
+									LOGOUT("get_DEVICE_REGISTER_ACK is %d",iRet);
+								printfVideoParam("Server Set Video Param",globalDeviceStatus.m_openChannelPreviewAck.m_video);
+								LOGOUT("Server timeStamp:%s",globalDeviceStatus.m_openChannelPreviewAck.m_serverStamp);
+								iRet=startVideoStream(globalDeviceStatus.m_openChannelPreviewAck.m_video);
+								if(iRet!=0)
+								{
+									curMsgType=CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY;
+									curMsgSendTime=nowTimeMs;
+									MsgBody_PREVIEW_FAILURE_NOTIFY mMsgBody_PREVIEW_FAILURE_NOTIFY;
+									memset(&mMsgBody_PREVIEW_FAILURE_NOTIFY,0,sizeof(mMsgBody_PREVIEW_FAILURE_NOTIFY));
+									mMsgBody_PREVIEW_FAILURE_NOTIFY.m_uMsgType=CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY;
+									mMsgBody_PREVIEW_FAILURE_NOTIFY.m_channelId=globalDeviceStatus.m_deviceRegisterAck.m_channelId;
+									if(iRet==-1)
+										mMsgBody_PREVIEW_FAILURE_NOTIFY.m_failureType=-2;
+									else if(iRet==-2)
+										mMsgBody_PREVIEW_FAILURE_NOTIFY.m_failureType=-1;
+									strcpy(mMsgBody_PREVIEW_FAILURE_NOTIFY.m_serverStamp,globalDeviceStatus.m_openChannelPreviewAck.m_serverStamp);
+									iRet=sendConServerMessage(socketId,CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY,&mMsgBody_PREVIEW_FAILURE_NOTIFY);
+									if(iRet!=0) 
+										LOGOUT("sendConServerMessage CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY is %d",iRet);	
+									break;
+								}
+								char rtmpAddr[1256]={0,};
+								sprintf(rtmpAddr,"rtmp://%s:%d/%s/%d",globalDeviceStatus.m_openChannelPreviewAck.m_rtmpIp,globalDeviceStatus.m_openChannelPreviewAck.m_rtmpPort
+														 ,globalDeviceStatus.m_openChannelPreviewAck.m_rtmpPath,globalDeviceStatus.m_openChannelPreviewAck.m_channelId/*, globalDeviceStatus.m_openChannelPreviewAck.m_rtmpUUID*/);
+								LOGOUT("rtmpAddr:%s\n", rtmpAddr);
+								pRtmpServer=RtmpUnitOpen(globalDeviceStatus.m_openChannelPreviewAck.m_video.u32Width,globalDeviceStatus.m_openChannelPreviewAck.m_video.u32Height,rtmpAddr,0);
+								if(pRtmpServer!=NULL)
+								{
+									InitRTMPUnit(pRtmpServer);
+								}
+								else
+								{
+									LOGOUT("rtmpAddr error\n");
+								}
+							}
+								break;
+							case CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY_ACK://远程预览失败通知应答
+							{
+								if(curMsgType==CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY)
+									curMsgType=0;
+							}
+								break;
+							case 	CONTROL_PROTOCAL_CLOSE_CHANNEL_PREVIEW:
+							{
+								lastRecvBeatTimeMs=nowTimeMs;
+								if(pRtmpServer!=NULL)
+								{
+									CloseRTMPUnit(pRtmpServer);
+									pRtmpServer=NULL;
+								}
+							}
+								break;
+							case 	CONTROL_PROTOCAL_UPLOAD_CHANNEL_KEYFRAME:
+								lastRecvBeatTimeMs=nowTimeMs;
+								iRet=MakeKeyFrame();
+								LOGOUT("make key Frame iRet:%d",iRet);
+								break;
+							case	CONTROL_PROTOCAL_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG:
+							{
+								lastRecvBeatTimeMs=nowTimeMs;
+								MsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG;
+								memset(&mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG,0,sizeof(mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG));
+								iRet=get_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG(&recMsgHead,recMsgBuffer,&mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG);
+								if(iRet!=0) 
+									LOGOUT("get_DEVICE_REGISTER_ACK is %d",iRet);
+								//if(mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG.m_video.u32Stream>=0 && mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG.m_video.u32Stream<=2)
+								//	mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG.m_video=deviceVedeioEx[2-mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG.m_video.u32Stream];
+								printfVideoParam("Server Set Video Param",mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG.m_video);
+								startVideoStream(mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG.m_video);
+								break;
+							}
+							#if 0
+ 							case	CONTROL_PROTOCAL_UPDATE_CHANNEL_CONFIG_ACK:
 								#if 0
 								MsgBody_UPDATE_CHANNEL_CONFIG mMsgBody_UPDATE_CHANNEL_CONFIG;
 								mMsgBody_UPDATE_CHANNEL_CONFIG.m_uMsgType=CONTROL_PROTOCAL_UPDATE_CHANNEL_CONFIG;
@@ -751,74 +865,6 @@ static void *P_CtrlSocketThread()
 									LOGOUT("sendConServerMessage CONTROL_PROTOCAL_UPDATE_CHANNEL_CONFIG is %d",iRet);
 								#endif
 								break;
-							case	CONTROL_PROTOCAL_GET_ENCODE_CONFIG_TABLE_ACK:
-							{
-								MsgBody_PUBLISH_CHANNEL_STATE mMsgBody_PUBLISH_CHANNEL_STATE;
-								mMsgBody_PUBLISH_CHANNEL_STATE.m_uMsgType=CONTROL_PROTOCAL_PUBLISH_CHANNEL_STATE;
-								mMsgBody_PUBLISH_CHANNEL_STATE.m_channelId=globalDeviceStatus.m_deviceRegisterAck.m_channelNum;
-								mMsgBody_PUBLISH_CHANNEL_STATE.m_liveStatus=0;
-								iRet=sendConServerMessage(socketId,CONTROL_PROTOCAL_PUBLISH_CHANNEL_STATE,&mMsgBody_PUBLISH_CHANNEL_STATE);
-								if(iRet!=0) 
-									LOGOUT("sendConServerMessage CONTROL_PROTOCAL_PUBLISH_CHANNEL_STATE is %d",iRet);	
-							}
-								break;
-							case 	CONTROL_PROTOCAL_OPEN_CHANNEL_PREVIEW:
-							{
-								//MsgBody_OPEN_CHANNEL_PREVIEW_ACK mMsgBody_OPEN_CHANNEL_PREVIEW;
-								memset(&globalDeviceStatus.m_openChannelPreviewAck,0,sizeof(globalDeviceStatus.m_openChannelPreviewAck));
-								iRet=get_OPEN_CHANNEL_PREVIEW(&recMsgHead,recMsgBuffer,&globalDeviceStatus.m_openChannelPreviewAck);
-								if(iRet!=0) 
-									LOGOUT("get_DEVICE_REGISTER_ACK is %d",iRet);
-								
-								printfVideoParam("server setvideo",globalDeviceStatus.m_openChannelPreviewAck.m_video);
-								startVideoStream(globalDeviceStatus.m_openChannelPreviewAck.m_video);
-								char rtmpAddr[1256]={0,};
-								sprintf(rtmpAddr,"rtmp://%s:%d/%s/%d",globalDeviceStatus.m_openChannelPreviewAck.m_rtmpIp,globalDeviceStatus.m_openChannelPreviewAck.m_rtmpPort
-														 ,globalDeviceStatus.m_openChannelPreviewAck.m_rtmpPath,globalDeviceStatus.m_openChannelPreviewAck.m_channelId/*, globalDeviceStatus.m_openChannelPreviewAck.m_rtmpUUID*/);
-								LOGOUT("rtmpAddr:%s-\n", rtmpAddr);
-								pRtmpServer=RtmpUnitOpen(globalDeviceStatus.m_openChannelPreviewAck.m_video.u32Width,globalDeviceStatus.m_openChannelPreviewAck.m_video.u32Height,rtmpAddr,0);
-								if(pRtmpServer!=NULL)
-								{
-									InitRTMPUnit(pRtmpServer);
-								}
-								else
-								{
-									LOGOUT("rtmpAddr error\n");
-									//exit(0);
-								}
-							}
-								break;
-							case 	CONTROL_PROTOCAL_CLOSE_CHANNEL_PREVIEW:
-							{
-								if(pRtmpServer!=NULL)
-								{
-									CloseRTMPUnit(pRtmpServer);
-									pRtmpServer=NULL;
-								}
-							}
-								break;
-							case 	CONTROL_PROTOCAL_UPLOAD_CHANNEL_KEYFRAME:
-								iRet=MakeKeyFrame();
-								LOGOUT("make key Frame iRet:%d",iRet);
-								break;
-							case	CONTROL_PROTOCAL_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG:
-							{
-								HI_S_Video_Ext deviceVedeioEx[]= {
-										1,0, 100,8 ,50,HI_TRUE,1,1280,710,
-									  	1,1, 200,12,50,HI_TRUE,1,640,352,
-									  	1,2, 500,16,50,HI_TRUE,1,320,176
-								};
-								MsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG;
-								memset(&mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG,0,sizeof(mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG));
-								iRet=get_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG(&recMsgHead,recMsgBuffer,&mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG);
-								if(iRet!=0) 
-									LOGOUT("get_DEVICE_REGISTER_ACK is %d",iRet);
-								if(mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG.m_video.u32Stream>=0 && mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG.m_video.u32Stream<=2)
-									mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG.m_video=deviceVedeioEx[2-mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG.m_video.u32Stream];
-								printfVideoParam("server setvideo",mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG.m_video);
-								startVideoStream(mMsgBody_CHANGE_CHANNEL_IMAGEQUALITY_CONFIG.m_video);
-								break;
-							}
 							case	CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY_ACK:
 								break;
 							case	CONTROL_PROTOCAL_OPEN_CHANNEL_TALK_ACK:
@@ -838,7 +884,24 @@ static void *P_CtrlSocketThread()
 								break;
 							case	CONTROL_PROTOCAL_COLLECT_PRESET_CRUISE_CONTROL_ERROR_ACK:
 								break;
-							default:
+							#endif  
+							default: 
+							{
+								if(recMsgHead.uMsgType>=0x3000 && recMsgHead.uMsgType<=0x39FF)
+								{
+									lastRecvBeatTimeMs=nowTimeMs;
+									LOGOUT("do not support cmd is 0x%x",recMsgHead.uMsgType);
+									recMsgHead.uMsgType=recMsgHead.uMsgType+2;
+									memset(sendOtherMsgBuffer,0,sizeof(0));
+									memcpy(sendOtherMsgBuffer,&recMsgHead,sizeof(recMsgHead));
+									memcpy(sendOtherMsgBuffer+sizeof(recMsgHead),recMsgBuffer,recMsgHead.uBodyLen);
+									iRet=SendSocketData(socketId,sendOtherMsgBuffer,recMsgHead.uBodyLen+sizeof(MsgHead));	
+									if(iRet!=0)
+									{
+										LOGOUT("do not support cmd is 0x%x send error iRet=%d",recMsgHead.uMsgType-2,iRet);
+									}
+								}
+							}
 								break;
 						}
 						memset(recBuffer,0,sizeof(recBuffer));
@@ -847,20 +910,33 @@ static void *P_CtrlSocketThread()
 				}
 				else if(v_dwSymb==CMDRECONNECT)
 				{
+					sleep(1);
 					clientStaus=StatusDisConn;
 					LOGOUT("connect server socket %d is break out ",socketId);
 					break;
 				}
 			}
-			if((nowTimeMs-lastSendBeatTimeMs)>BEATTIME)
+			if(bSendBeatFlag)
 			{
-				lastSendBeatTimeMs=nowTimeMs;
-				iRet=sendConServerMessage(socketId,CONTROL_PROTOCAL_KEEPALIVE,NULL);
+				if((nowTimeMs-lastSendBeatTimeMs)>BEATTIME)
+				{
+					lastSendBeatTimeMs=nowTimeMs;
+					iRet=sendConServerMessage(socketId,CONTROL_PROTOCAL_KEEPALIVE,NULL);
+				}
+				if((nowTimeMs-lastRecvBeatTimeMs)>BEATTIMEOUT)
+				{
+					clientStaus=StatusDisConn;
+					LOGOUT("StatusWorking beat time out");
+				}
+
 			}
-			if((nowTimeMs-lastRecvBeatTimeMs)>BEATTIMEOUT)
+			if(curMsgType!=0)
 			{
-				clientStaus=StatusDisConn;
-				LOGOUT("StatusWorking beat time out");
+				if((nowTimeMs-curMsgSendTime)>BEATTIME)
+				{
+					clientStaus=StatusDisConn;
+					LOGOUT("receive cmd timeout,cmdId:%d",curMsgType);
+				}
 			}
 			usleep(200*1000);
 		}
@@ -880,7 +956,7 @@ static void *P_CtrlSocketThread()
 		default:
 			break;
 		}
-		usleep(sleepTimeUs);
+		usleep(200*1000);
 	}
 	return NULL;
 }
