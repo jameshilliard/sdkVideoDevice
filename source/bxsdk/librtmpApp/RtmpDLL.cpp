@@ -67,10 +67,22 @@ int  SendVideoUnit(PRTMPUnit unit,char *h264Nal,int len,__int64 nTimeStamp)
 	pthread_mutex_lock(&testlock);
 	//int result = encoder->SendVideo(h264Nal,len,nTimeStamp);
 	int result = encoder->SendVideo(h264Nal,len,g_time);
+	static int countNumber = 0;
 	g_time++;
-	if(result == -1)
+	if(result == 0)
 	{
-		printf("SendVideoUnit----------------------reconnect------0\n");
+		countNumber++;
+	}
+	else
+	{
+		countNumber = 0;
+	}
+	if(result == -1 || countNumber>50)
+	{
+
+		
+		printf("SendVideoUnit------%d---------%d-------reconnect------0\n", result, countNumber);
+		countNumber = 0;
 		//encoder->close();
 		//encoder->init();
 		g_start = false;
@@ -92,13 +104,23 @@ int  SendAudioUnit(PRTMPUnit unit,char *AudioData,int len,__int64 nTimeStamp,
 	if (m_RtmpUnitList.FindData(long(encoder)))
 		return encoder->SendAudio(AudioData,len,nTimeStamp,nEncoderType,nSoundRate,nSoundSize,nSoundType);
 	return -1;*/
+	static int sendCount = 0;
 	int result =  encoder->SendAudio(AudioData,len,nTimeStamp,nEncoderType,nSoundRate,nSoundSize,nSoundType);
-	if(result == 0)
+/*	if(result == 0)
 	{
 		//printf("SendVideoUnit----------------------reconnect------0\n");
 		//encoder->close();
 		//encoder->init();
+		sendCount++ ;
+		if(sendCount >10)
+		{
+			g_start = false;
+		}
 	}
+	else
+	{
+		sendCount = 0;
+	}*/
 	return result;
 }
 void  CloseRTMPUnit(PRTMPUnit unit)
