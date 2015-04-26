@@ -632,6 +632,25 @@ static void *P_CtrlSocketThread()
 		break;
 		case StatusWorking:
 		{
+			if(pRtmpServer!=NULL && GetRtmpConnectStatus() == 0)//zmt,当RTMP传输异常时，通知控制服务器
+			{
+				curMsgType=CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY;
+				curMsgSendTime=nowTimeMs;
+				MsgBody_PREVIEW_FAILURE_NOTIFY mMsgBody_PREVIEW_FAILURE_NOTIFY;
+				memset(&mMsgBody_PREVIEW_FAILURE_NOTIFY,0,sizeof(mMsgBody_PREVIEW_FAILURE_NOTIFY));
+				mMsgBody_PREVIEW_FAILURE_NOTIFY.m_uMsgType=CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY;
+				mMsgBody_PREVIEW_FAILURE_NOTIFY.m_channelId=globalDeviceStatus.m_deviceRegisterAck.m_channelId;
+				if(iRet==-1)
+					mMsgBody_PREVIEW_FAILURE_NOTIFY.m_failureType=-2;
+				else if(iRet==-2)
+					mMsgBody_PREVIEW_FAILURE_NOTIFY.m_failureType=-1;
+				strcpy(mMsgBody_PREVIEW_FAILURE_NOTIFY.m_serverStamp,globalDeviceStatus.m_openChannelPreviewAck.m_serverStamp);
+				iRet=sendConServerMessage(socketId,CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY,&mMsgBody_PREVIEW_FAILURE_NOTIFY);
+				if(iRet!=0) 
+					LOGOUT("sendConServerMessage CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY is %d",iRet);	
+				break;
+			}
+			//
 			nowTimeMs=getTickCountMs();
 			iRet=GetSocketData(socketId,&v_dwSymb,sizeof(recBuffer),recBuffer,&length);
 			if(iRet==0)

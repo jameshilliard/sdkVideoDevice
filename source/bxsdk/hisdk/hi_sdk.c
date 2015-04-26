@@ -113,6 +113,10 @@ HI_S32 OnStreamCallback(HI_U32 u32Handle, /* ¾ä±ú */
 					SendVideoUnit(pRtmpServer,pu8Buffer+sizeof(HI_S_AVFrame),u32Length-sizeof(HI_S_AVFrame),pstruAV->u32AVFramePTS);
 					//if(pstruAV->u32VFrameType==1)
 					//	LOGOUT("Get Video %u PTS: %u \n", pstruAV->u32VFrameType, pstruAV->u32AVFramePTS);
+					/*if(GetRtmpConnectStatus() == 0)
+					{
+						
+					}*/
 				}
 
 			}
