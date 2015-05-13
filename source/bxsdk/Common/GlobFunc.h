@@ -8,6 +8,7 @@
 extern "C" {
 #  endif /* __cplusplus */
 	DWORD 	getTickCountMs();
+	void 	squeeze(char *s,int maxSize,int c);
 	DWORD	getFileSize(LPCTSTR path);
 	BOOL   	isFileSystemBigger(LPCTSTR sdDir,DWORD size);
 	BOOL 	creatDir(LPCTSTR pDir);

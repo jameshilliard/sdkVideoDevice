@@ -52,6 +52,17 @@ INT8U calCRC8(INT8U *pData,DWORD nLength)
 	}
 	return crc;
 }
+void squeeze(char *s,int maxSize,int c)
+{
+	int	i,j;
+	for(i=0,j=0;(s[i]!='\0')&&(i<maxSize);i++)
+	{
+		if(s[i]!=c)
+			s[j++]=s[i];
+	}
+	if(j!=(maxSize-1))
+		s[j]='\0';//这一条语句千万不能忘记，字符串的结束标记
+}
 BOOL isFileSystemBigger(LPCTSTR sdDir,DWORD size) 
 {
 	struct statfs disk_statfs;

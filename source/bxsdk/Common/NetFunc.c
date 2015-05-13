@@ -291,16 +291,16 @@ int GetDeviceNetInfo(char *v_szDeviceIp, char *v_szDevSubnet, char *v_szDevHwMas
 	if(bRet)
 	{
 		GetGateway(v_szDevGw);
-		LOGOUT("ifconfig netCardName:%s ipddr:%s hwMac:%s subnet:%s gw:%s",szNetWorkCardName,v_szDeviceIp,v_szDevHwMask,v_szDevSubnet,v_szDevGw);
+		//LOGOUT("ifconfig netCardName:%s ipddr:%s hwMac:%s subnet:%s gw:%s",szNetWorkCardName,v_szDeviceIp,v_szDevHwMask,v_szDevSubnet,v_szDevGw);
 	}
 	else// 使用ifconfig获取网络信息
 	{
 		char cmd[128]={0};
-		sprintf(cmd,"ifconfig %s > %s/netconfig", szNetWorkCardName, TEMPSAVEPATH);
+		sprintf(cmd,"ifconfig %s > %s/netconfig", szNetWorkCardName, TEMPDIR);
 		system(cmd);
 		FILE *pNetFile = NULL;
 		memset(cmd, 0, sizeof(cmd));
-		sprintf(cmd, "%s/netconfig", TEMPSAVEPATH);
+		sprintf(cmd, "%s/netconfig", TEMPDIR);
 		pNetFile = fopen(cmd,"r");
 		if(pNetFile)
 		{
@@ -313,7 +313,7 @@ int GetDeviceNetInfo(char *v_szDeviceIp, char *v_szDevSubnet, char *v_szDevHwMas
 			fclose(pNetFile);
 
 			memset(cmd, 0, sizeof(cmd));
-			sprintf(cmd, "rm -f %s/netconfig", TEMPSAVEPATH);
+			sprintf(cmd, "rm -f %s/netconfig", TEMPDIR);
 			system(cmd);
 			LOGOUT("ifconfig netCardName:%s ipddr:%s hwMac:%s subnet:%s gw:%s",szNetWorkCardName,v_szDeviceIp,v_szDevHwMask,v_szDevSubnet,v_szDevGw);
 		}
@@ -322,5 +322,55 @@ int GetDeviceNetInfo(char *v_szDeviceIp, char *v_szDevSubnet, char *v_szDevHwMas
 	}
 	return 0;
 }
+
+
+
+// 获取DNS信息
+int GetDnsInfo(dns_info_t *dns_info)  
+{  
+	FILE *file;  
+	int ret, i, svr_cnt, df;  
+	char name[16], domain[128];  
+
+	file = fopen(RESOLV_CONF_PATH, "r");  
+	if (!file) {  
+		LOGOUT("fopen fail = %s(%d)\n", strerror(errno), errno);  
+		return -errno;  
+	}  
+
+	i = svr_cnt = df = 0;  
+	while ((ret = fscanf(file, "%s %s", name, domain)) != EOF) 
+	{  
+		if (ret < 2) 
+		{  
+			LOGOUT("fscanf ret=%d\n", ret);  
+			ret = -1;  
+			break;  
+		}  
+
+		if (svr_cnt < MAX_DNS_SERVERS && !strcmp(name, "nameserver")) 
+		{  
+			strcpy(dns_info->dns_svr[svr_cnt++], domain);  
+		}  
+		else if (!strcmp(name, "search")) 
+		{  
+			strcpy(dns_info->domain, domain);  
+			df++;  
+		}  
+	}  
+
+	fclose(file);  
+
+	if (svr_cnt)  
+	{
+		ret = 0;  
+	}
+	else  
+	{
+		ret = -1; 
+	}
+
+	return ret;  
+}  
 
 

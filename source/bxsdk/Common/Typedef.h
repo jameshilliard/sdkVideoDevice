@@ -24,7 +24,6 @@
 #include <unistd.h>
 #include <stdarg.h>
 #include <sys/statfs.h>
-#include "DeviceConfig.h"
 
 
 typedef unsigned char	uchar;
@@ -83,6 +82,14 @@ enum ERR_CODE
 	ERR_CFG,
 	ERR_THREAD,
 };
+
+#define XMLDATALEN 4096
+typedef struct XmlData_
+{
+	int m_iXmlLen;					// 数据长度（xml类型+xml数据内容长度+结束符长度）
+	byte m_bytXmlType;				// xml类型
+	char szXmlDataBuf[XMLDATALEN];	// xml数据内容
+}XmlData;
 
 #define MIN(a,b) ((a)<(b))?(a):(b)
 #define MAX(a,b) ((a)>(b))?(a):(b)

@@ -7,18 +7,14 @@
 
 #include "LogOut/LogOut.h"
 #include "Common/Typedef.h"
+#include "Common/Configdef.h"
 #include "Common/ClientSocket.h"
 #include "Server/RouteServer.h"
 #include "Server/ControlServer.h"
 #include "hisdk/hi_sdk.h"
 #include "hisdk/source_sdk.h"
+#include "UdpSearch/UdpSearch.h"
 
-
-
-#define 	LOGSIZE		256*1024
-#define 	CMDBUFFER	256*1024
-#define		LOGDIR		"/mnt/mtd/ipc/tmpfs/syflash"
-#define 	TEMPDIR 	"/mnt/mtd/ipc/tmpfs/sytmp"
 	
 int main()
 {
@@ -27,7 +23,7 @@ int main()
 	sigemptyset(&set);
 	sigaddset(&set, SIGPIPE);
 	sigprocmask(SIG_BLOCK, &set, NULL); 
-	Init_LogOut(LOGSIZE,LOGDIR,FALSE,TEMPDIR);
+	Init_LogOut(LOGSIZE,LOGDIR,TRUE,TEMPDIR);
 	LOGOUT("Init_LogOut over %d",sizeof(long));
 	iRet=InitHiSDKVideoAllChannel();
 	LOGOUT("InitHiSDKVideoAllChannel %d over",iRet);
@@ -35,6 +31,8 @@ int main()
 	LOGOUT("InitNetwork %d over",iRet);
 	iRet=InitControlServer();
 	LOGOUT("InitControlServer %d over",iRet);
+	iRet=InitUdpSearch();
+	LOGOUT("InitUdpSearch %d over",iRet);
 	while(1)
 	{
 		sleep(10);

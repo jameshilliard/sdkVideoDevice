@@ -7,11 +7,11 @@ FLAGS = -O2 -Wall -Wno-unused -Wno-format -fstrength-reduce -DHI_OS_LINUX
 #FLAGS += -g -rdynamic
 
 #GXX = g++ $(INCLUDES) $(FLAGS)
-#GCC = gcc $(INCLUDES) $(FLAGS)
+GCC = gcc $(INCLUDES) $(FLAGS)
 
 
-GXX = arm-hisiv100nptl-linux-g++ $(INCLUDES) $(FLAGS)
-GCC = arm-hisiv100nptl-linux-gcc $(INCLUDES) $(FLAGS)
+#GXX = arm-hisiv100nptl-linux-g++ $(INCLUDES) $(FLAGS)
+#GCC = arm-hisiv100nptl-linux-gcc $(INCLUDES) $(FLAGS)
 
 CSRCS := $(wildcard ./*.c)
 CSRCS += $(wildcard ./Common/*.c)
@@ -19,8 +19,12 @@ CSRCS += $(wildcard ./LogOut/*.c)
 CSRCS += $(wildcard ./Communication/*.c)
 CSRCS += $(wildcard ./Server/*.c)
 CSRCS += $(wildcard ./hisdk/*.c)
+CSRCS += $(wildcard ./UdpSearch/*.c)
+CSRCS += $(wildcard ./mxml/*.c)
 
-VPATH = ./Common:./LogOut:./Communication:./Server:./hisdk
+
+VPATH = ./Common:./LogOut:./Communication:./Server:./hisdk:./UdpSearch:./mxml
+
 OBJDIR := ./objs
 DEPDIR := ./deps
 COBJS = $(addprefix $(OBJDIR)/,$(notdir $(patsubst %.c,%.o,$(CSRCS))))
