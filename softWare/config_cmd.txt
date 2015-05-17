@@ -1,0 +1,1 @@
+http://192.168.1.117/cgi-bin/hi3510/param.cgi?cmd=setuipcamattr&-ui_enable=1&-ui_server=xxx&-ui_port=80&-ui_devname=ipcam
