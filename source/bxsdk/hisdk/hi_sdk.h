@@ -10,7 +10,7 @@
 
 #define 	UNAME					"admin"
 #define 	PWORD					"admin"
-#define 	IPHOST					"192.168.1.117"
+#define 	IPHOST					"127.0.0.1"
 #define 	IPPORT					"80"
 #define 	RECORD_FILE 			"test.hx"
 #define 	UNAMEFILE				"/mnt/mtd/ipc/conf/config_user.ini"
