@@ -19,7 +19,6 @@ typedef struct S_Data_
 	char szCommandName[32];		// 命令名称
 	char szType[32];			// 类型
 	int  iParamCount;			// key参数的个数，最大PARAMSNUM个
-
 	S_Param  params[PARAMSNUM]; // 参数
 }S_Data;
 

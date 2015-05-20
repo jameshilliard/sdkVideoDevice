@@ -29,18 +29,28 @@ int EnCode(char *szBuf, int iLen, S_Data *v_sData)
 	int iDataLen = 0;
 
 	xml = SZY_mxmlNewXML("1.0");
-	command = SZY_mxmlNewElement(xml, "command");
-	id = SZY_mxmlNewElement(command, "id");
+	command = SZY_mxmlNewElement(xml, "devicecmd");
+
+	if(v_sData->szCommandId==-1)
+	{
+		id = SZY_mxmlNewElement(command, "cmdid");
+		sprintf(szId,"%d",v_sData->szCommandId);
+		SZY_mxmlNewText(id, 0, szId);
+	}
+	if(strlen(v_sData->szCommandName)!=0)
+	{
+		name = SZY_mxmlNewElement(command, "command");
+		SZY_mxmlNewText(name, 0, v_sData->szCommandName);
+	}
+	if(strlen(v_sData->szType)!=0)
+	{
+		type = SZY_mxmlNewElement(command, "type");
+		SZY_mxmlNewText(type, 0, v_sData->szType);
+	}
 	
-	sprintf(szId,"%d",v_sData->szCommandId);
-	SZY_mxmlNewText(id, 0, szId);
-	name = SZY_mxmlNewElement(command, "name");
-	SZY_mxmlNewText(name, 0, v_sData->szCommandName);
-	type = SZY_mxmlNewElement(command, "type");
-	SZY_mxmlNewText(type, 0, v_sData->szType);
-
-	params = SZY_mxmlNewElement(command, "params");
-
+	if(v_sData->iParamCount>0)
+		params = SZY_mxmlNewElement(command, "params");
+	
 	for (i = 0;i < v_sData->iParamCount; i++)
 	{
 		param = SZY_mxmlNewElement(params, "param");
@@ -134,44 +144,42 @@ void DeCode(char *szBuf, S_Data *v_sData)
 	{
 		goto _DECODE_END;
 	}
-	command = SZY_mxmlFindElement(xml, xml, "command",NULL,NULL,MXML_DESCEND);
+	command = SZY_mxmlFindElement(xml, xml, "devicecmd",NULL,NULL,MXML_DESCEND);
 	if(NULL == command)
 	{
 		goto _DECODE_END;
 	}
 
-	id = SZY_mxmlFindElement(command, xml, "id",NULL,NULL,MXML_DESCEND);
-	if(NULL == id)
+	id = SZY_mxmlFindElement(command, xml, "cmdid",NULL,NULL,MXML_DESCEND);
+	if(NULL != id)
 	{
-		goto _DECODE_END;
+		str = SZY_mxmlGetText(id, &white);
+		v_sData->szCommandId = atoi(str);
+		//printf("id = %p\n",id);
+		//printf("id = %s\n",str);
 	}
-	str = SZY_mxmlGetText(id, &white);
-	v_sData->szCommandId = atoi(str);
-	//printf("id = %p\n",id);
-	//printf("id = %s\n",str);
 
-	name = SZY_mxmlFindElement(command, xml, "name",NULL,NULL,MXML_DESCEND);
-	if(NULL == name)
+
+	name = SZY_mxmlFindElement(command, xml, "command",NULL,NULL,MXML_DESCEND);
+	if(NULL != name)
 	{
-		goto _DECODE_END;
+		str = SZY_mxmlGetText(name, &white);
+		strcpy(v_sData->szCommandName, (str == NULL)?"":str);
+		//printf("name = %p\n",name);
+		//printf("name = %s\n",str);
 	}
-	str = SZY_mxmlGetText(name, &white);
-	strcpy(v_sData->szCommandName, (str == NULL)?"":str);
-	//printf("name = %p\n",name);
-	//printf("name = %s\n",str);
-
 	type = SZY_mxmlFindElement(command, xml, "type",NULL,NULL,MXML_DESCEND);
-	if(NULL == type)
+	if(NULL != type)
 	{
-		goto _DECODE_END;
+		str = SZY_mxmlGetText(type, &white);
+		strcpy(v_sData->szType, (str == NULL)?"":str);
+		//printf("type = %p\n",type);
+		//printf("type = %s\n",str);
 	}
-	str = SZY_mxmlGetText(type, &white);
-	strcpy(v_sData->szType, (str == NULL)?"":str);
-	//printf("type = %p\n",type);
-	//printf("type = %s\n",str);
+	
 
 	params = SZY_mxmlFindElement(command, xml, "params",NULL,NULL,MXML_DESCEND);
-	if(NULL == params)
+	if(NULL != params)
 	{
 		goto _DECODE_END;
 	}

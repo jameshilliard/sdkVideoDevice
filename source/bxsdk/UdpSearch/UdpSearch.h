@@ -32,9 +32,7 @@ typedef struct Server_Info_t_
 	char	System_MACAddress[16];	//MAC地址
 	char	Network_IPAddress[16];	//服务器的IP地址
 	char	Network_Subnet[16];		//子网掩码Mask
-	char	Network_GateWay[16];		//默认网关或路由器地址
-	int		Network_HTTPPort;			//SDK内部的TCP服务端口号
-	int 	devType;					//设备类型
+	char	Network_GateWay[16];	//默认网关或路由器地址
 	char	System_FWVersion[24];		//含设备型号
 	char	System_SerialNo[16];		//SerialNum
 
@@ -60,8 +58,6 @@ extern "C" {
 #  endif /* __cplusplus */
 	BOOL InitUdpSearch();
 	void RealseUdpSearch();
-	void SetSearchParm(UdpSearchParam *v_p_objUdpSearchPar);
-	void GetMasterIps(char *v_szMaskIps);
 #  ifdef __cplusplus
 }
 #  endif /* __cplusplus */

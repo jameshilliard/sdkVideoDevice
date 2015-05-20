@@ -14,7 +14,7 @@
 PRTMPUnit pRtmpServer;
 static BOOL startControlServer=TRUE;
 PRTMPUnit pRtmpServer=NULL;
-char serverNo[64]={0,};
+char g_serverNo[64]={0,};
 static unsigned int beatPrintfTimes=0;
 //HI_S_Video_Ext deviceVedeioEx[]= {
 //		1,0, 100,8 ,50,HI_TRUE,1,1280,710,
@@ -37,7 +37,6 @@ static int isValidPacket(LPTSTR recBuffer,DWORD recLength,MsgHead *vMsgHead,LPTS
 	memcpy(msgBuffer,recBuffer+sizeof(MsgHead),vMsgHead->uBodyLen);
 	return 0;
 }
-
 #define 	SERVERFILE					"/mnt/mtd/ipc/conf/config_platform.ini"
 
 int getServerNo(char * path,char serverNo[64])
@@ -76,6 +75,7 @@ int getServerNo(char * path,char serverNo[64])
 		fclose(fp);
 	return iRet;
 }
+
 static long long getTimeStamp(void)
 {
 	time_t time_of_day;
@@ -611,7 +611,7 @@ static void *P_CtrlSocketThread()
 			mMsgBody_DEVICE_IDENTITY_VERIFY.m_uMsgType=CONTROL_PROTOCAL_DEVICE_IDENTITY_VERIFY;
 			mMsgBody_DEVICE_IDENTITY_VERIFY.m_user=USER;
 			mMsgBody_DEVICE_IDENTITY_VERIFY.m_secret=SECRET;
-			mMsgBody_DEVICE_IDENTITY_VERIFY.m_serverNo=serverNo;
+			mMsgBody_DEVICE_IDENTITY_VERIFY.m_serverNo=g_serverNo;
 			iRet=sendConServerMessage(socketId,CONTROL_PROTOCAL_DEVICE_IDENTITY_VERIFY,(void *)&mMsgBody_DEVICE_IDENTITY_VERIFY);
 			if(iRet==0)
 			{
@@ -620,13 +620,13 @@ static void *P_CtrlSocketThread()
 				nowTimeMs=getTickCountMs();
 				lastSendBeatTimeMs=nowTimeMs;
 				lastRecvBeatTimeMs=nowTimeMs;
-				LOGOUT("sendConnectServerLoginMessage %d %s %s %s",socketId,USER,SECRET,serverNo);
+				LOGOUT("sendConnectServerLoginMessage %d %s %s %s",socketId,USER,SECRET,g_serverNo);
 			}
 			else
 			{
 				sleep(1);
 				clientStaus=StatusDisConn;
-				LOGOUT("sendConnectServerLoginMessage pushdata error %d %s %s %s",socketId,USER,SECRET,serverNo);
+				LOGOUT("sendConnectServerLoginMessage pushdata error %d %s %s %s",socketId,USER,SECRET,g_serverNo);
 			}
 		}
 		break;
@@ -706,6 +706,8 @@ static void *P_CtrlSocketThread()
 								break;
 							case	CONTROL_PROTOCAL_KEEPALIVE_ACK:
 								lastRecvBeatTimeMs=nowTimeMs;
+								close(socketId);
+								LOGOUT("close socketId");
 								break;
 							case	CONTROL_PROTOCAL_SETTIMEOUTDURATION_ACK:
 							{
@@ -720,7 +722,7 @@ static void *P_CtrlSocketThread()
 								mMsgBody_DEVICE_REGISTER.m_deviceProduct=DEVICEPRODUCT;
 								mMsgBody_DEVICE_REGISTER.m_deviceModel=DEVICEMODEL;
 								mMsgBody_DEVICE_REGISTER.m_deviceMacAddr=deviceNetInfo.m_MACAddress;
-								mMsgBody_DEVICE_REGISTER.m_deviceServerNo=serverNo;
+								mMsgBody_DEVICE_REGISTER.m_deviceServerNo=g_serverNo;
 								mMsgBody_DEVICE_REGISTER.m_deviceChannelStartNum=DEVICECHANNELSTARTNUM;
 								mMsgBody_DEVICE_REGISTER.m_deviceType=DEVICETYPE;
 								mMsgBody_DEVICE_REGISTER.m_deviceChannelNum=DEVICECHANNELNUM;
@@ -985,8 +987,8 @@ int InitControlServer()
 {
 	int iRet;
 	pthread_t pCtrlThreadWork;
-	memset(serverNo,0,sizeof(serverNo));
-	iRet=getServerNo(SERVERFILE,serverNo);
+	memset(g_serverNo,0,sizeof(g_serverNo));
+	iRet=getServerNo(SERVERFILE,g_serverNo);
 	if(iRet!=0)
 	{
 		LOGOUT("getServerNo is error iRet=%d",iRet);

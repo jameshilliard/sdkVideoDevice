@@ -27,12 +27,12 @@
 #define CONFIGFILENAME				"CfgFile.ini"			// 配置文件名字
 
 #define DEFAULT_KERNEL_FWVERSION	"1.0.0.0"	// 默认内核版本号
-#define DEFAULT_NETWORKCARDNAME	"eth0"		// 默认网卡
+#define DEFAULT_NETWORKCARDNAME		"eth0"		// 默认网卡
 #define DEFAULT_LOAD_PATH			"/tmp"		// 默认路径
 
 // 设备类型
 #define DEVTYPE 					1
-#define SDK_HARD_FWVERSION		"SYIPC-1.1.1"
+#define SDK_HARD_FWVERSION			"SYIPC-1.0.0"
 
 #define SDK_SYSTEM_FWVERSION		"1.0.0002"	// SDK版本号
 

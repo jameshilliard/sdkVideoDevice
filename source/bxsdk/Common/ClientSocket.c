@@ -211,6 +211,7 @@ static void *RecvProc(void *data)
 		ret = select(maxSocket+1, &fdSocket, NULL, NULL, &tv);
 		if (ret <= 0)
 		    continue;
+		printf("select ret is %d\n",ret);
 		for(i=0; i<MAXSOCK; i++)
 		{
 			pthread_mutex_lock(&m_SockMutex);
@@ -220,6 +221,7 @@ static void *RecvProc(void *data)
 				continue;
 			if(FD_ISSET(mSocketData.socketId, &fdSocket))
 			{
+				printf("FD_ISSET is right\n");
 				memset(buf,0,sizeof(buf));
 				ret = recv(mSocketData.socketId, buf, sizeof(buf), 0);
 				if (ret < 0) //接收数据出错
@@ -252,7 +254,10 @@ static void *RecvProc(void *data)
 				}
 
 			}
-		
+			else
+			{
+				printf("FD_ISSET is error\n");
+			}
 		}
 		usleep(100*1000);
 	}
