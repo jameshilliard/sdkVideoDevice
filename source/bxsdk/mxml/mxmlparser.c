@@ -31,7 +31,7 @@ int EnCode(char *szBuf, int iLen, S_Data *v_sData)
 	xml = SZY_mxmlNewXML("1.0");
 	command = SZY_mxmlNewElement(xml, "devicecmd");
 
-	if(v_sData->szCommandId==-1)
+	if(v_sData->szCommandId!=-1)
 	{
 		id = SZY_mxmlNewElement(command, "cmdid");
 		sprintf(szId,"%d",v_sData->szCommandId);
@@ -136,7 +136,7 @@ void DeCode(char *szBuf, S_Data *v_sData)
 	int white = 1;
 	int iValueLen = 0;
 	v_sData->iParamCount = 0;
-	//printf("DeCode :%s",szBuf);
+	printf("DeCode :%s",szBuf);
 
 	xml = SZY_mxmlLoadString(NULL, szBuf, MXML_TEXT_CALLBACK);
 
@@ -156,7 +156,7 @@ void DeCode(char *szBuf, S_Data *v_sData)
 		str = SZY_mxmlGetText(id, &white);
 		v_sData->szCommandId = atoi(str);
 		//printf("id = %p\n",id);
-		//printf("id = %s\n",str);
+		printf("id = %s\n",str);
 	}
 
 
@@ -166,7 +166,7 @@ void DeCode(char *szBuf, S_Data *v_sData)
 		str = SZY_mxmlGetText(name, &white);
 		strcpy(v_sData->szCommandName, (str == NULL)?"":str);
 		//printf("name = %p\n",name);
-		//printf("name = %s\n",str);
+		printf("name = %s\n",str);
 	}
 	type = SZY_mxmlFindElement(command, xml, "type",NULL,NULL,MXML_DESCEND);
 	if(NULL != type)
@@ -199,7 +199,7 @@ void DeCode(char *szBuf, S_Data *v_sData)
 		}
 		str = SZY_mxmlGetText(lmtTmp, &white); /* <key> */
 		strcpy(v_sData->params[v_sData->iParamCount].szKey, (str == NULL)?"":str);
-		//printf("key = %s\n",str);
+		printf("key = %s\n",str);
 
 		lmtTmp = SZY_mxmlFindElement(param, xml, "value",NULL,NULL,MXML_DESCEND);
 		if(NULL == lmtTmp)
@@ -221,7 +221,7 @@ void DeCode(char *szBuf, S_Data *v_sData)
 		memset(v_sData->params[v_sData->iParamCount].szValue, 0, iValueLen);
 		strcpy(v_sData->params[v_sData->iParamCount++].szValue, (str == NULL)?"":str);
 
-		//printf("value = %s\n",str);
+		printf("value = %s\n",str);
 
 		param = SZY_mxmlGetNextSibling(param);
 		if(NULL == param)

@@ -12,7 +12,6 @@ typedef struct tagSocketData
 {
 	int 			socketId;
 	InnerDataList *	pIInnerDataList;
-	
 }SocketData;
 
 typedef enum {

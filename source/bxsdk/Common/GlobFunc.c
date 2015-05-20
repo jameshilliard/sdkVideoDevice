@@ -80,7 +80,26 @@ BOOL isFileSystemBigger(LPCTSTR sdDir,DWORD size)
 	}
 	return TRUE;
 }
-
+int split( char **szArray, char *v_szSplitStr, const char *v_szDdelim, int v_iArayNum)
+{
+	if((v_szSplitStr == NULL)||(szArray == NULL)||(v_szDdelim == NULL))
+	{
+	    LOGOUT("v_szSplitStr is %d,szArray is %d,v_szDdelim is %d",(int)(v_szSplitStr == NULL),(int)(szArray == NULL),(int)(v_szDdelim == NULL));
+		return 0;
+	}
+	char *s = NULL; 
+	int iArrayCount = 0;
+	s = strtok(v_szSplitStr, v_szDdelim);
+	while(s != NULL)
+	{
+		*szArray++ = s;
+		iArrayCount ++;
+		if(iArrayCount >= v_iArayNum)
+			break;
+		s = strtok(NULL,v_szDdelim);
+	}
+	return iArrayCount;
+}
 BOOL creatDir(LPCTSTR pDir)  
 {  
     INT32S i = 0;  

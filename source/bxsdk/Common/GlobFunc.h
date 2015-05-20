@@ -12,6 +12,7 @@ extern "C" {
 	DWORD	getFileSize(LPCTSTR path);
 	BOOL   	isFileSystemBigger(LPCTSTR sdDir,DWORD size);
 	BOOL 	creatDir(LPCTSTR pDir);
+	int 	split( char **szArray, char *v_szSplitStr, const char *v_szDdelim, int v_iArayNum);
 	INT32S 	writeFile(LPCTSTR filePath,LPCTSTR fileBuffer,DWORD size);
 	INT32S 	readFile(LPCTSTR filePath,LPCTSTR fileBuffer,DWORD bufferSize,DWORD *fileSize);
 	char * 	SY_base64Encode(const char *text);

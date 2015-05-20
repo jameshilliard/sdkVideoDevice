@@ -16,11 +16,10 @@ static BOOL startControlServer=TRUE;
 PRTMPUnit pRtmpServer=NULL;
 char g_serverNo[64]={0,};
 static unsigned int beatPrintfTimes=0;
-//HI_S_Video_Ext deviceVedeioEx[]= {
-//		1,0, 100,8 ,50,HI_TRUE,1,1280,710,
-//		1,1, 200,12,50,HI_TRUE,1,640,352,
-//		1,2, 500,16,50,HI_TRUE,1,320,176
-//};
+
+char	g_szServer[MATSERIPCOUNT][32];
+int 	g_iMasterPort = ROUTESERVERPORT;
+char 	g_server[200] = {0};
 
 
 static int isValidPacket(LPTSTR recBuffer,DWORD recLength,MsgHead *vMsgHead,LPTSTR msgBuffer,DWORD msgLength)
@@ -511,6 +510,58 @@ void printfVideoParam(char *ptrString,HI_S_Video_Ext videoEx)
 		   videoEx.u32Iframe,videoEx.blCbr,videoEx.u32ImgQuality,videoEx.u32Width,videoEx.u32Height);
 }
 
+static int getMasterIpAndPort()
+{
+
+	tagMasterServerCfg objGetMasterInfo;	
+	int iRet = GetCfgFile(&objGetMasterInfo, sizeof(tagMasterServerCfg), offsetof(tagConfigCfg, m_unMasterServerCfg.m_objMasterServerCfg), sizeof(tagMasterServerCfg));
+	if(iRet)
+	{
+		LOGOUT("Get Cfg File Fail!!");
+		return -1;
+	}
+	memset(g_szServer,0,sizeof(g_szServer));
+	memset(g_server,0,sizeof(g_server));
+	char szSplitBuf[200] = {0};
+	strcpy(szSplitBuf, objGetMasterInfo.m_szMasterIP);
+	strcpy(g_server,objGetMasterInfo.m_szMasterIP);
+	int i = 0;
+	int iCount = 0;
+	int isMasterValid=0;
+	char *szMasterIps[MATSERIPCOUNT];
+
+	iCount = split(szMasterIps, szSplitBuf, ";", MATSERIPCOUNT);
+	for (i = 0; i< iCount; i++)
+	{
+		strcpy(g_szServer[i], szMasterIps[i]);
+		if(strlen(g_szServer[i])!=0)
+			isMasterValid=1;
+			
+	}
+	LOGOUT("Local Master:%s,%s,%s,%s Port:%d",g_szServer[0],g_szServer[1],g_szServer[2],g_szServer[3],g_iMasterPort);
+	if(isMasterValid==1)
+	{
+		strcpy(g_szServer[0],ROUTESERVER);
+		g_iMasterPort=ROUTESERVERPORT;
+	}	
+	g_iMasterPort = objGetMasterInfo.m_iMasterPort;
+	if(g_iMasterPort==0)
+		g_iMasterPort=ROUTESERVERPORT;
+}
+int setMasterAndPort(char *server,int port)
+{
+	if(server==NULL)
+		return -1;
+	if(strcmp(g_server,server)==0 && port==g_iMasterPort)
+		return  0;
+	tagMasterServerCfg objSetMasterInfo = {0};
+	strcpy(objSetMasterInfo.m_szMasterIP,server);
+	objSetMasterInfo.m_iMasterPort = port;
+	LOGOUT("test");
+	int iRet=SetCfgFile(&objSetMasterInfo, offsetof(tagConfigCfg, m_unMasterServerCfg.m_objMasterServerCfg), sizeof(tagMasterServerCfg));
+	getMasterIpAndPort();
+	return iRet;
+}
 
 static void *P_CtrlSocketThread()
 {
@@ -537,6 +588,8 @@ static void *P_CtrlSocketThread()
 	DWORD	nowTimeMs=0;
 	Device_Net_Info deviceNetInfo;
 	MsgGlobal_Device globalDeviceStatus;
+	BOOL 	bSendErrorPlay=FALSE;
+	int i=0;
 	
 	unsigned short curMsgType=0;//消息类型
 	DWORD 	curMsgSendTime=0;//消息类型
@@ -570,12 +623,26 @@ static void *P_CtrlSocketThread()
 		{
 			if(reConFlag)
 			{
-				iRet=GetControlServer(ROUTESERVER,ROUTESERVERPORT,USER,controlServer,sizeof(controlServer));
-				//测试服务器121.43.234.112
-				//memset(controlServer,0,sizeof(controlServer));
-				//memcpy(controlServer,"121.43.234.112",strlen("121.43.234.112"));
-				//iRet=0;
-				//LOGOUT("use test Server");
+				for(i=0;i<MATSERIPCOUNT;i++)
+				{
+					if(strlen(g_szServer[i])>0 && g_iMasterPort>0)
+					{
+						iRet=GetControlServer(g_szServer[i],g_iMasterPort,USER,controlServer,sizeof(controlServer));
+						//测试服务器121.43.234.112
+						//memset(controlServer,0,sizeof(controlServer));
+						//memcpy(controlServer,"121.43.234.112",strlen("121.43.234.112"));
+						//iRet=0;
+						//LOGOUT("use test Server");
+						if(iRet==0)
+						{	
+							reConFlag=FALSE;
+							clientStaus=StatusConnControl;
+							LOGOUT("ControlServer Change statusConn %s start",controlServer);
+							break;
+						}
+					}
+				}
+				iRet=GetControlServer(g_szServer[i],g_iMasterPort,USER,controlServer,sizeof(controlServer));
 				if(iRet==0)
 				{	
 					reConFlag=FALSE;
@@ -583,6 +650,7 @@ static void *P_CtrlSocketThread()
 					LOGOUT("ControlServer Change statusConn %s start",controlServer);
 					break;
 				}
+
 			}
 		}
 		break;
@@ -631,26 +699,7 @@ static void *P_CtrlSocketThread()
 		}
 		break;
 		case StatusWorking:
-		{
-			if(pRtmpServer!=NULL && GetRtmpConnectStatus() == 0)//zmt,当RTMP传输异常时，通知控制服务器
-			{
-				curMsgType=CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY;
-				curMsgSendTime=nowTimeMs;
-				MsgBody_PREVIEW_FAILURE_NOTIFY mMsgBody_PREVIEW_FAILURE_NOTIFY;
-				memset(&mMsgBody_PREVIEW_FAILURE_NOTIFY,0,sizeof(mMsgBody_PREVIEW_FAILURE_NOTIFY));
-				mMsgBody_PREVIEW_FAILURE_NOTIFY.m_uMsgType=CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY;
-				mMsgBody_PREVIEW_FAILURE_NOTIFY.m_channelId=globalDeviceStatus.m_deviceRegisterAck.m_channelId;
-				if(iRet==-1)
-					mMsgBody_PREVIEW_FAILURE_NOTIFY.m_failureType=-2;
-				else if(iRet==-2)
-					mMsgBody_PREVIEW_FAILURE_NOTIFY.m_failureType=-1;
-				strcpy(mMsgBody_PREVIEW_FAILURE_NOTIFY.m_serverStamp,globalDeviceStatus.m_openChannelPreviewAck.m_serverStamp);
-				iRet=sendConServerMessage(socketId,CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY,&mMsgBody_PREVIEW_FAILURE_NOTIFY);
-				if(iRet!=0) 
-					LOGOUT("sendConServerMessage CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY is %d",iRet);	
-				break;
-			}
-			//
+		{	
 			nowTimeMs=getTickCountMs();
 			iRet=GetSocketData(socketId,&v_dwSymb,sizeof(recBuffer),recBuffer,&length);
 			if(iRet==0)
@@ -706,8 +755,8 @@ static void *P_CtrlSocketThread()
 								break;
 							case	CONTROL_PROTOCAL_KEEPALIVE_ACK:
 								lastRecvBeatTimeMs=nowTimeMs;
-								close(socketId);
-								LOGOUT("close socketId");
+								//close(socketId);
+								//LOGOUT("close socketId");
 								break;
 							case	CONTROL_PROTOCAL_SETTIMEOUTDURATION_ACK:
 							{
@@ -830,11 +879,13 @@ static void *P_CtrlSocketThread()
 								if(pRtmpServer!=NULL)
 								{
 									InitRTMPUnit(pRtmpServer);
+									bSendErrorPlay=TRUE;
 								}
 								else
 								{
 									LOGOUT("rtmpAddr error\n");
 								}
+								
 							}
 								break;
 							case CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY_ACK://远程预览失败通知应答
@@ -937,6 +988,25 @@ static void *P_CtrlSocketThread()
 					break;
 				}
 			}
+			if(pRtmpServer!=NULL && GetRtmpConnectStatus() == 0 && bSendErrorPlay==TRUE)//zmt,当RTMP传输异常时，通知控制服务器
+			{
+				bSendErrorPlay=FALSE;
+				curMsgType=CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY;
+				curMsgSendTime=nowTimeMs;
+				MsgBody_PREVIEW_FAILURE_NOTIFY mMsgBody_PREVIEW_FAILURE_NOTIFY;
+				memset(&mMsgBody_PREVIEW_FAILURE_NOTIFY,0,sizeof(mMsgBody_PREVIEW_FAILURE_NOTIFY));
+				mMsgBody_PREVIEW_FAILURE_NOTIFY.m_uMsgType=CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY;
+				mMsgBody_PREVIEW_FAILURE_NOTIFY.m_channelId=globalDeviceStatus.m_deviceRegisterAck.m_channelId;
+				if(iRet==-1)
+					mMsgBody_PREVIEW_FAILURE_NOTIFY.m_failureType=-2;
+				else if(iRet==-2)
+					mMsgBody_PREVIEW_FAILURE_NOTIFY.m_failureType=-1;
+				strcpy(mMsgBody_PREVIEW_FAILURE_NOTIFY.m_serverStamp,globalDeviceStatus.m_openChannelPreviewAck.m_serverStamp);
+				iRet=sendConServerMessage(socketId,CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY,&mMsgBody_PREVIEW_FAILURE_NOTIFY);
+				if(iRet!=0) 
+					LOGOUT("sendConServerMessage CONTROL_PROTOCAL_PREVIEW_FAILURE_NOTIFY is %d",iRet);	
+				break;
+			}
 			if(bSendBeatFlag)
 			{
 				if((nowTimeMs-lastSendBeatTimeMs)>BEATTIME)
@@ -992,6 +1062,11 @@ int InitControlServer()
 	if(iRet!=0)
 	{
 		LOGOUT("getServerNo is error iRet=%d",iRet);
+	}
+	iRet=getMasterIpAndPort();
+	if(iRet!=0)
+	{
+		LOGOUT("getMasterIpAndPort is error iRet=%d",iRet);
 	}
 	startControlServer=TRUE;
 	iRet = pthread_create(&pCtrlThreadWork, NULL, P_CtrlSocketThread, NULL);

@@ -7,7 +7,7 @@
 
 #include "LogOut/LogOut.h"
 #include "Common/Typedef.h"
-#include "Common/Configdef.h"
+#include "Common/ConfigMng.h"
 #include "Common/ClientSocket.h"
 #include "Server/RouteServer.h"
 #include "Server/ControlServer.h"
@@ -15,7 +15,7 @@
 #include "hisdk/source_sdk.h"
 #include "UdpSearch/UdpSearch.h"
 
-	
+		
 int main()
 {
 	int iRet = 0;
@@ -24,15 +24,17 @@ int main()
 	sigaddset(&set, SIGPIPE);
 	sigprocmask(SIG_BLOCK, &set, NULL); 
 	Init_LogOut(LOGSIZE,LOGDIR,TRUE,TEMPDIR);
-	LOGOUT("Init_LogOut over %d",sizeof(long));
+	LOGOUT("Init_LogOut over");
+	BOOL bRet=InitCfgMng(DEVICECONFIGDIR);
+	LOGOUT("InitCfgMng over bRet=%d",bRet);
 	iRet=InitHiSDKVideoAllChannel();
-	LOGOUT("InitHiSDKVideoAllChannel %d over",iRet);
+	LOGOUT("InitHiSDKVideoAllChannel iRet=%d over",iRet);
 	iRet=InitNetwork(CMDBUFFER);
-	LOGOUT("InitNetwork %d over",iRet);
+	LOGOUT("InitNetwork iRet=%d over",iRet);
 	iRet=InitControlServer();
-	LOGOUT("InitControlServer %d over",iRet);
+	LOGOUT("InitControlServer iRet=%d over",iRet);
 	iRet=InitUdpSearch();
-	LOGOUT("InitUdpSearch %d over",iRet);
+	LOGOUT("InitUdpSearch iRet=%d over",iRet);
 	while(1)
 	{
 		sleep(10);
@@ -42,6 +44,8 @@ int main()
 	LOGOUT("InitHiSDKVideoAllChannel %d over",iRet);
 	iRet=ReleaseControlServer();
 	ReleaseNetwork();
+	ReleaseCfgFile();
+	Release_LogOut();
 	return 0;
 }
 

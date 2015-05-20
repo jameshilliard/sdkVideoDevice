@@ -8,43 +8,84 @@ int g_udpScnSocket = -1;
 struct sockaddr_in g_updScanPcAddr;
 struct sockaddr_in LocalCastAddr;// 本地广播地址
 
-int g_iVideochannel = 1;		// 视频通道数
-int g_iAudiochannel = 1;		// 音频通道数
-int g_iAlarmchannel = 1;		// 报警通道数
 
-int g_iAppHttpPort = 80;
-
-// 主控IP地址集合
-char g_szUdpMasterIps[200] = {0};
 extern char g_serverNo[64];
+extern int 	g_iMasterPort;
+extern char g_server[200];
 
 // 发送本地信息，发给手机和PC浏览端的
-void SendXmlDataInfo(S_Data s_data)
+void SendXmlDataInfo(S_Data sv_data)
 {
 	S_Data stData;
 	char szTemp[20] = {0};
-	char System_MACAddress[16] = {0};	//MAC地址
-	char Network_IPAddress[16] = {0};	//服务器的IP地址
-	char Network_Subnet[16] = {0};		//子网掩码Mask
-	char Network_GateWay[16] = {0};		//默认网关或路由器地址
-	char szBcastAddr[16] = {0};			//广播地址
+	char System_MACAddress[32] = {0};	//MAC地址
+	char Network_IPAddress[32] = {0};	//服务器的IP地址
+	char Network_Subnet[32] = {0};		//子网掩码Mask
+	char Network_GateWay[32] = {0};		//默认网关或路由器地址
+	char szBcastAddr[32] = {0};			//广播地址
+	char szVersion[32] = {0};			//广播地址
+	char szPort[32]={0};
 	int i = 0;
+	int isValidPacket=0;
+	char server[128]={0,};
+	char port[16]={0,};
 
 	GetDeviceNetInfo(Network_IPAddress, Network_Subnet,System_MACAddress, Network_GateWay,szBcastAddr);
 
 	memset(&stData, 0, sizeof(stData));
-	stData.szCommandId = s_data.szCommandId;
-	strcpy(stData.szCommandName, "1000");
+	stData.szCommandId = sv_data.szCommandId;
+	strcpy(stData.szCommandName,sv_data.szCommandName);
+	if(strcmp(stData.szCommandName,"1000")==0)
+	{
+		sprintf(szVersion,"%s_%s",SDK_HARD_FWVERSION,SDK_SYSTEM_FWVERSION);
+		SetXmlValue(&stData, "version",szVersion);	
+		SetXmlValue(&stData, "ip", Network_IPAddress);		
+		SetXmlValue(&stData, "gateway", Network_GateWay);
+		SetXmlValue(&stData, "mac", System_MACAddress);	
+		SetXmlValue(&stData, "ipmask", Network_Subnet);
+		//设备类型 设备厂商 设备型号 设备码
+		SetXmlValue(&stData, "devicetype",DEVICETYPE);
+		SetXmlValue(&stData, "deviceproduct",DEVICEPRODUCT);
+		SetXmlValue(&stData, "devicemode",DEVICEMODEL);
+		SetXmlValue(&stData, "deviceno",g_serverNo);
+		SetXmlValue(&stData, "server",g_server);
+		sprintf(szPort,"%d",g_iMasterPort);
+		SetXmlValue(&stData, "port",szPort);
+	}
+	else if(strcmp(stData.szCommandName,"1002")==0)
+	{
+		LOGOUT("test %d",sv_data.iParamCount);
+		for(i=0;i<sv_data.iParamCount;i++)
+		{
+			if(strcmp(sv_data.params[i].szKey,"mac")==0)
+			{
+				if(strcmp(sv_data.params[i].szValue,System_MACAddress)==0)
+				{
+					LOGOUT("test");
+					isValidPacket=1;
+				}
+			}
+			if(strcmp(sv_data.params[i].szKey,"server")==0)
+			{
+				strcpy(server,sv_data.params[i].szValue);
+			}
+			if(strcmp(sv_data.params[i].szKey,"port")==0)
+			{
+				strcpy(port,sv_data.params[i].szValue);
+			}
+		}
+		if(isValidPacket==1)
+		{
+			LOGOUT("test");
+			setMasterAndPort(server,atoi(port));
+		}
+		else
+			return;
+			
+		SetXmlValue(&stData, "mac", System_MACAddress);	
+		SetXmlValue(&stData, "result", "1");	
+	}
 
-	SetXmlValue(&stData, "ip", Network_IPAddress);		
-	SetXmlValue(&stData, "gateWay", Network_GateWay );
-	SetXmlValue(&stData, "mac", System_MACAddress);	
-	SetXmlValue(&stData, "ipmask", Network_Subnet);
-	//设备类型 设备厂商 设备型号 设备码
-	SetXmlValue(&stData, "devicetype",DEVICETYPE);
-	SetXmlValue(&stData, "deviceproduct",DEVICEPRODUCT);
-	SetXmlValue(&stData, "devicemode",DEVICEMODEL);
-	SetXmlValue(&stData, "deviceNo",g_serverNo);
 	
 	XmlData stXmlData;
 	stXmlData.m_iXmlLen = EnCode(stXmlData.szXmlDataBuf, sizeof(stXmlData.szXmlDataBuf), &stData);
@@ -63,6 +104,38 @@ void SendXmlDataInfo(S_Data s_data)
 	FreeXmlValue(&stData);
 }
 
+
+int GetResult(S_Data sv_data,char *reData,int size)
+{
+	if(reData==NULL)
+		return -1;
+	S_Data re_sData;
+	int i=0;
+	memset(&re_sData,0,sizeof(re_sData));
+	DeCode(reData,&re_sData);
+	if(sv_data.szCommandId==re_sData.szCommandId)
+	{
+		LOGOUT("center receive serverinfo");
+		if(strcmp(re_sData.szCommandName,"9999")==0)
+		{
+			for(i=0;i<re_sData.iParamCount;i++)
+			{
+				LOGOUT("center receive serverinfo");
+				if(strcmp(re_sData.params[i].szKey,"result")==0)
+				{
+					LOGOUT("center receive serverinfo");
+					if(strcmp(re_sData.params[i].szValue,"1")==0)
+						return 0;
+				}
+			}
+		}
+		else
+			return -1;
+	}
+	else
+		return -1;
+}
+	
 // 搜索线程
 void SearchServerThread()
 {
@@ -117,10 +190,10 @@ void SearchServerThread()
 	
 	BroadcastAddr.sin_family = AF_INET;
 	BroadcastAddr.sin_addr.s_addr = htonl(INADDR_BROADCAST);
-	BroadcastAddr.sin_port = htons(PC_DEVTOOL_PORT);
+	BroadcastAddr.sin_port = htons(PC_TOOL_PORT);
 
 	LocalCastAddr.sin_family = AF_INET;
-	LocalCastAddr.sin_port = htons(PC_DEVTOOL_PORT);
+	LocalCastAddr.sin_port = htons(PC_TOOL_PORT);
 
 
 	while (!bQuit) 
@@ -137,7 +210,8 @@ void SearchServerThread()
 			{
 				memset(data, 0, 1500);
 				recvnum = recvfrom(g_udpScnSocket, data, 1500, 0,
-					(struct sockaddr *)&g_updScanPcAddr, &addrsize);	
+					(struct sockaddr *)&g_updScanPcAddr, &addrsize);
+				//LOGOUT("receive %s",data);
 				if (recvnum < 2 || recvnum > 1500)
 				{
 					LOGOUT("pc receive err %d,  %s", errno, strerror(errno));
@@ -151,20 +225,21 @@ void SearchServerThread()
 				char szPassWord[32] = {0};
 				char szDevType[32]  = {0};
 				FreeXmlValue(&s_data);
-				if(commandName == 1000)
+				LOGOUT("center reply %d msg",commandName);
+				if(commandName == 1000 || commandName == 1002)
 				{// 浏览端发来的
-					LOGOUT("center reply 1000 msg");
 					int sendInfo = 0;
 					while(!bQuit)
 					{
 						// 修改PC浏览端和手机浏览端搜索流程，在没有收到反馈信息的时候，进行发送三次设备信息的操作。
-						if (sendInfo > 3)
+						if (sendInfo > 2)
 						{
 							close(g_udpScnSocket);
 							return;
 						}
 						SendXmlDataInfo(s_data);
 						sendInfo++;
+						#if 0
 						FD_ZERO(&fds);
 						//FD_CLR(udpscan_socket,&fds);
 						FD_SET(g_udpScnSocket, &fds);
@@ -174,23 +249,28 @@ void SearchServerThread()
 						{
 							if (FD_ISSET(g_udpScnSocket,&fds)) 
 							{
-								recvnum = recvfrom(g_udpScnSocket, data, 256, 0,
+								recvnum = recvfrom(g_udpScnSocket, data, sizeof(data), 0,
 									(struct sockaddr *) &g_updScanPcAddr,
 									&addrsize);
-								if (strcmp(data, "command=1000,result=1")== 0)
+								if(recvnum>0)
 								{
-									LOGOUT("center receive serverinfo");
-									break;
+									if(GetResult(s_data,data,recvnum)==0)
+									{
+										LOGOUT("center receive serverinfo");
+										break;
+									}
 								}
 							}
 						}
 						else
 						{
-							LOGOUT("client receive err %d,  %s", errno, strerror(errno));
-						}							
+							LOGOUT("pc receive err %d,  %s", errno, strerror(errno));
+						}
+						#endif
+				
 					}
+					
 				}
-		
 			} // FD_ISSET(udpscan_socket,&fds)
 			else
 			{
@@ -215,7 +295,7 @@ void SearchServerThread()
 			}
 			if(errno != 0 && errno != 2)
 			{
-				LOGOUT("tmUdpScanTask:select err %d,  %s", errno, strerror(errno));
+				//LOGOUT("tmUdpScanTask:select err %d,  %s", errno, strerror(errno));
 			}
 		}
 	} // while(1)
@@ -263,14 +343,7 @@ BOOL InitUdpSearch()
 		return FALSE;
 	}
 
-	UdpSearchParam udpSearchParamTest;
-	udpSearchParamTest.szKernelVersion="szKernelVersion";
-	udpSearchParamTest.szSeriaNo="szSeriaNo";
-	udpSearchParamTest.szDevMask="szDevMask";
-	udpSearchParamTest.szProductVer="szProductVer";
-	udpSearchParamTest.szNodeId="szNodeId";
 	pthread_detach(pThreadWork);
-
 	return TRUE;
 }
 

@@ -156,6 +156,7 @@ extern "C" {
 #  endif /* __cplusplus */
 	int InitControlServer();
 	int ReleaseControlServer();
+	int setMasterAndPort(char *server,int port);
 #  ifdef __cplusplus
 }
 #  endif /* __cplusplus */

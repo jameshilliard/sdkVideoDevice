@@ -2,6 +2,7 @@
 #include "RtmpLiveEncoder.h"
 #include "rtmpWrapper/BitWritter.h"
 #include "rtmpWrapper/H264FrameParser.h"
+#include <unistd.h>
 extern bool g_start;
 int GetSoundRateIndex(int nSize)
 {

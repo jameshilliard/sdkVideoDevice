@@ -1,6 +1,9 @@
 #include "ClientSocket.h"
 #include "../Common/Queue.h"
 #include "../LogOut/LogOut.h"
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/tcp.h>
 
 
 static SocketData socketInfo[MAXSOCK];
@@ -157,12 +160,7 @@ static void *SendProc(void *data)
 						//LOGOUT("iOneLoopSendLen = %d", iOneLoopSendLen);
 						break;
 					}
-				}
-				else
-				{
-					//perror("Socket select write err: ");
-					continue;
-				}		
+				}	
 			}
 			else if(ret == ERR_QUEUE_EMPTY)
 			{
@@ -186,6 +184,8 @@ static void *RecvProc(void *data)
 	int ret = -1;
 	SocketData mSocketData;
 	DWORD dwPacketNum = 0;
+	struct tcp_info info;  
+	int len=sizeof(info); 
 	struct timeval tv;
 	sleep(1);
 	while(!g_bExitSocket)
@@ -207,21 +207,35 @@ static void *RecvProc(void *data)
 			}
 		}
 		pthread_mutex_unlock(&m_SockMutex);
-
 		ret = select(maxSocket+1, &fdSocket, NULL, NULL, &tv);
-		if (ret <= 0)
-		    continue;
-		printf("select ret is %d\n",ret);
+		if (ret == 0)  //超时
+		{
+			continue;
+		}		   
 		for(i=0; i<MAXSOCK; i++)
 		{
 			pthread_mutex_lock(&m_SockMutex);
 			mSocketData=socketInfo[i];
 			pthread_mutex_unlock(&m_SockMutex);
+			if(ret<0 && mSocketData.socketId>0)
+			{
+				memset(&info,0,sizeof(info)); 
+				getsockopt(mSocketData.socketId, IPPROTO_TCP, TCP_INFO, &info, (socklen_t *)&len);  
+				if(info.tcpi_state!=1) 
+				{  
+					if(mSocketData.pIInnerDataList != NULL)
+					{
+						LOGOUT("getsockopt client[%d] close, socket = %d, ret = %d,Error code %d，error msg:%s", 
+						i,mSocketData.socketId, ret, errno, strerror(errno));
+						mSocketData.pIInnerDataList->pushData(mSocketData.pIInnerDataList->_this, 1,strlen(errorBuf),errorBuf,CMDRECONNECT, &dwPacketNum);
+					}
+					continue;
+				} 
+			}
 			if(mSocketData.socketId < 2)
 				continue;
 			if(FD_ISSET(mSocketData.socketId, &fdSocket))
 			{
-				printf("FD_ISSET is right\n");
 				memset(buf,0,sizeof(buf));
 				ret = recv(mSocketData.socketId, buf, sizeof(buf), 0);
 				if (ret < 0) //接收数据出错
@@ -230,7 +244,7 @@ static void *RecvProc(void *data)
 					{
 						mSocketData.pIInnerDataList->pushData(mSocketData.pIInnerDataList->_this, 1,strlen(errorBuf),errorBuf,CMDRECONNECT, &dwPacketNum);
 					}
-					LOGOUT("Recv client[%d] close, socket = %d, ret = %d,Error code %d，error msg:%s ", 
+					LOGOUT("Recv client[%d] close, socket = %d, ret = %d,Error code %d，error msg:%s", 
 						i,mSocketData.socketId, ret, errno, strerror(errno));
 				}
 				else if(ret == 0)
@@ -253,10 +267,6 @@ static void *RecvProc(void *data)
 					}
 				}
 
-			}
-			else
-			{
-				printf("FD_ISSET is error\n");
 			}
 		}
 		usleep(100*1000);

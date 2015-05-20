@@ -1,7 +1,7 @@
 #ifndef _SERVERDEFINE_H_
 #define _SERVERDEFINE_H_
 #include "../Common/Typedef.h"
-
+#include "../Common/Configdef.h"
 
 
 #define PARAM_MAXUSER 				50
@@ -91,27 +91,7 @@ typedef struct MsgHead_
 	unsigned short uBodyLen;//消息体长度，如果无消息体填0
 }PACKED(1) MsgHead;
 
-#define		ROUTESERVERPORT		5002
-#define		CONTROLSERVERPORT	5000
 
-//#define 	ROUTESERVER			"www.benxunshida.com"
-#define 	ROUTESERVER			"121.43.234.112"
-#define 	USER				"pick@testdevice"
-//#define 	USER				"pick@sd3"
-
-#define		SECRET				"123456"
-#define 	SERVERNO0			"hk000000"
-
-//#define 	SERVERNO0			"hk000000"
-//#define 	SERVERNO1			"hk000001"
-//#define 	SERVERNO2			"hk000002"
-
-#define		DEVICEPRODUCT					"BXSD"
-#define 	DEVICEMODEL 					"9100"
-#define 	DEVICETYPE						"IPC"
-#define		DEFAULTDEVICEMACADDR			"94-DE-80-53-0A-90"
-#define		DEVICECHANNELNUM				1
-#define		DEVICECHANNELSTARTNUM			1
 
 
 

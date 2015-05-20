@@ -269,8 +269,11 @@ int InitHiSDKServer(HI_U32 *u32Handle,HI_U32 u32Stream)
 	char port[64]={0,};
 	memset(ip,0,sizeof(ip));
 	memset(port,0,sizeof(port));
-	//iRet=getIPAndPort(NETFILE,ip,port);
+	#ifdef HI_OS_LINUX
+	iRet=getIPAndPort(NETFILE,ip,port);
+	#else
 	iRet=1;
+	#endif
 	if(iRet!=0)
 	{
 		memcpy(ip,IPHOST,MIN(sizeof(ip),strlen(IPHOST)));
@@ -560,13 +563,13 @@ int InitHiSDKVideoAllChannel()
 	HI_NET_DEV_Init();
 	memset(&curVideoParam,0,sizeof(curVideoParam));
 	int iRet=-1;
-	//iRet=InitHiSDKServer(&u32HandleHight,0);
+	iRet=InitHiSDKServer(&u32HandleHight,0);
 	if(iRet!=0)
 		LOGOUT("InitHiSDKServer Hight is faliure,iRet=%d",iRet);
-	//iRet=InitHiSDKServer(&u32HandleMid,1);
+	iRet=InitHiSDKServer(&u32HandleMid,1);
 	if(iRet!=0)
 		LOGOUT("InitHiSDKServer Mid is faliure,iRet=%d",iRet);
-	//iRet=InitHiSDKServer(&u32HandleLow,2);
+	iRet=InitHiSDKServer(&u32HandleLow,2);
 	if(iRet!=0)
 		LOGOUT("InitHiSDKServer Low is faliure,iRet=%d",iRet);
 	LOGOUT("hight handle 0x%x=%d,mid handle 0x%x=%d,low handle 0x%x=%d",&u32HandleHight,u32HandleHight,

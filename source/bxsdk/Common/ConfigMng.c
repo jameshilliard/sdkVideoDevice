@@ -99,38 +99,12 @@ BOOL InitConfigFile()
 
 	tagConfigCfg objConfigCfg;
 	memset(&objConfigCfg, 0, sizeof(objConfigCfg));
-	
 	strcpy(objConfigCfg.m_szSpecCode, CFGCHECKMSG);
 
-	// tagNetWorkCfg网络参数默认值
-	strcpy(objConfigCfg.m_unNetWorkCfg.m_objNetWorkCfg.m_szIpAddr, DE_IP);
-	strcpy(objConfigCfg.m_unNetWorkCfg.m_objNetWorkCfg.m_szSubMask, DE_NETMASK);
-	strcpy(objConfigCfg.m_unNetWorkCfg.m_objNetWorkCfg.m_szGateWay, DE_GW);
-	strcpy(objConfigCfg.m_unNetWorkCfg.m_objNetWorkCfg.m_szDnsIp, DE_DNS);
-	objConfigCfg.m_unNetWorkCfg.m_objNetWorkCfg.m_iHttpPort = DE_HTTPPORT;
-
 	// tagMasterServerCfg主控参数默认值
-	strcpy(objConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP, DE_MASTERIP);
-	objConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort = DE_MASTERPORT;
+	strcpy(objConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP, ROUTESERVER);
+	objConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort = ROUTESERVERPORT;
 
-	// tagWorkTimeCfg工作时间参数默认值
-	strcpy(objConfigCfg.m_unWorkTimeCfg.m_objWorkTimeCfg.m_szBegain, DE_BEGAINTM);
-	strcpy(objConfigCfg.m_unWorkTimeCfg.m_objWorkTimeCfg.m_szEnd, DE_ENDTM);
-	objConfigCfg.m_unWorkTimeCfg.m_objWorkTimeCfg.m_bRecodeOnWorkTime = DE_BRECORD;
-	objConfigCfg.m_unWorkTimeCfg.m_objWorkTimeCfg.m_wRebootCount = DE_REBOOTCOUNT;
-
-	// tagCapParamCfg摄像头信息默认参数
-	for (i = 0; i< MAXCAMERANUM; i++)
-	{
-		objConfigCfg.m_unCapParamCfg.m_objCapParamCfg[i].m_wBitRate = DE_BITRATE;
-		objConfigCfg.m_unCapParamCfg.m_objCapParamCfg[i].m_wFrameRate = DE_FRAMERATE;
-		objConfigCfg.m_unCapParamCfg.m_objCapParamCfg[i].m_wHeight = DE_HEIGHT;
-		objConfigCfg.m_unCapParamCfg.m_objCapParamCfg[i].m_wWidth = DE_WIDTH;
-		objConfigCfg.m_unCapParamCfg.m_objCapParamCfg[i].m_wQpConstant = DE_QPCONSTANT;
-		objConfigCfg.m_unCapParamCfg.m_objCapParamCfg[i].m_wKeyFrameRate = DE_KEYFRAMERATE;
-		objConfigCfg.m_unCapParamCfg.m_objCapParamCfg[i].m_bOpenAudio = DE_OPENAUDIO;
-		objConfigCfg.m_unCapParamCfg.m_objCapParamCfg[i].m_bAlarmSwitch = DE_ALARMSWITCH;
-	}
 	fwrite((char*)&objConfigCfg, sizeof(objConfigCfg), 1, _RdFile);
 	fflush(_RdFile);
 	fclose(_RdFile);
