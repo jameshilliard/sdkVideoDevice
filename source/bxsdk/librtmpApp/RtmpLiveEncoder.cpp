@@ -135,10 +135,39 @@ int RtmpLiveEncoder::SendVideo(char *h264Nal,int len,__int64 nTimeStamp)
 {
 	//printf("SendVideo---------------------0\n");
 	//boost::asio::detail::mutex::scoped_lock lock(mutex_Send);
-	
+	static int heartTime = 0; 
+	/*if(RtmpRead())
+	{
+		heartTime = 0;
+	}
+	else
+	{
+		heartTime++;
+		if(heartTime > 100)
+		{
+			g_start = false;
+		}
+	}
+	*/
 	return ParseH264FrameForSPSAndPPS(h264Nal,len,nTimeStamp);
 
 }
+//
+//判断是否有读到心跳数据
+bool RtmpLiveEncoder::RtmpRead()
+{
+	if (librtmp_)
+	{
+		if (librtmp_->ReadData())
+		{
+			//printf("RtmpRead--------------0\n");
+			return true;
+		}
+	}
+	//printf("RtmpRead--------------1\n");
+	return false;
+}
+//
 int RtmpLiveEncoder::SendAudio(char *AudioData,int len,__int64 nTimeStamp,
 							   int nEncoderType,int nSoundRate, int nSoundSize ,int nSoundType)
 {
@@ -187,19 +216,59 @@ int RtmpLiveEncoder::SendVideoDataPacket(char *x264buffer,int buflen, unsigned i
 	//printf("SendVideoDataPacket-----timestamp %d--------------0\n", timestamp);
 	static int sendNumber = 0;
 	sendNumber ++;
-	if(sendNumber >50)
+	if(sendNumber >100)
 	{
 		//printf("SendHeart---------------0\n");
 		SendHeart();
 		sendNumber = 0;
+
+		static int heartTime = 0; 
+		
+		if(RtmpRead())
+		{
+			printf("RtmpRead---------------0\n");
+			heartTime = 0;
+		}
+		else
+		{
+			printf("RtmpRead---------------1\n");
+			heartTime++;
+			if(heartTime > 50)
+			{
+				g_start = false;
+			}
+		}
+		
 	}
-	if(librtmp_->isConnect() == false)
+	//
+	//static int heartTime = 0; 
+	/*if(RtmpRead())
 	{
-		printf("isConnect-------------------0\n");
-		//close();
-		//init();
-		return -1;
+		heartTime = 0;
 	}
+	else
+	{
+		heartTime++;
+		if(heartTime > 1000)
+		{
+			//g_start = false;
+		}
+	}*/
+	//printf("isConnect-------------------111\n");
+	//
+	//printf("isConnect-------------------111111\n");
+	if(librtmp_ != NULL)
+	{
+	//printf("isConnect-------------------2222222222222\n");
+		if(!librtmp_->isConnect() )
+		{
+			//printf("isConnect-------------------0\n");
+			//close();
+			//init();
+			return -1;
+		}
+	}
+	//printf("isConnect-------------------111.11\n");
 	RTMPPacket rtmp_pakt;
 	RTMPPacket_Reset(&rtmp_pakt);
 	RTMPPacket_Alloc(&rtmp_pakt, buflen +5);
@@ -221,9 +290,11 @@ int RtmpLiveEncoder::SendVideoDataPacket(char *x264buffer,int buflen, unsigned i
 	pbuf = UI24ToBytes(pbuf, 0);    // composition time
 
 	memcpy(pbuf, x264buffer, buflen);
-
+	//printf("isConnect-------------------222\n");
 	int ret = librtmp_->Send(&rtmp_pakt);
+	//printf("isConnect-------------------333\n");
 	RTMPPacket_Free(&rtmp_pakt);
+	//printf("isConnect-------------------444\n");
 	/*if(ret == 0)
 	{
 		printf("isConnect-------------------1\n");

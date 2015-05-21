@@ -54,21 +54,19 @@ void  InitRTMPUnit(PRTMPUnit unit)
 }
 int  SendVideoUnit(PRTMPUnit unit,char *h264Nal,int len,__int64 nTimeStamp)
 {
-	//printf("SendVideoUnit---------------------0\n");
-	/*RtmpLiveEncoder *encoder = (RtmpLiveEncoder*)unit;
-	if (m_RtmpUnitList.FindData(long(encoder)))
-		return encoder->SendVideo(h264Nal,len,nTimeStamp);
-	else
-		return -1;*/
 	if(!g_start)
 	{
 		return 1;
 	}
 	pthread_mutex_lock(&testlock);
+	if(g_time != 0)
+	{
+		g_time = nTimeStamp;
+	}
 	//int result = encoder->SendVideo(h264Nal,len,nTimeStamp);
 	int result = encoder->SendVideo(h264Nal,len,g_time);
 	static int countNumber = 0;
-	g_time++;
+	g_time ++;
 	if(result == 0)
 	{
 		countNumber++;
@@ -77,7 +75,7 @@ int  SendVideoUnit(PRTMPUnit unit,char *h264Nal,int len,__int64 nTimeStamp)
 	{
 		countNumber = 0;
 	}
-	if(result == -1 || countNumber>50)
+	if(result == -1 || countNumber>100)
 	{
 
 		

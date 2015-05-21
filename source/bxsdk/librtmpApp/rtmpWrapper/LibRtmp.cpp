@@ -36,7 +36,35 @@ LibRtmp::~LibRtmp()
 
     if (flog_) fclose(flog_);
 }
+//ÅÐ¶ÏÐÄÌøÊÇ·ñ³¬Ê±
+int LibRtmp::ReadData()
+{
+	if (!isConnect())
+	{
+		return 0;	
+	}
 
+	RTMPPacket rtmppacket = {0};
+	int nRet = RTMP_ReadPacket(rtmp_, &rtmppacket);
+	printf("nRet--------%d----0\n", nRet);
+	if (nRet == 0)
+	{
+		return 0;
+	}
+	
+	if (RTMPPacket_IsReady(&rtmppacket))
+	{
+		printf("nRet--------%d----1\n", nRet);
+		RTMPPacket_Free(&rtmppacket);
+
+		return 1;
+	}
+	
+	//printf("nRet--------%d----2\n", nRet);
+	return 2;
+
+}
+//
 bool LibRtmp::Open(const char* url)
 {
     streming_url_ = (char*)calloc(strlen(url)+1, sizeof(char));

@@ -64,6 +64,7 @@ private:
 
 	RtmpLiveEncoder(int width, int height,const char* rtmpUrl, bool isNeedLog);
 	int SendHeart();
+	bool RtmpRead();
 private:
 	LibRtmp* librtmp_;
 	std::string rtmp_url_;

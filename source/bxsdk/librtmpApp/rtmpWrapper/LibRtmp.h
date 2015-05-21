@@ -18,9 +18,10 @@ public:
     int Send(const char* buf, int bufLen, int type, unsigned int timestamp);
 	int Send(RTMPPacket *pRTMPPacket);
     void SendSetChunkSize(unsigned int chunkSize);
-
+	int ReadData();
 	bool isConnect()
 	{
+		//printf("isConnect---------------inin\n");
 		if(rtmp_)
 			return RTMP_IsConnected(rtmp_);
 		else
