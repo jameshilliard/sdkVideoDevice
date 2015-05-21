@@ -1,9 +1,9 @@
 /*
- * "$Id: mxml-set.c 441 2011-12-09 23:49:00Z mike $"
+ * "$Id: mxml-set.c 451 2014-01-04 21:50:06Z msweet $"
  *
  * Node set functions for Mini-XML, a small XML-like file parsing library.
  *
- * Copyright 2003-2011 by Michael R Sweet.
+ * Copyright 2003-2014 by Michael R Sweet.
  *
  * These coded instructions, statements, and computer programs are the
  * property of Michael R Sweet and are protected by Federal copyright
@@ -11,19 +11,7 @@
  * which should have been included with this file.  If this file is
  * missing or damaged, see the license at:
  *
- *     http://www.minixml.org/
- *
- * Contents:
- *
- *   mxmlSetCDATA()    - Set the element name of a CDATA node.
- *   mxmlSetCustom()   - Set the data and destructor of a custom data node.
- *   mxmlSetElement()  - Set the name of an element node.
- *   mxmlSetInteger()  - Set the value of an integer node.
- *   mxmlSetOpaque()   - Set the value of an opaque node.
- *   mxmlSetReal()     - Set the value of a real number node.
- *   mxmlSetText()     - Set the value of a text node.
- *   mxmlSetTextf()    - Set the value of a text node to a formatted string.
- *   mxmlSetUserData() - Set the user data pointer for a node.
+ *     http://www.msweet.org/projects.php/Mini-XML
  */
 
 /*
@@ -43,7 +31,7 @@
  */
 
 int					/* O - 0 on success, -1 on failure */
-SZY_mxmlSetCDATA(mxml_node_t *node,		/* I - Node to set */
+mxmlSetCDATA(mxml_node_t *node,		/* I - Node to set */
              const char  *data)		/* I - New data string */
 {
  /*
@@ -67,7 +55,7 @@ SZY_mxmlSetCDATA(mxml_node_t *node,		/* I - Node to set */
   if (node->value.element.name)
     free(node->value.element.name);
 
-  node->value.element.name = _SZY_mxml_strdupf("![CDATA[%s]]", data);
+  node->value.element.name = _mxml_strdupf("![CDATA[%s]]", data);
 
   return (0);
 }
@@ -82,7 +70,7 @@ SZY_mxmlSetCDATA(mxml_node_t *node,		/* I - Node to set */
  */
 
 int					/* O - 0 on success, -1 on failure */
-SZY_mxmlSetCustom(
+mxmlSetCustom(
     mxml_node_t              *node,	/* I - Node to set */
     void                     *data,	/* I - New data pointer */
     mxml_custom_destroy_cb_t destroy)	/* I - New destructor function */
@@ -119,7 +107,7 @@ SZY_mxmlSetCustom(
  */
 
 int					/* O - 0 on success, -1 on failure */
-SZY_mxmlSetElement(mxml_node_t *node,	/* I - Node to set */
+mxmlSetElement(mxml_node_t *node,	/* I - Node to set */
                const char  *name)	/* I - New name string */
 {
  /*
@@ -149,7 +137,7 @@ SZY_mxmlSetElement(mxml_node_t *node,	/* I - Node to set */
  */
 
 int					/* O - 0 on success, -1 on failure */
-SZY_mxmlSetInteger(mxml_node_t *node,	/* I - Node to set */
+mxmlSetInteger(mxml_node_t *node,	/* I - Node to set */
                int         integer)	/* I - Integer value */
 {
  /*
@@ -180,7 +168,7 @@ SZY_mxmlSetInteger(mxml_node_t *node,	/* I - Node to set */
  */
 
 int					/* O - 0 on success, -1 on failure */
-SZY_mxmlSetOpaque(mxml_node_t *node,	/* I - Node to set */
+mxmlSetOpaque(mxml_node_t *node,	/* I - Node to set */
               const char  *opaque)	/* I - Opaque string */
 {
  /*
@@ -214,7 +202,7 @@ SZY_mxmlSetOpaque(mxml_node_t *node,	/* I - Node to set */
  */
 
 int					/* O - 0 on success, -1 on failure */
-SZY_mxmlSetReal(mxml_node_t *node,		/* I - Node to set */
+mxmlSetReal(mxml_node_t *node,		/* I - Node to set */
             double      real)		/* I - Real number value */
 {
  /*
@@ -245,7 +233,7 @@ SZY_mxmlSetReal(mxml_node_t *node,		/* I - Node to set */
  */
 
 int					/* O - 0 on success, -1 on failure */
-SZY_mxmlSetText(mxml_node_t *node,		/* I - Node to set */
+mxmlSetText(mxml_node_t *node,		/* I - Node to set */
             int         whitespace,	/* I - 1 = leading whitespace, 0 = no whitespace */
 	    const char  *string)	/* I - String */
 {
@@ -281,7 +269,7 @@ SZY_mxmlSetText(mxml_node_t *node,		/* I - Node to set */
  */
 
 int					/* O - 0 on success, -1 on failure */
-SZY_mxmlSetTextf(mxml_node_t *node,		/* I - Node to set */
+mxmlSetTextf(mxml_node_t *node,		/* I - Node to set */
              int         whitespace,	/* I - 1 = leading whitespace, 0 = no whitespace */
              const char  *format,	/* I - Printf-style format string */
 	     ...)			/* I - Additional arguments as needed */
@@ -310,7 +298,7 @@ SZY_mxmlSetTextf(mxml_node_t *node,		/* I - Node to set */
   va_start(ap, format);
 
   node->value.text.whitespace = whitespace;
-  node->value.text.string     = _SZY_mxml_strdupf(format, ap);
+  node->value.text.string     = _mxml_strdupf(format, ap);
 
   va_end(ap);
 
@@ -325,7 +313,7 @@ SZY_mxmlSetTextf(mxml_node_t *node,		/* I - Node to set */
  */
 
 int					/* O - 0 on success, -1 on failure */
-SZY_mxmlSetUserData(mxml_node_t *node,	/* I - Node to set */
+mxmlSetUserData(mxml_node_t *node,	/* I - Node to set */
                 void        *data)	/* I - User data pointer */
 {
  /*
@@ -345,5 +333,5 @@ SZY_mxmlSetUserData(mxml_node_t *node,	/* I - Node to set */
 
 
 /*
- * End of "$Id: mxml-set.c 441 2011-12-09 23:49:00Z mike $".
+ * End of "$Id: mxml-set.c 451 2014-01-04 21:50:06Z msweet $".
  */

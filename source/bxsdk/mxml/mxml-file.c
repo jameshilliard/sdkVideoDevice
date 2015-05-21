@@ -1,9 +1,9 @@
 /*
- * "$Id: mxml-file.c 438 2011-03-24 05:47:51Z mike $"
+ * "$Id: mxml-file.c 459 2014-10-19 17:21:48Z msweet $"
  *
  * File loading code for Mini-XML, a small XML-like file parsing library.
  *
- * Copyright 2003-2011 by Michael R Sweet.
+ * Copyright 2003-2014 by Michael R Sweet.
  *
  * These coded instructions, statements, and computer programs are the
  * property of Michael R Sweet and are protected by Federal copyright
@@ -11,42 +11,7 @@
  * which should have been included with this file.  If this file is
  * missing or damaged, see the license at:
  *
- *     http://www.minixml.org/
- *
- * Contents:
- *
- *   mxmlLoadFd()            - Load a file descriptor into an XML node tree.
- *   mxmlLoadFile()          - Load a file into an XML node tree.
- *   mxmlLoadString()        - Load a string into an XML node tree.
- *   mxmlSaveAllocString()   - Save an XML tree to an allocated string.
- *   mxmlSaveFd()            - Save an XML tree to a file descriptor.
- *   mxmlSaveFile()          - Save an XML tree to a file.
- *   mxmlSaveString()        - Save an XML node tree to a string.
- *   mxmlSAXLoadFd()         - Load a file descriptor into an XML node tree
- *                             using a SAX callback.
- *   mxmlSAXLoadFile()       - Load a file into an XML node tree
- *                             using a SAX callback.
- *   mxmlSAXLoadString()     - Load a string into an XML node tree
- *                             using a SAX callback.
- *   mxmlSetCustomHandlers() - Set the handling functions for custom data.
- *   mxmlSetErrorCallback()  - Set the error message callback.
- *   mxmlSetWrapMargin()     - Set the wrap margin when saving XML data.
- *   mxml_add_char()         - Add a character to a buffer, expanding as needed.
- *   mxml_fd_getc()          - Read a character from a file descriptor.
- *   mxml_fd_putc()          - Write a character to a file descriptor.
- *   mxml_fd_read()          - Read a buffer of data from a file descriptor.
- *   mxml_fd_write()         - Write a buffer of data to a file descriptor.
- *   mxml_file_getc()        - Get a character from a file.
- *   mxml_file_putc()        - Write a character to a file.
- *   mxml_get_entity()       - Get the character corresponding to an entity...
- *   mxml_load_data()        - Load data into an XML node tree.
- *   mxml_parse_element()    - Parse an element for any attributes...
- *   mxml_string_getc()      - Get a character from a string.
- *   mxml_string_putc()      - Write a character to a string.
- *   mxml_write_name()       - Write a name string.
- *   mxml_write_node()       - Save an XML node to a file.
- *   mxml_write_string()     - Write a string, escaping & and < as needed.
- *   mxml_write_ws()         - Do whitespace callback...
+ *     http://www.msweet.org/projects.php/Mini-XML
  */
 
 /*
@@ -128,7 +93,7 @@ static int		mxml_write_node(mxml_node_t *node, void *p,
 					_mxml_global_t *global);
 static int		mxml_write_string(const char *s, void *p,
 					  _mxml_putc_cb_t putc_cb);
-static int		mxml_write_ws(mxml_node_t *node, void *p, 
+static int		mxml_write_ws(mxml_node_t *node, void *p,
 			              mxml_save_cb_t cb, int ws,
 				      int col, _mxml_putc_cb_t putc_cb);
 
@@ -149,7 +114,7 @@ static int		mxml_write_ws(mxml_node_t *node, void *p,
  */
 
 mxml_node_t *				/* O - First node or NULL if the file could not be read. */
-SZY_mxmlLoadFd(mxml_node_t    *top,		/* I - Top node */
+mxmlLoadFd(mxml_node_t    *top,		/* I - Top node */
            int            fd,		/* I - File descriptor to read from */
            mxml_load_cb_t cb)		/* I - Callback function or MXML_NO_CALLBACK */
 {
@@ -188,7 +153,7 @@ SZY_mxmlLoadFd(mxml_node_t    *top,		/* I - Top node */
  */
 
 mxml_node_t *				/* O - First node or NULL if the file could not be read. */
-SZY_mxmlLoadFile(mxml_node_t    *top,	/* I - Top node */
+mxmlLoadFile(mxml_node_t    *top,	/* I - Top node */
              FILE           *fp,	/* I - File to read from */
              mxml_load_cb_t cb)		/* I - Callback function or MXML_NO_CALLBACK */
 {
@@ -216,7 +181,7 @@ SZY_mxmlLoadFile(mxml_node_t    *top,	/* I - Top node */
  */
 
 mxml_node_t *				/* O - First node or NULL if the string has errors. */
-SZY_mxmlLoadString(mxml_node_t    *top,	/* I - Top node */
+mxmlLoadString(mxml_node_t    *top,	/* I - Top node */
                const char     *s,	/* I - String to load */
                mxml_load_cb_t cb)	/* I - Callback function or MXML_NO_CALLBACK */
 {
@@ -246,7 +211,7 @@ SZY_mxmlLoadString(mxml_node_t    *top,	/* I - Top node */
  */
 
 char *					/* O - Allocated string or NULL */
-SZY_mxmlSaveAllocString(
+mxmlSaveAllocString(
     mxml_node_t    *node,		/* I - Node to write */
     mxml_save_cb_t cb)			/* I - Whitespace callback or MXML_NO_CALLBACK */
 {
@@ -259,7 +224,7 @@ SZY_mxmlSaveAllocString(
   * Write the node to the temporary buffer...
   */
 
-  bytes = SZY_mxmlSaveString(node, buffer, sizeof(buffer), cb);
+  bytes = mxmlSaveString(node, buffer, sizeof(buffer), cb);
 
   if (bytes <= 0)
     return (NULL);
@@ -282,7 +247,7 @@ SZY_mxmlSaveAllocString(
   if ((s = malloc(bytes + 1)) == NULL)
     return (NULL);
 
-  SZY_mxmlSaveString(node, s, bytes + 1, cb);
+  mxmlSaveString(node, s, bytes + 1, cb);
 
  /*
   * Return the allocated string...
@@ -303,13 +268,13 @@ SZY_mxmlSaveAllocString(
  */
 
 int					/* O - 0 on success, -1 on error. */
-SZY_mxmlSaveFd(mxml_node_t    *node,	/* I - Node to write */
+mxmlSaveFd(mxml_node_t    *node,	/* I - Node to write */
            int            fd,		/* I - File descriptor to write to */
 	   mxml_save_cb_t cb)		/* I - Whitespace callback or MXML_NO_CALLBACK */
 {
   int		col;			/* Final column */
   _mxml_fdbuf_t	buf;			/* File descriptor buffer */
-  _mxml_global_t *global = _SZY_mxml_global();
+  _mxml_global_t *global = _mxml_global();
 					/* Global data */
 
 
@@ -351,12 +316,12 @@ SZY_mxmlSaveFd(mxml_node_t    *node,	/* I - Node to write */
  */
 
 int					/* O - 0 on success, -1 on error. */
-SZY_mxmlSaveFile(mxml_node_t    *node,	/* I - Node to write */
+mxmlSaveFile(mxml_node_t    *node,	/* I - Node to write */
              FILE           *fp,	/* I - File to write to */
 	     mxml_save_cb_t cb)		/* I - Whitespace callback or MXML_NO_CALLBACK */
 {
   int	col;				/* Final column */
-  _mxml_global_t *global = _SZY_mxml_global();
+  _mxml_global_t *global = _mxml_global();
 					/* Global data */
 
 
@@ -394,14 +359,14 @@ SZY_mxmlSaveFile(mxml_node_t    *node,	/* I - Node to write */
  */
 
 int					/* O - Size of string */
-SZY_mxmlSaveString(mxml_node_t    *node,	/* I - Node to write */
+mxmlSaveString(mxml_node_t    *node,	/* I - Node to write */
                char           *buffer,	/* I - String buffer */
                int            bufsize,	/* I - Size of string buffer */
                mxml_save_cb_t cb)	/* I - Whitespace callback or MXML_NO_CALLBACK */
 {
   int	col;				/* Final column */
   char	*ptr[2];			/* Pointers for putc_cb */
-  _mxml_global_t *global = _SZY_mxml_global();
+  _mxml_global_t *global = _mxml_global();
 					/* Global data */
 
 
@@ -458,7 +423,7 @@ SZY_mxmlSaveString(mxml_node_t    *node,	/* I - Node to write */
  */
 
 mxml_node_t *				/* O - First node or NULL if the file could not be read. */
-SZY_mxmlSAXLoadFd(mxml_node_t    *top,	/* I - Top node */
+mxmlSAXLoadFd(mxml_node_t    *top,	/* I - Top node */
               int            fd,	/* I - File descriptor to read from */
               mxml_load_cb_t cb,	/* I - Callback function or MXML_NO_CALLBACK */
               mxml_sax_cb_t  sax_cb,	/* I - SAX callback or MXML_NO_CALLBACK */
@@ -506,7 +471,7 @@ SZY_mxmlSAXLoadFd(mxml_node_t    *top,	/* I - Top node */
  */
 
 mxml_node_t *				/* O - First node or NULL if the file could not be read. */
-SZY_mxmlSAXLoadFile(
+mxmlSAXLoadFile(
     mxml_node_t    *top,		/* I - Top node */
     FILE           *fp,			/* I - File to read from */
     mxml_load_cb_t cb,			/* I - Callback function or MXML_NO_CALLBACK */
@@ -544,7 +509,7 @@ SZY_mxmlSAXLoadFile(
  */
 
 mxml_node_t *				/* O - First node or NULL if the string has errors. */
-SZY_mxmlSAXLoadString(
+mxmlSAXLoadString(
     mxml_node_t    *top,		/* I - Top node */
     const char     *s,			/* I - String to load */
     mxml_load_cb_t cb,			/* I - Callback function or MXML_NO_CALLBACK */
@@ -567,15 +532,15 @@ SZY_mxmlSAXLoadString(
  *
  * The save function accepts a node pointer and must return a malloc'd
  * string on success and NULL on error.
- * 
+ *
  */
 
 void
-SZY_mxmlSetCustomHandlers(
+mxmlSetCustomHandlers(
     mxml_custom_load_cb_t load,		/* I - Load function */
     mxml_custom_save_cb_t save)		/* I - Save function */
 {
-  _mxml_global_t *global = _SZY_mxml_global();
+  _mxml_global_t *global = _mxml_global();
 					/* Global data */
 
 
@@ -589,9 +554,9 @@ SZY_mxmlSetCustomHandlers(
  */
 
 void
-SZY_mxmlSetErrorCallback(mxml_error_cb_t cb)/* I - Error callback function */
+mxmlSetErrorCallback(mxml_error_cb_t cb)/* I - Error callback function */
 {
-  _mxml_global_t *global = _SZY_mxml_global();
+  _mxml_global_t *global = _mxml_global();
 					/* Global data */
 
 
@@ -608,9 +573,9 @@ SZY_mxmlSetErrorCallback(mxml_error_cb_t cb)/* I - Error callback function */
  */
 
 void
-SZY_mxmlSetWrapMargin(int column)		/* I - Column for wrapping, 0 to disable wrapping */
+mxmlSetWrapMargin(int column)		/* I - Column for wrapping, 0 to disable wrapping */
 {
-  _mxml_global_t *global = _SZY_mxml_global();
+  _mxml_global_t *global = _mxml_global();
 					/* Global data */
 
 
@@ -646,7 +611,7 @@ mxml_add_char(int  ch,			/* I  - Character to add */
     {
       free(*buffer);
 
-      SZY_mxml_error("Unable to expand string buffer to %d bytes!", *bufsize);
+      mxml_error("Unable to expand string buffer to %d bytes!", *bufsize);
 
       return (-1);
     }
@@ -681,12 +646,6 @@ mxml_add_char(int  ch,			/* I  - Character to add */
     *(*bufptr)++ = 0xe0 | (ch >> 12);
     *(*bufptr)++ = 0x80 | ((ch >> 6) & 0x3f);
     *(*bufptr)++ = 0x80 | (ch & 0x3f);
-  }
-  else if((ch & 0x3f3f0000) == 0x3f3f0000)
-  {
-	  //printf("chgggggggggggggggggggggggg = %08x\n",ch);
-	  *(*bufptr)++ = (unsigned char)((ch >> 8) & 0x000000FF);
-	  *(*bufptr)++ = (unsigned char)(ch & 0x000000FF);
   }
   else
   {
@@ -744,7 +703,7 @@ mxml_fd_getc(void *p,			/* I  - File descriptor buffer */
 
 	  if (mxml_bad_char(ch))
 	  {
-	    SZY_mxml_error("Bad control character 0x%02x not allowed by XML standard!",
+	    mxml_error("Bad control character 0x%02x not allowed by XML standard!",
         	       ch);
 	    return (EOF);
 	  }
@@ -762,7 +721,7 @@ mxml_fd_getc(void *p,			/* I  - File descriptor buffer */
 	      return (EOF);
 
 	  ch = *(buf->current)++;
-          
+
 	  if (ch != 0xff)
 	    return (EOF);
 
@@ -781,7 +740,7 @@ mxml_fd_getc(void *p,			/* I  - File descriptor buffer */
 	      return (EOF);
 
 	  ch = *(buf->current)++;
-          
+
 	  if (ch != 0xfe)
 	    return (EOF);
 
@@ -808,7 +767,7 @@ mxml_fd_getc(void *p,			/* I  - File descriptor buffer */
 
 	  if (ch < 0x80)
 	  {
-	    SZY_mxml_error("Invalid UTF-8 sequence for character 0x%04x!", ch);
+	    mxml_error("Invalid UTF-8 sequence for character 0x%04x!", ch);
 	    return (EOF);
 	  }
 	}
@@ -842,7 +801,7 @@ mxml_fd_getc(void *p,			/* I  - File descriptor buffer */
 
 	  if (ch < 0x800)
 	  {
-	    SZY_mxml_error("Invalid UTF-8 sequence for character 0x%04x!", ch);
+	    mxml_error("Invalid UTF-8 sequence for character 0x%04x!", ch);
 	    return (EOF);
 	  }
 
@@ -894,7 +853,7 @@ mxml_fd_getc(void *p,			/* I  - File descriptor buffer */
 
 	  if (ch < 0x10000)
 	  {
-	    SZY_mxml_error("Invalid UTF-8 sequence for character 0x%04x!", ch);
+	    mxml_error("Invalid UTF-8 sequence for character 0x%04x!", ch);
 	    return (EOF);
 	  }
 	}
@@ -917,7 +876,7 @@ mxml_fd_getc(void *p,			/* I  - File descriptor buffer */
 
 	if (mxml_bad_char(ch))
 	{
-	  SZY_mxml_error("Bad control character 0x%02x not allowed by XML standard!",
+	  mxml_error("Bad control character 0x%02x not allowed by XML standard!",
         	     ch);
 	  return (EOF);
 	}
@@ -965,7 +924,7 @@ mxml_fd_getc(void *p,			/* I  - File descriptor buffer */
 
         if (mxml_bad_char(ch))
 	{
-	  SZY_mxml_error("Bad control character 0x%02x not allowed by XML standard!",
+	  mxml_error("Bad control character 0x%02x not allowed by XML standard!",
         	     ch);
 	  return (EOF);
 	}
@@ -1158,7 +1117,7 @@ mxml_file_getc(void *p,			/* I  - Pointer to file */
 	{
 	  if (mxml_bad_char(ch))
 	  {
-	    SZY_mxml_error("Bad control character 0x%02x not allowed by XML standard!",
+	    mxml_error("Bad control character 0x%02x not allowed by XML standard!",
         	       ch);
 	    return (EOF);
 	  }
@@ -1210,7 +1169,7 @@ mxml_file_getc(void *p,			/* I  - Pointer to file */
 
 	  if (ch < 0x80)
 	  {
-	    SZY_mxml_error("Invalid UTF-8 sequence for character 0x%04x!", ch);
+	    mxml_error("Invalid UTF-8 sequence for character 0x%04x!", ch);
 	    return (EOF);
 	  }
 	}
@@ -1232,7 +1191,7 @@ mxml_file_getc(void *p,			/* I  - Pointer to file */
 
 	  if (ch < 0x800)
 	  {
-	    SZY_mxml_error("Invalid UTF-8 sequence for character 0x%04x!", ch);
+	    mxml_error("Invalid UTF-8 sequence for character 0x%04x!", ch);
 	    return (EOF);
 	  }
 
@@ -1266,7 +1225,7 @@ mxml_file_getc(void *p,			/* I  - Pointer to file */
 
 	  if (ch < 0x10000)
 	  {
-	    SZY_mxml_error("Invalid UTF-8 sequence for character 0x%04x!", ch);
+	    mxml_error("Invalid UTF-8 sequence for character 0x%04x!", ch);
 	    return (EOF);
 	  }
 	}
@@ -1283,7 +1242,7 @@ mxml_file_getc(void *p,			/* I  - Pointer to file */
 
 	if (mxml_bad_char(ch))
 	{
-	  SZY_mxml_error("Bad control character 0x%02x not allowed by XML standard!",
+	  mxml_error("Bad control character 0x%02x not allowed by XML standard!",
         	     ch);
 	  return (EOF);
 	}
@@ -1293,7 +1252,8 @@ mxml_file_getc(void *p,			/* I  - Pointer to file */
 	  * Multi-word UTF-16 char...
 	  */
 
-          int lch = (getc(fp) << 8) | getc(fp);
+          int lch = getc(fp);
+          lch = (lch << 8) | getc(fp);
 
           if (lch < 0xdc00 || lch >= 0xdfff)
 	    return (EOF);
@@ -1311,7 +1271,7 @@ mxml_file_getc(void *p,			/* I  - Pointer to file */
 
         if (mxml_bad_char(ch))
 	{
-	  SZY_mxml_error("Bad control character 0x%02x not allowed by XML standard!",
+	  mxml_error("Bad control character 0x%02x not allowed by XML standard!",
         	     ch);
 	  return (EOF);
 	}
@@ -1321,7 +1281,8 @@ mxml_file_getc(void *p,			/* I  - Pointer to file */
 	  * Multi-word UTF-16 char...
 	  */
 
-          int lch = getc(fp) | (getc(fp) << 8);
+          int lch = getc(fp);
+          lch |= (getc(fp) << 8);
 
           if (lch < 0xdc00 || lch >= 0xdfff)
 	    return (EOF);
@@ -1376,7 +1337,7 @@ mxml_get_entity(mxml_node_t *parent,	/* I  - Parent node */
       *entptr++ = ch;
     else
     {
-      SZY_mxml_error("Entity name too long under parent <%s>!",
+      mxml_error("Entity name too long under parent <%s>!",
 	         parent ? parent->value.element.name : "null");
       break;
     }
@@ -1385,7 +1346,7 @@ mxml_get_entity(mxml_node_t *parent,	/* I  - Parent node */
 
   if (ch != ';')
   {
-    SZY_mxml_error("Character entity \"%s\" not terminated under parent <%s>!",
+    mxml_error("Character entity \"%s\" not terminated under parent <%s>!",
 	       entity, parent ? parent->value.element.name : "null");
     return (EOF);
   }
@@ -1397,13 +1358,13 @@ mxml_get_entity(mxml_node_t *parent,	/* I  - Parent node */
     else
       ch = strtol(entity + 1, NULL, 10);
   }
-  else if ((ch = SZY_mxmlEntityGetValue(entity)) < 0)
-    SZY_mxml_error("Entity name \"%s;\" not supported under parent <%s>!",
+  else if ((ch = mxmlEntityGetValue(entity)) < 0)
+    mxml_error("Entity name \"%s;\" not supported under parent <%s>!",
 	       entity, parent ? parent->value.element.name : "null");
 
   if (mxml_bad_char(ch))
   {
-    SZY_mxml_error("Bad control character 0x%02x under parent <%s> not allowed by XML standard!",
+    mxml_error("Bad control character 0x%02x under parent <%s> not allowed by XML standard!",
                ch, parent ? parent->value.element.name : "null");
     return (EOF);
   }
@@ -1435,7 +1396,7 @@ mxml_load_data(
   int		bufsize;		/* Size of buffer */
   mxml_type_t	type;			/* Current node type */
   int		encoding;		/* Character encoding */
-  _mxml_global_t *global = _SZY_mxml_global();
+  _mxml_global_t *global = _mxml_global();
 					/* Global data */
   static const char * const types[] =	/* Type strings... */
 		{
@@ -1454,7 +1415,7 @@ mxml_load_data(
 
   if ((buffer = malloc(64)) == NULL)
   {
-    SZY_mxml_error("Unable to allocate string buffer!");
+    mxml_error("Unable to allocate string buffer!");
     return (NULL);
   }
 
@@ -1467,8 +1428,10 @@ mxml_load_data(
 
   if (cb && parent)
     type = (*cb)(parent);
-  else
+  else if (parent)
     type = MXML_TEXT;
+  else
+    type = MXML_IGNORE;
 
   while ((ch = (*getc_cb)(p, &encoding)) != EOF)
   {
@@ -1485,19 +1448,19 @@ mxml_load_data(
       switch (type)
       {
 	case MXML_INTEGER :
-            node = SZY_mxmlNewInteger(parent, strtol(buffer, &bufptr, 0));
+            node = mxmlNewInteger(parent, strtol(buffer, &bufptr, 0));
 	    break;
 
 	case MXML_OPAQUE :
-            node = SZY_mxmlNewOpaque(parent, buffer);
+            node = mxmlNewOpaque(parent, buffer);
 	    break;
 
 	case MXML_REAL :
-            node = SZY_mxmlNewReal(parent, strtod(buffer, &bufptr));
+            node = mxmlNewReal(parent, strtod(buffer, &bufptr));
 	    break;
 
 	case MXML_TEXT :
-            node = SZY_mxmlNewText(parent, whitespace, buffer);
+            node = mxmlNewText(parent, whitespace, buffer);
 	    break;
 
 	case MXML_CUSTOM :
@@ -1507,13 +1470,13 @@ mxml_load_data(
 	      * Use the callback to fill in the custom data...
 	      */
 
-              node = SZY_mxmlNewCustom(parent, NULL, NULL);
+              node = mxmlNewCustom(parent, NULL, NULL);
 
 	      if ((*global->custom_load_cb)(node, buffer))
 	      {
-	        SZY_mxml_error("Bad custom value '%s' in parent <%s>!",
+	        mxml_error("Bad custom value '%s' in parent <%s>!",
 		           buffer, parent ? parent->value.element.name : "null");
-		SZY_mxmlDelete(node);
+		mxmlDelete(node);
 		node = NULL;
 	      }
 	      break;
@@ -1522,7 +1485,7 @@ mxml_load_data(
         default : /* Ignore... */
 	    node = NULL;
 	    break;
-      }	  
+      }
 
       if (*bufptr)
       {
@@ -1530,7 +1493,7 @@ mxml_load_data(
         * Bad integer/real number value...
 	*/
 
-        SZY_mxml_error("Bad %s value '%s' in parent <%s>!",
+        mxml_error("Bad %s value '%s' in parent <%s>!",
 	           type == MXML_INTEGER ? "integer" : "real", buffer,
 		   parent ? parent->value.element.name : "null");
 	break;
@@ -1545,7 +1508,7 @@ mxml_load_data(
 	* Print error and return...
 	*/
 
-	SZY_mxml_error("Unable to add value node of type %s to parent <%s>!",
+	mxml_error("Unable to add value node of type %s to parent <%s>!",
 	           types[type], parent ? parent->value.element.name : "null");
 	goto error;
       }
@@ -1554,7 +1517,7 @@ mxml_load_data(
       {
         (*sax_cb)(node, MXML_SAX_DATA, sax_data);
 
-        if (!SZY_mxmlRelease(node))
+        if (!mxmlRelease(node))
           node = NULL;
       }
 
@@ -1573,13 +1536,13 @@ mxml_load_data(
     {
       if (parent)
       {
-	node = SZY_mxmlNewText(parent, whitespace, "");
+	node = mxmlNewText(parent, whitespace, "");
 
 	if (sax_cb)
 	{
 	  (*sax_cb)(node, MXML_SAX_DATA, sax_data);
 
-	  if (!SZY_mxmlRelease(node))
+	  if (!mxmlRelease(node))
 	    node = NULL;
 	}
 
@@ -1603,7 +1566,7 @@ mxml_load_data(
 	  break;
 	else if (ch == '<')
 	{
-	  SZY_mxml_error("Bare < in element!");
+	  mxml_error("Bare < in element!");
 	  goto error;
 	}
 	else if (ch == '&')
@@ -1648,7 +1611,7 @@ mxml_load_data(
 	  * Print error and return...
 	  */
 
-	  SZY_mxml_error("Early EOF in comment node!");
+	  mxml_error("Early EOF in comment node!");
 	  goto error;
 	}
 
@@ -1665,18 +1628,18 @@ mxml_load_data(
 	  * There can only be one root element!
 	  */
 
-	  SZY_mxml_error("<%s> cannot be a second root node after <%s>", 
+	  mxml_error("<%s> cannot be a second root node after <%s>",
 	             buffer, first->value.element.name);
-          goto error; 		     
+          goto error;
 	}
 
-	if ((node = SZY_mxmlNewElement(parent, buffer)) == NULL)
+	if ((node = mxmlNewElement(parent, buffer)) == NULL)
 	{
 	 /*
 	  * Just print error for now...
 	  */
 
-	  SZY_mxml_error("Unable to add comment node to parent <%s>!",
+	  mxml_error("Unable to add comment node to parent <%s>!",
 	             parent ? parent->value.element.name : "null");
 	  break;
 	}
@@ -1685,7 +1648,7 @@ mxml_load_data(
         {
           (*sax_cb)(node, MXML_SAX_COMMENT, sax_data);
 
-          if (!SZY_mxmlRelease(node))
+          if (!mxmlRelease(node))
             node = NULL;
         }
 
@@ -1716,7 +1679,7 @@ mxml_load_data(
 	  * Print error and return...
 	  */
 
-	  SZY_mxml_error("Early EOF in CDATA node!");
+	  mxml_error("Early EOF in CDATA node!");
 	  goto error;
 	}
 
@@ -1733,18 +1696,18 @@ mxml_load_data(
 	  * There can only be one root element!
 	  */
 
-	  SZY_mxml_error("<%s> cannot be a second root node after <%s>", 
+	  mxml_error("<%s> cannot be a second root node after <%s>",
 	             buffer, first->value.element.name);
-          goto error; 		     
+          goto error;
 	}
 
-	if ((node = SZY_mxmlNewElement(parent, buffer)) == NULL)
+	if ((node = mxmlNewElement(parent, buffer)) == NULL)
 	{
 	 /*
 	  * Print error and return...
 	  */
 
-	  SZY_mxml_error("Unable to add CDATA node to parent <%s>!",
+	  mxml_error("Unable to add CDATA node to parent <%s>!",
 	             parent ? parent->value.element.name : "null");
 	  goto error;
 	}
@@ -1753,7 +1716,7 @@ mxml_load_data(
         {
           (*sax_cb)(node, MXML_SAX_CDATA, sax_data);
 
-          if (!SZY_mxmlRelease(node))
+          if (!mxmlRelease(node))
             node = NULL;
         }
 
@@ -1784,7 +1747,7 @@ mxml_load_data(
 	  * Print error and return...
 	  */
 
-	  SZY_mxml_error("Early EOF in processing instruction node!");
+	  mxml_error("Early EOF in processing instruction node!");
 	  goto error;
 	}
 
@@ -1800,18 +1763,18 @@ mxml_load_data(
 	  * There can only be one root element!
 	  */
 
-	  SZY_mxml_error("<%s> cannot be a second root node after <%s>", 
+	  mxml_error("<%s> cannot be a second root node after <%s>",
 	             buffer, first->value.element.name);
-          goto error; 		     
+          goto error;
 	}
 
-	if ((node = SZY_mxmlNewElement(parent, buffer)) == NULL)
+	if ((node = mxmlNewElement(parent, buffer)) == NULL)
 	{
 	 /*
 	  * Print error and return...
 	  */
 
-	  SZY_mxml_error("Unable to add processing instruction node to parent <%s>!",
+	  mxml_error("Unable to add processing instruction node to parent <%s>!",
 	             parent ? parent->value.element.name : "null");
 	  goto error;
 	}
@@ -1820,7 +1783,7 @@ mxml_load_data(
         {
           (*sax_cb)(node, MXML_SAX_DIRECTIVE, sax_data);
 
-          if (!SZY_mxmlRelease(node))
+          if (!mxmlRelease(node))
             node = NULL;
         }
 
@@ -1835,6 +1798,8 @@ mxml_load_data(
 
 	    if (cb)
 	      type = (*cb)(parent);
+	    else
+	      type = MXML_TEXT;
 	  }
 	}
       }
@@ -1870,7 +1835,7 @@ mxml_load_data(
 	  * Print error and return...
 	  */
 
-	  SZY_mxml_error("Early EOF in declaration node!");
+	  mxml_error("Early EOF in declaration node!");
 	  goto error;
 	}
 
@@ -1886,18 +1851,18 @@ mxml_load_data(
 	  * There can only be one root element!
 	  */
 
-	  SZY_mxml_error("<%s> cannot be a second root node after <%s>", 
+	  mxml_error("<%s> cannot be a second root node after <%s>",
 	             buffer, first->value.element.name);
-          goto error; 		     
+          goto error;
 	}
 
-	if ((node = SZY_mxmlNewElement(parent, buffer)) == NULL)
+	if ((node = mxmlNewElement(parent, buffer)) == NULL)
 	{
 	 /*
 	  * Print error and return...
 	  */
 
-	  SZY_mxml_error("Unable to add declaration node to parent <%s>!",
+	  mxml_error("Unable to add declaration node to parent <%s>!",
 	             parent ? parent->value.element.name : "null");
 	  goto error;
 	}
@@ -1906,7 +1871,7 @@ mxml_load_data(
         {
           (*sax_cb)(node, MXML_SAX_DIRECTIVE, sax_data);
 
-          if (!SZY_mxmlRelease(node))
+          if (!mxmlRelease(node))
             node = NULL;
         }
 
@@ -1921,6 +1886,8 @@ mxml_load_data(
 
 	    if (cb)
 	      type = (*cb)(parent);
+	    else
+	      type = MXML_TEXT;
 	  }
 	}
       }
@@ -1936,7 +1903,7 @@ mxml_load_data(
 	  * Close tag doesn't match tree; print an error for now...
 	  */
 
-	  SZY_mxml_error("Mismatched close tag <%s> under parent <%s>!",
+	  mxml_error("Mismatched close tag <%s> under parent <%s>!",
 	             buffer, parent ? parent->value.element.name : "(null)");
           goto error;
 	}
@@ -1955,7 +1922,7 @@ mxml_load_data(
         {
           (*sax_cb)(node, MXML_SAX_ELEMENT_CLOSE, sax_data);
 
-          if (!SZY_mxmlRelease(node) && first == node)
+          if (!mxmlRelease(node) && first == node)
 	    first = NULL;
         }
 
@@ -1978,18 +1945,18 @@ mxml_load_data(
 	  * There can only be one root element!
 	  */
 
-	  SZY_mxml_error("<%s> cannot be a second root node after <%s>", 
+	  mxml_error("<%s> cannot be a second root node after <%s>",
 	             buffer, first->value.element.name);
-          goto error; 		     
+          goto error;
 	}
 
-        if ((node = SZY_mxmlNewElement(parent, buffer)) == NULL)
+        if ((node = mxmlNewElement(parent, buffer)) == NULL)
 	{
 	 /*
 	  * Just print error for now...
 	  */
 
-	  SZY_mxml_error("Unable to add element node to parent <%s>!",
+	  mxml_error("Unable to add element node to parent <%s>!",
 	             parent ? parent->value.element.name : "null");
 	  goto error;
 	}
@@ -2003,9 +1970,9 @@ mxml_load_data(
 	{
 	  if ((ch = (*getc_cb)(p, &encoding)) != '>')
 	  {
-	    SZY_mxml_error("Expected > but got '%c' instead for element <%s/>!",
+	    mxml_error("Expected > but got '%c' instead for element <%s/>!",
 	               ch, buffer);
-            SZY_mxmlDelete(node);
+            mxmlDelete(node);
             goto error;
 	  }
 
@@ -2036,7 +2003,7 @@ mxml_load_data(
         {
           (*sax_cb)(node, MXML_SAX_ELEMENT_CLOSE, sax_data);
 
-          if (!SZY_mxmlRelease(node) && first == node)
+          if (!mxmlRelease(node) && first == node)
             first = NULL;
         }
       }
@@ -2080,16 +2047,16 @@ mxml_load_data(
   {
     node = parent;
 
-    while (parent->parent != top && parent->parent)
+    while (parent != top && parent->parent)
       parent = parent->parent;
 
     if (node != parent)
     {
-      SZY_mxml_error("Missing close tag </%s> under parent <%s>!",
+      mxml_error("Missing close tag </%s> under parent <%s>!",
 	         node->value.element.name,
 		 node->parent ? node->parent->value.element.name : "(null)");
 
-      SZY_mxmlDelete(first);
+      mxmlDelete(first);
 
       return (NULL);
     }
@@ -2106,7 +2073,7 @@ mxml_load_data(
 
 error:
 
-  SZY_mxmlDelete(first);
+  mxmlDelete(first);
 
   free(buffer);
 
@@ -2140,7 +2107,7 @@ mxml_parse_element(
 
   if ((name = malloc(64)) == NULL)
   {
-    SZY_mxml_error("Unable to allocate memory for name!");
+    mxml_error("Unable to allocate memory for name!");
     return (EOF);
   }
 
@@ -2149,7 +2116,7 @@ mxml_parse_element(
   if ((value = malloc(64)) == NULL)
   {
     free(name);
-    SZY_mxml_error("Unable to allocate memory for value!");
+    mxml_error("Unable to allocate memory for value!");
     return (EOF);
   }
 
@@ -2186,7 +2153,7 @@ mxml_parse_element(
 
       if (quote != '>')
       {
-        SZY_mxml_error("Expected '>' after '%c' for element %s, but got '%c'!",
+        mxml_error("Expected '>' after '%c' for element %s, but got '%c'!",
 	           ch, node->value.element.name, quote);
         goto error;
       }
@@ -2195,7 +2162,7 @@ mxml_parse_element(
     }
     else if (ch == '<')
     {
-      SZY_mxml_error("Bare < in element %s!", node->value.element.name);
+      mxml_error("Bare < in element %s!", node->value.element.name);
       goto error;
     }
     else if (ch == '>')
@@ -2252,7 +2219,7 @@ mxml_parse_element(
 
     *ptr = '\0';
 
-    if (SZY_mxmlElementGetAttr(node, name))
+    if (mxmlElementGetAttr(node, name))
       goto error;
 
     while (ch != EOF && mxml_isspace(ch))
@@ -2268,7 +2235,7 @@ mxml_parse_element(
 
       if (ch == EOF)
       {
-        SZY_mxml_error("Missing value for attribute '%s' in element %s!",
+        mxml_error("Missing value for attribute '%s' in element %s!",
 	           name, node->value.element.name);
         goto error;
       }
@@ -2290,7 +2257,7 @@ mxml_parse_element(
 	    if (ch == '&')
 	      if ((ch = mxml_get_entity(node, p, encoding, getc_cb)) == EOF)
 	        goto error;
-	      
+
 	    if (mxml_add_char(ch, &ptr, &value, &valsize))
 	      goto error;
 	  }
@@ -2314,7 +2281,7 @@ mxml_parse_element(
 	    if (ch == '&')
 	      if ((ch = mxml_get_entity(node, p, encoding, getc_cb)) == EOF)
 	        goto error;
-	      
+
 	    if (mxml_add_char(ch, &ptr, &value, &valsize))
 	      goto error;
 	  }
@@ -2326,11 +2293,11 @@ mxml_parse_element(
       * Set the attribute with the given string value...
       */
 
-      SZY_mxmlElementSetAttr(node, name, value);
+      mxmlElementSetAttr(node, name, value);
     }
     else
     {
-      SZY_mxml_error("Missing value for attribute '%s' in element %s!",
+      mxml_error("Missing value for attribute '%s' in element %s!",
 	         name, node->value.element.name);
       goto error;
     }
@@ -2349,7 +2316,7 @@ mxml_parse_element(
 
       if (quote != '>')
       {
-        SZY_mxml_error("Expected '>' after '%c' for element %s, but got '%c'!",
+        mxml_error("Expected '>' after '%c' for element %s, but got '%c'!",
 	           ch, node->value.element.name, quote);
         ch = EOF;
       }
@@ -2403,16 +2370,6 @@ mxml_string_getc(void *p,		/* I  - Pointer to file */
     */
 
     (*s)++;
-	// GB2312
-	if(((ch >= 0x81) && (ch <= 0xFE)) && ((((*s)[0]& 255) >= 0x40 )&&(((*s)[0]&255) <= 0xFE)))
-	{
-		ch = ch << 8;
-		ch |= 0x3f3f0000;
-		ch |=  (*s)[0]& 255;
-		(*s)++;
-		//printf("chchchchchchchchchchchchchchchchchch = %08x\n",ch);
-		return (ch);
-	}
 
     switch (*encoding)
     {
@@ -2425,7 +2382,7 @@ mxml_string_getc(void *p,		/* I  - Pointer to file */
 
 	    if (mxml_bad_char(ch))
 	    {
-	      SZY_mxml_error("Bad control character 0x%02x not allowed by XML standard!",
+	      mxml_error("Bad control character 0x%02x not allowed by XML standard!",
         		 ch);
 	      return (EOF);
 	    }
@@ -2475,7 +2432,7 @@ mxml_string_getc(void *p,		/* I  - Pointer to file */
 
 	    if (ch < 0x80)
 	    {
-	      SZY_mxml_error("Invalid UTF-8 sequence for character 0x%04x!", ch);
+	      mxml_error("Invalid UTF-8 sequence for character 0x%04x!", ch);
 	      return (EOF);
 	    }
 
@@ -2501,7 +2458,7 @@ mxml_string_getc(void *p,		/* I  - Pointer to file */
 
 	    if (ch < 0x800)
 	    {
-	      SZY_mxml_error("Invalid UTF-8 sequence for character 0x%04x!", ch);
+	      mxml_error("Invalid UTF-8 sequence for character 0x%04x!", ch);
 	      return (EOF);
 	    }
 
@@ -2536,7 +2493,7 @@ mxml_string_getc(void *p,		/* I  - Pointer to file */
 
 	    if (ch < 0x10000)
 	    {
-	      SZY_mxml_error("Invalid UTF-8 sequence for character 0x%04x!", ch);
+	      mxml_error("Invalid UTF-8 sequence for character 0x%04x!", ch);
 	      return (EOF);
 	    }
 
@@ -2559,7 +2516,7 @@ mxml_string_getc(void *p,		/* I  - Pointer to file */
 
           if (mxml_bad_char(ch))
 	  {
-	    SZY_mxml_error("Bad control character 0x%02x not allowed by XML standard!",
+	    mxml_error("Bad control character 0x%02x not allowed by XML standard!",
         	       ch);
 	    return (EOF);
 	  }
@@ -2607,7 +2564,7 @@ mxml_string_getc(void *p,		/* I  - Pointer to file */
 
           if (mxml_bad_char(ch))
 	  {
-	    SZY_mxml_error("Bad control character 0x%02x not allowed by XML standard!",
+	    mxml_error("Bad control character 0x%02x not allowed by XML standard!",
         	       ch);
 	    return (EOF);
 	  }
@@ -2693,7 +2650,7 @@ mxml_write_name(const char *s,		/* I - Name to write */
 
     while (*s && *s != quote)
     {
-      if ((name = SZY_mxmlEntityGetName(*s)) != NULL)
+      if ((name = mxmlEntityGetName(*s)) != NULL)
       {
 	if ((*putc_cb)('&', p) < 0)
           return (-1);
@@ -3027,7 +2984,7 @@ mxml_write_string(
 
   while (*s)
   {
-    if ((name = SZY_mxmlEntityGetName(*s)) != NULL)
+    if ((name = mxmlEntityGetName(*s)) != NULL)
     {
       if ((*putc_cb)('&', p) < 0)
         return (-1);
@@ -3092,5 +3049,5 @@ mxml_write_ws(mxml_node_t     *node,	/* I - Current node */
 
 
 /*
- * End of "$Id: mxml-file.c 438 2011-03-24 05:47:51Z mike $".
+ * End of "$Id: mxml-file.c 459 2014-10-19 17:21:48Z msweet $".
  */

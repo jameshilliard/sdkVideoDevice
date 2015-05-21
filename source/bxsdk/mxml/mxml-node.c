@@ -1,9 +1,9 @@
 /*
- * "$Id: mxml-node.c 436 2011-01-22 01:02:05Z mike $"
+ * "$Id: mxml-node.c 451 2014-01-04 21:50:06Z msweet $"
  *
  * Node support code for Mini-XML, a small XML-like file parsing library.
  *
- * Copyright 2003-2011 by Michael R Sweet.
+ * Copyright 2003-2014 by Michael R Sweet.
  *
  * These coded instructions, statements, and computer programs are the
  * property of Michael R Sweet and are protected by Federal copyright
@@ -11,26 +11,7 @@
  * which should have been included with this file.  If this file is
  * missing or damaged, see the license at:
  *
- *     http://www.minixml.org/
- *
- * Contents:
- *
- *   mxmlAdd()         - Add a node to a tree.
- *   mxmlDelete()      - Delete a node and all of its children.
- *   mxmlGetRefCount() - Get the current reference (use) count for a node.
- *   mxmlNewCDATA()    - Create a new CDATA node.
- *   mxmlNewCustom()   - Create a new custom data node.
- *   mxmlNewElement()  - Create a new element node.
- *   mxmlNewInteger()  - Create a new integer node.
- *   mxmlNewOpaque()   - Create a new opaque string.
- *   mxmlNewReal()     - Create a new real number node.
- *   mxmlNewText()     - Create a new text fragment node.
- *   mxmlNewTextf()    - Create a new formatted text fragment node.
- *   mxmlRemove()      - Remove a node from its parent.
- *   mxmlNewXML()      - Create a new XML document tree.
- *   mxmlRelease()     - Release a node.
- *   mxmlRetain()      - Retain a node.
- *   mxml_new()        - Create a new node.
+ *     http://www.msweet.org/projects.php/Mini-XML
  */
 
 /*
@@ -60,13 +41,13 @@ static mxml_node_t	*mxml_new(mxml_node_t *parent, mxml_type_t type);
  */
 
 void
-SZY_mxmlAdd(mxml_node_t *parent,		/* I - Parent node */
+mxmlAdd(mxml_node_t *parent,		/* I - Parent node */
         int         where,		/* I - Where to add, MXML_ADD_BEFORE or MXML_ADD_AFTER */
         mxml_node_t *child,		/* I - Child node for where or MXML_ADD_TO_PARENT */
 	mxml_node_t *node)		/* I - Node to add */
 {
 #ifdef DEBUG
-  fprintf(stderr, "SZY_mxmlAdd(parent=%p, where=%d, child=%p, node=%p)\n", parent,
+  fprintf(stderr, "mxmlAdd(parent=%p, where=%d, child=%p, node=%p)\n", parent,
           where, child, node);
 #endif /* DEBUG */
 
@@ -93,7 +74,7 @@ SZY_mxmlAdd(mxml_node_t *parent,		/* I - Parent node */
   */
 
   if (node->parent)
-    SZY_mxmlRemove(node);
+    mxmlRemove(node);
 
  /*
   * Reset pointers...
@@ -194,13 +175,13 @@ SZY_mxmlAdd(mxml_node_t *parent,		/* I - Parent node */
  */
 
 void
-SZY_mxmlDelete(mxml_node_t *node)		/* I - Node to delete */
+mxmlDelete(mxml_node_t *node)		/* I - Node to delete */
 {
   int	i;				/* Looping var */
 
 
 #ifdef DEBUG
-  fprintf(stderr, "SZY_mxmlDelete(node=%p)\n", node);
+  fprintf(stderr, "mxmlDelete(node=%p)\n", node);
 #endif /* DEBUG */
 
  /*
@@ -214,14 +195,14 @@ SZY_mxmlDelete(mxml_node_t *node)		/* I - Node to delete */
   * Remove the node from its parent, if any...
   */
 
-  SZY_mxmlRemove(node);
+  mxmlRemove(node);
 
  /*
   * Delete children...
   */
 
   while (node->child)
-    SZY_mxmlDelete(node->child);
+    mxmlDelete(node->child);
 
  /*
   * Now delete any node data...
@@ -288,7 +269,7 @@ SZY_mxmlDelete(mxml_node_t *node)		/* I - Node to delete */
  */
 
 int					/* O - Reference count */
-SZY_mxmlGetRefCount(mxml_node_t *node)	/* I - Node */
+mxmlGetRefCount(mxml_node_t *node)	/* I - Node */
 {
  /*
   * Range check input...
@@ -317,14 +298,14 @@ SZY_mxmlGetRefCount(mxml_node_t *node)	/* I - Node */
  */
 
 mxml_node_t *				/* O - New node */
-SZY_mxmlNewCDATA(mxml_node_t *parent,	/* I - Parent node or MXML_NO_PARENT */
+mxmlNewCDATA(mxml_node_t *parent,	/* I - Parent node or MXML_NO_PARENT */
 	     const char  *data)		/* I - Data string */
 {
   mxml_node_t	*node;			/* New node */
 
 
 #ifdef DEBUG
-  fprintf(stderr, "SZY_mxmlNewCDATA(parent=%p, data=\"%s\")\n",
+  fprintf(stderr, "mxmlNewCDATA(parent=%p, data=\"%s\")\n",
           parent, data ? data : "(null)");
 #endif /* DEBUG */
 
@@ -340,7 +321,7 @@ SZY_mxmlNewCDATA(mxml_node_t *parent,	/* I - Parent node or MXML_NO_PARENT */
   */
 
   if ((node = mxml_new(parent, MXML_ELEMENT)) != NULL)
-    node->value.element.name = _SZY_mxml_strdupf("![CDATA[%s]]", data);
+    node->value.element.name = _mxml_strdupf("![CDATA[%s]]", data);
 
   return (node);
 }
@@ -358,7 +339,7 @@ SZY_mxmlNewCDATA(mxml_node_t *parent,	/* I - Parent node or MXML_NO_PARENT */
  */
 
 mxml_node_t *				/* O - New node */
-SZY_mxmlNewCustom(
+mxmlNewCustom(
     mxml_node_t              *parent,	/* I - Parent node or MXML_NO_PARENT */
     void                     *data,	/* I - Pointer to data */
     mxml_custom_destroy_cb_t destroy)	/* I - Function to destroy data */
@@ -367,7 +348,7 @@ SZY_mxmlNewCustom(
 
 
 #ifdef DEBUG
-  fprintf(stderr, "SZY_mxmlNewCustom(parent=%p, data=%p, destroy=%p)\n", parent,
+  fprintf(stderr, "mxmlNewCustom(parent=%p, data=%p, destroy=%p)\n", parent,
           data, destroy);
 #endif /* DEBUG */
 
@@ -394,14 +375,14 @@ SZY_mxmlNewCustom(
  */
 
 mxml_node_t *				/* O - New node */
-SZY_mxmlNewElement(mxml_node_t *parent,	/* I - Parent node or MXML_NO_PARENT */
+mxmlNewElement(mxml_node_t *parent,	/* I - Parent node or MXML_NO_PARENT */
                const char  *name)	/* I - Name of element */
 {
   mxml_node_t	*node;			/* New node */
 
 
 #ifdef DEBUG
-  fprintf(stderr, "SZY_mxmlNewElement(parent=%p, name=\"%s\")\n", parent,
+  fprintf(stderr, "mxmlNewElement(parent=%p, name=\"%s\")\n", parent,
           name ? name : "(null)");
 #endif /* DEBUG */
 
@@ -432,14 +413,14 @@ SZY_mxmlNewElement(mxml_node_t *parent,	/* I - Parent node or MXML_NO_PARENT */
  */
 
 mxml_node_t *				/* O - New node */
-SZY_mxmlNewInteger(mxml_node_t *parent,	/* I - Parent node or MXML_NO_PARENT */
+mxmlNewInteger(mxml_node_t *parent,	/* I - Parent node or MXML_NO_PARENT */
                int         integer)	/* I - Integer value */
 {
   mxml_node_t	*node;			/* New node */
 
 
 #ifdef DEBUG
-  fprintf(stderr, "SZY_mxmlNewInteger(parent=%p, integer=%d)\n", parent, integer);
+  fprintf(stderr, "mxmlNewInteger(parent=%p, integer=%d)\n", parent, integer);
 #endif /* DEBUG */
 
  /*
@@ -463,14 +444,14 @@ SZY_mxmlNewInteger(mxml_node_t *parent,	/* I - Parent node or MXML_NO_PARENT */
  */
 
 mxml_node_t *				/* O - New node */
-SZY_mxmlNewOpaque(mxml_node_t *parent,	/* I - Parent node or MXML_NO_PARENT */
+mxmlNewOpaque(mxml_node_t *parent,	/* I - Parent node or MXML_NO_PARENT */
               const char  *opaque)	/* I - Opaque string */
 {
   mxml_node_t	*node;			/* New node */
 
 
 #ifdef DEBUG
-  fprintf(stderr, "SZY_mxmlNewOpaque(parent=%p, opaque=\"%s\")\n", parent,
+  fprintf(stderr, "mxmlNewOpaque(parent=%p, opaque=\"%s\")\n", parent,
           opaque ? opaque : "(null)");
 #endif /* DEBUG */
 
@@ -501,14 +482,14 @@ SZY_mxmlNewOpaque(mxml_node_t *parent,	/* I - Parent node or MXML_NO_PARENT */
  */
 
 mxml_node_t *				/* O - New node */
-SZY_mxmlNewReal(mxml_node_t *parent,	/* I - Parent node or MXML_NO_PARENT */
+mxmlNewReal(mxml_node_t *parent,	/* I - Parent node or MXML_NO_PARENT */
             double      real)		/* I - Real number value */
 {
   mxml_node_t	*node;			/* New node */
 
 
 #ifdef DEBUG
-  fprintf(stderr, "SZY_mxmlNewReal(parent=%p, real=%g)\n", parent, real);
+  fprintf(stderr, "mxmlNewReal(parent=%p, real=%g)\n", parent, real);
 #endif /* DEBUG */
 
  /*
@@ -529,11 +510,11 @@ SZY_mxmlNewReal(mxml_node_t *parent,	/* I - Parent node or MXML_NO_PARENT */
  * list. The constant MXML_NO_PARENT can be used to specify that the new
  * text node has no parent. The whitespace parameter is used to specify
  * whether leading whitespace is present before the node. The text
- * string must be nul-terminated and is copied into the new node.  
+ * string must be nul-terminated and is copied into the new node.
  */
 
 mxml_node_t *				/* O - New node */
-SZY_mxmlNewText(mxml_node_t *parent,	/* I - Parent node or MXML_NO_PARENT */
+mxmlNewText(mxml_node_t *parent,	/* I - Parent node or MXML_NO_PARENT */
             int         whitespace,	/* I - 1 = leading whitespace, 0 = no whitespace */
 	    const char  *string)	/* I - String */
 {
@@ -541,7 +522,7 @@ SZY_mxmlNewText(mxml_node_t *parent,	/* I - Parent node or MXML_NO_PARENT */
 
 
 #ifdef DEBUG
-  fprintf(stderr, "SZY_mxmlNewText(parent=%p, whitespace=%d, string=\"%s\")\n",
+  fprintf(stderr, "mxmlNewText(parent=%p, whitespace=%d, string=\"%s\")\n",
           parent, whitespace, string ? string : "(null)");
 #endif /* DEBUG */
 
@@ -573,11 +554,11 @@ SZY_mxmlNewText(mxml_node_t *parent,	/* I - Parent node or MXML_NO_PARENT */
  * list. The constant MXML_NO_PARENT can be used to specify that the new
  * text node has no parent. The whitespace parameter is used to specify
  * whether leading whitespace is present before the node. The format
- * string must be nul-terminated and is formatted into the new node.  
+ * string must be nul-terminated and is formatted into the new node.
  */
 
 mxml_node_t *				/* O - New node */
-SZY_mxmlNewTextf(mxml_node_t *parent,	/* I - Parent node or MXML_NO_PARENT */
+mxmlNewTextf(mxml_node_t *parent,	/* I - Parent node or MXML_NO_PARENT */
              int         whitespace,	/* I - 1 = leading whitespace, 0 = no whitespace */
 	     const char  *format,	/* I - Printf-style frmat string */
 	     ...)			/* I - Additional args as needed */
@@ -587,7 +568,7 @@ SZY_mxmlNewTextf(mxml_node_t *parent,	/* I - Parent node or MXML_NO_PARENT */
 
 
 #ifdef DEBUG
-  fprintf(stderr, "SZY_mxmlNewTextf(parent=%p, whitespace=%d, format=\"%s\", ...)\n",
+  fprintf(stderr, "mxmlNewTextf(parent=%p, whitespace=%d, format=\"%s\", ...)\n",
           parent, whitespace, format ? format : "(null)");
 #endif /* DEBUG */
 
@@ -607,7 +588,7 @@ SZY_mxmlNewTextf(mxml_node_t *parent,	/* I - Parent node or MXML_NO_PARENT */
     va_start(ap, format);
 
     node->value.text.whitespace = whitespace;
-    node->value.text.string     = _SZY_mxml_vstrdupf(format, ap);
+    node->value.text.string     = _mxml_vstrdupf(format, ap);
 
     va_end(ap);
   }
@@ -624,10 +605,10 @@ SZY_mxmlNewTextf(mxml_node_t *parent,	/* I - Parent node or MXML_NO_PARENT */
  */
 
 void
-SZY_mxmlRemove(mxml_node_t *node)		/* I - Node to remove */
+mxmlRemove(mxml_node_t *node)		/* I - Node to remove */
 {
 #ifdef DEBUG
-  fprintf(stderr, "SZY_mxmlRemove(node=%p)\n", node);
+  fprintf(stderr, "mxmlRemove(node=%p)\n", node);
 #endif /* DEBUG */
 
  /*
@@ -693,15 +674,15 @@ SZY_mxmlRemove(mxml_node_t *node)		/* I - Node to remove */
  */
 
 mxml_node_t *				/* O - New ?xml node */
-SZY_mxmlNewXML(const char *version)		/* I - Version number to use */
+mxmlNewXML(const char *version)		/* I - Version number to use */
 {
   char	element[1024];			/* Element text */
 
 
-  snprintf(element, sizeof(element), "?xml version=\"%s\" encoding=\"GB2312\"?",
+  snprintf(element, sizeof(element), "?xml version=\"%s\" encoding=\"utf-8\"?",
            version ? version : "1.0");
 
-  return (SZY_mxmlNewElement(NULL, element));
+  return (mxmlNewElement(NULL, element));
 }
 
 
@@ -715,13 +696,13 @@ SZY_mxmlNewXML(const char *version)		/* I - Version number to use */
  */
 
 int					/* O - New reference count */
-SZY_mxmlRelease(mxml_node_t *node)		/* I - Node */
+mxmlRelease(mxml_node_t *node)		/* I - Node */
 {
   if (node)
   {
     if ((-- node->ref_count) <= 0)
     {
-      SZY_mxmlDelete(node);
+      mxmlDelete(node);
       return (0);
     }
     else
@@ -739,7 +720,7 @@ SZY_mxmlRelease(mxml_node_t *node)		/* I - Node */
  */
 
 int					/* O - New reference count */
-SZY_mxmlRetain(mxml_node_t *node)		/* I - Node */
+mxmlRetain(mxml_node_t *node)		/* I - Node */
 {
   if (node)
     return (++ node->ref_count);
@@ -792,7 +773,7 @@ mxml_new(mxml_node_t *parent,		/* I - Parent node */
   */
 
   if (parent)
-    SZY_mxmlAdd(parent, MXML_ADD_AFTER, MXML_ADD_TO_PARENT, node);
+    mxmlAdd(parent, MXML_ADD_AFTER, MXML_ADD_TO_PARENT, node);
 
  /*
   * Return the new node...
@@ -803,5 +784,5 @@ mxml_new(mxml_node_t *parent,		/* I - Parent node */
 
 
 /*
- * End of "$Id: mxml-node.c 436 2011-01-22 01:02:05Z mike $".
+ * End of "$Id: mxml-node.c 451 2014-01-04 21:50:06Z msweet $".
  */

@@ -8,7 +8,7 @@
 #include "../mxml/mxmlparser.h"
 
 
-#define MULTICAST_IP 			"245.255.255.250"	//多播组地址
+#define MULTICAST_IP 			"235.255.255.250"	//多播组地址
 // 网络参数
 #define PC_TOOL_PORT 			60011
 #define	SCAN_SERVER_PORT		60012

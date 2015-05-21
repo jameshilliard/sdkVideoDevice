@@ -7,11 +7,11 @@ FLAGS = -O2 -Wall -Wno-unused -Wno-format -fstrength-reduce -DHI_OS_LINUX -DCPU_
 #FLAGS += -g -rdynamic
 
 #GXX = g++ $(INCLUDES) $(FLAGS)
-GCC = gcc $(INCLUDES) $(FLAGS)
+#GCC = gcc $(INCLUDES) $(FLAGS)
 
 
-#GXX = arm-hisiv100nptl-linux-g++ $(INCLUDES) $(FLAGS)
-#GCC = arm-hisiv100nptl-linux-gcc $(INCLUDES) $(FLAGS)
+GXX = arm-hisiv100nptl-linux-g++ $(INCLUDES) $(FLAGS)
+GCC = arm-hisiv100nptl-linux-gcc $(INCLUDES) $(FLAGS)
 
 CSRCS := $(wildcard ./*.c)
 CSRCS += $(wildcard ./Common/*.c)

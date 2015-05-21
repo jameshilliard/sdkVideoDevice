@@ -1,10 +1,10 @@
 /*
- * "$Id: mxml-entity.c 408 2010-09-19 05:26:46Z mike $"
+ * "$Id: mxml-entity.c 451 2014-01-04 21:50:06Z msweet $"
  *
  * Character entity support code for Mini-XML, a small XML-like
  * file parsing library.
  *
- * Copyright 2003-2010 by Michael R Sweet.
+ * Copyright 2003-2014 by Michael R Sweet.
  *
  * These coded instructions, statements, and computer programs are the
  * property of Michael R Sweet and are protected by Federal copyright
@@ -12,18 +12,7 @@
  * which should have been included with this file.  If this file is
  * missing or damaged, see the license at:
  *
- *     http://www.minixml.org/
- *
- * Contents:
- *
- *   mxmlEntityAddCallback()    - Add a callback to convert entities to
- *                                Unicode.
- *   mxmlEntityGetName()        - Get the name that corresponds to the
- *                                character value.
- *   mxmlEntityGetValue()       - Get the character corresponding to a named
- *                                entity.
- *   mxmlEntityRemoveCallback() - Remove a callback.
- *   _mxml_entity_cb()          - Lookup standard (X)HTML entities.
+ *     http://www.msweet.org/projects.php/Mini-XML
  */
 
 /*
@@ -38,10 +27,10 @@
  */
 
 int					/* O - 0 on success, -1 on failure */
-SZY_mxmlEntityAddCallback(
+mxmlEntityAddCallback(
     mxml_entity_cb_t cb)		/* I - Callback function to add */
 {
-  _mxml_global_t *global = _SZY_mxml_global();
+  _mxml_global_t *global = _mxml_global();
 					/* Global data */
 
 
@@ -54,7 +43,7 @@ SZY_mxmlEntityAddCallback(
   }
   else
   {
-    SZY_mxml_error("Unable to add entity callback!");
+    mxml_error("Unable to add entity callback!");
 
     return (-1);
   }
@@ -68,7 +57,7 @@ SZY_mxmlEntityAddCallback(
  */
 
 const char *				/* O - Entity name or NULL */
-SZY_mxmlEntityGetName(int val)		/* I - Character value */
+mxmlEntityGetName(int val)		/* I - Character value */
 {
   switch (val)
   {
@@ -98,11 +87,11 @@ SZY_mxmlEntityGetName(int val)		/* I - Character value */
  */
 
 int					/* O - Character value or -1 on error */
-SZY_mxmlEntityGetValue(const char *name)	/* I - Entity name */
+mxmlEntityGetValue(const char *name)	/* I - Entity name */
 {
   int		i;			/* Looping var */
   int		ch;			/* Character value */
-  _mxml_global_t *global = _SZY_mxml_global();
+  _mxml_global_t *global = _mxml_global();
 					/* Global data */
 
 
@@ -119,11 +108,11 @@ SZY_mxmlEntityGetValue(const char *name)	/* I - Entity name */
  */
 
 void
-SZY_mxmlEntityRemoveCallback(
+mxmlEntityRemoveCallback(
     mxml_entity_cb_t cb)		/* I - Callback function to remove */
 {
   int		i;			/* Looping var */
-  _mxml_global_t *global = _SZY_mxml_global();
+  _mxml_global_t *global = _mxml_global();
 					/* Global data */
 
 
@@ -150,7 +139,7 @@ SZY_mxmlEntityRemoveCallback(
  */
 
 int					/* O - Unicode value or -1 */
-_SZY_mxml_entity_cb(const char *name)	/* I - Entity name */
+_mxml_entity_cb(const char *name)	/* I - Entity name */
 {
   int	diff,				/* Difference between names */
 	current,			/* Current entity in search */
@@ -456,5 +445,5 @@ _SZY_mxml_entity_cb(const char *name)	/* I - Entity name */
 
 
 /*
- * End of "$Id: mxml-entity.c 408 2010-09-19 05:26:46Z mike $".
+ * End of "$Id: mxml-entity.c 451 2014-01-04 21:50:06Z msweet $".
  */

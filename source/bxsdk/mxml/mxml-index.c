@@ -1,9 +1,9 @@
 /*
- * "$Id: mxml-index.c 426 2011-01-01 23:42:17Z mike $"
+ * "$Id: mxml-index.c 451 2014-01-04 21:50:06Z msweet $"
  *
  * Index support code for Mini-XML, a small XML-like file parsing library.
  *
- * Copyright 2003-2011 by Michael R Sweet.
+ * Copyright 2003-2014 by Michael R Sweet.
  *
  * These coded instructions, statements, and computer programs are the
  * property of Michael R Sweet and are protected by Federal copyright
@@ -11,10 +11,7 @@
  * which should have been included with this file.  If this file is
  * missing or damaged, see the license at:
  *
- *     http://www.minixml.org/
- *
- * Contents:
- *
+ *     http://www.msweet.org/projects.php/Mini-XML
  */
 
 /*
@@ -41,7 +38,7 @@ static void	index_sort(mxml_index_t *ind, int left, int right);
  */
 
 void
-SZY_mxmlIndexDelete(mxml_index_t *ind)	/* I - Index to delete */
+mxmlIndexDelete(mxml_index_t *ind)	/* I - Index to delete */
 {
  /*
   * Range check input..
@@ -71,7 +68,7 @@ SZY_mxmlIndexDelete(mxml_index_t *ind)	/* I - Index to delete */
  */
 
 mxml_node_t *				/* O - Next node or NULL if there is none */
-SZY_mxmlIndexEnum(mxml_index_t *ind)	/* I - Index to enumerate */
+mxmlIndexEnum(mxml_index_t *ind)	/* I - Index to enumerate */
 {
  /*
   * Range check input...
@@ -101,7 +98,7 @@ SZY_mxmlIndexEnum(mxml_index_t *ind)	/* I - Index to enumerate */
  */
 
 mxml_node_t *				/* O - Node or NULL if none found */
-SZY_mxmlIndexFind(mxml_index_t *ind,	/* I - Index to search */
+mxmlIndexFind(mxml_index_t *ind,	/* I - Index to search */
               const char   *element,	/* I - Element name to find, if any */
 	      const char   *value)	/* I - Attribute value, if any */
 {
@@ -112,7 +109,7 @@ SZY_mxmlIndexFind(mxml_index_t *ind,	/* I - Index to search */
 
 
 #ifdef DEBUG
-  printf("SZY_mxmlIndexFind(ind=%p, element=\"%s\", value=\"%s\")\n",
+  printf("mxmlIndexFind(ind=%p, element=\"%s\", value=\"%s\")\n",
          ind, element ? element : "(null)", value ? value : "(null)");
 #endif /* DEBUG */
 
@@ -136,7 +133,7 @@ SZY_mxmlIndexFind(mxml_index_t *ind,	/* I - Index to search */
   */
 
   if (!element && !value)
-    return (SZY_mxmlIndexEnum(ind));
+    return (mxmlIndexEnum(ind));
 
  /*
   * If there are no nodes in the index, return NULL...
@@ -280,7 +277,7 @@ SZY_mxmlIndexFind(mxml_index_t *ind,	/* I - Index to search */
  */
 
 int					/* I - Number of nodes in index */
-SZY_mxmlIndexGetCount(mxml_index_t *ind)	/* I - Index of nodes */
+mxmlIndexGetCount(mxml_index_t *ind)	/* I - Index of nodes */
 {
  /*
   * Range check input...
@@ -308,7 +305,7 @@ SZY_mxmlIndexGetCount(mxml_index_t *ind)	/* I - Index of nodes */
  */
 
 mxml_index_t *				/* O - New index */
-SZY_mxmlIndexNew(mxml_node_t *node,		/* I - XML node tree */
+mxmlIndexNew(mxml_node_t *node,		/* I - XML node tree */
              const char  *element,	/* I - Element to index or NULL for all */
              const char  *attr)		/* I - Attribute to index or NULL for none */
 {
@@ -322,7 +319,7 @@ SZY_mxmlIndexNew(mxml_node_t *node,		/* I - XML node tree */
   */
 
 #ifdef DEBUG
-  printf("SZY_mxmlIndexNew(node=%p, element=\"%s\", attr=\"%s\")\n",
+  printf("mxmlIndexNew(node=%p, element=\"%s\", attr=\"%s\")\n",
          node, element ? element : "(null)", attr ? attr : "(null)");
 #endif /* DEBUG */
 
@@ -335,7 +332,7 @@ SZY_mxmlIndexNew(mxml_node_t *node,		/* I - XML node tree */
 
   if ((ind = calloc(1, sizeof(mxml_index_t))) == NULL)
   {
-    SZY_mxml_error("Unable to allocate %d bytes for index - %s",
+    mxml_error("Unable to allocate %d bytes for index - %s",
                sizeof(mxml_index_t), strerror(errno));
     return (NULL);
   }
@@ -346,7 +343,7 @@ SZY_mxmlIndexNew(mxml_node_t *node,		/* I - XML node tree */
   if (!element && !attr)
     current = node;
   else
-    current = SZY_mxmlFindElement(node, node, element, attr, NULL, MXML_DESCEND);
+    current = mxmlFindElement(node, node, element, attr, NULL, MXML_DESCEND);
 
   while (current)
   {
@@ -363,11 +360,11 @@ SZY_mxmlIndexNew(mxml_node_t *node,		/* I - XML node tree */
         * Unable to allocate memory for the index, so abort...
 	*/
 
-        SZY_mxml_error("Unable to allocate %d bytes for index: %s",
+        mxml_error("Unable to allocate %d bytes for index: %s",
 	           (ind->alloc_nodes + 64) * sizeof(mxml_node_t *),
 		   strerror(errno));
 
-        SZY_mxmlIndexDelete(ind);
+        mxmlIndexDelete(ind);
 	return (NULL);
       }
 
@@ -377,7 +374,7 @@ SZY_mxmlIndexNew(mxml_node_t *node,		/* I - XML node tree */
 
     ind->nodes[ind->num_nodes ++] = current;
 
-    current = SZY_mxmlFindElement(current, node, element, attr, NULL, MXML_DESCEND);
+    current = mxmlFindElement(current, node, element, attr, NULL, MXML_DESCEND);
   }
 
  /*
@@ -399,7 +396,7 @@ SZY_mxmlIndexNew(mxml_node_t *node,		/* I - XML node tree */
       for (i = 0; i < ind->num_nodes; i ++)
 	printf("%8d  %-8p  %-14.14s  %s\n", i, ind->nodes[i],
 	       ind->nodes[i]->value.element.name,
-	       SZY_mxmlElementGetAttr(ind->nodes[i], attr));
+	       mxmlElementGetAttr(ind->nodes[i], attr));
     }
     else
     {
@@ -433,7 +430,7 @@ SZY_mxmlIndexNew(mxml_node_t *node,		/* I - XML node tree */
       for (i = 0; i < ind->num_nodes; i ++)
 	printf("%8d  %-8p  %-14.14s  %s\n", i, ind->nodes[i],
 	       ind->nodes[i]->value.element.name,
-	       SZY_mxmlElementGetAttr(ind->nodes[i], attr));
+	       mxmlElementGetAttr(ind->nodes[i], attr));
     }
     else
     {
@@ -466,10 +463,10 @@ SZY_mxmlIndexNew(mxml_node_t *node,		/* I - XML node tree */
  */
 
 mxml_node_t *				/* O - First node or NULL if there is none */
-SZY_mxmlIndexReset(mxml_index_t *ind)	/* I - Index to reset */
+mxmlIndexReset(mxml_index_t *ind)	/* I - Index to reset */
 {
 #ifdef DEBUG
-  printf("SZY_mxmlIndexReset(ind=%p)\n", ind);
+  printf("mxmlIndexReset(ind=%p)\n", ind);
 #endif /* DEBUG */
 
  /*
@@ -522,8 +519,8 @@ index_compare(mxml_index_t *ind,	/* I - Index */
 
   if (ind->attr)
   {
-    if ((diff = strcmp(SZY_mxmlElementGetAttr(first, ind->attr),
-                       SZY_mxmlElementGetAttr(second, ind->attr))) != 0)
+    if ((diff = strcmp(mxmlElementGetAttr(first, ind->attr),
+                       mxmlElementGetAttr(second, ind->attr))) != 0)
       return (diff);
   }
 
@@ -564,7 +561,7 @@ index_find(mxml_index_t *ind,		/* I - Index */
 
   if (value)
   {
-    if ((diff = strcmp(value, SZY_mxmlElementGetAttr(node, ind->attr))) != 0)
+    if ((diff = strcmp(value, mxmlElementGetAttr(node, ind->attr))) != 0)
       return (diff);
   }
 
@@ -658,5 +655,5 @@ index_sort(mxml_index_t *ind,		/* I - Index to sort */
 
 
 /*
- * End of "$Id: mxml-index.c 426 2011-01-01 23:42:17Z mike $".
+ * End of "$Id: mxml-index.c 451 2014-01-04 21:50:06Z msweet $".
  */

@@ -1,10 +1,10 @@
 /*
- * "$Id: mxml-search.c 427 2011-01-03 02:03:29Z mike $"
+ * "$Id: mxml-search.c 451 2014-01-04 21:50:06Z msweet $"
  *
  * Search/navigation functions for Mini-XML, a small XML-like file
  * parsing library.
  *
- * Copyright 2003-2010 by Michael R Sweet.
+ * Copyright 2003-2014 by Michael R Sweet.
  *
  * These coded instructions, statements, and computer programs are the
  * property of Michael R Sweet and are protected by Federal copyright
@@ -12,14 +12,7 @@
  * which should have been included with this file.  If this file is
  * missing or damaged, see the license at:
  *
- *     http://www.minixml.org/
- *
- * Contents:
- *
- *   mxmlFindElement() - Find the named element.
- *   mxmlFindValue()   - Find a value with the given path.
- *   mxmlWalkNext()    - Walk to the next logical node in the tree.
- *   mxmlWalkPrev()    - Walk to the previous logical node in the tree.
+ *     http://www.msweet.org/projects.php/Mini-XML
  */
 
 /*
@@ -44,7 +37,7 @@
  */
 
 mxml_node_t *				/* O - Element node or NULL */
-SZY_mxmlFindElement(mxml_node_t *node,	/* I - Current node */
+mxmlFindElement(mxml_node_t *node,	/* I - Current node */
                 mxml_node_t *top,	/* I - Top node */
                 const char  *name,	/* I - Element name or NULL for any */
 		const char  *attr,	/* I - Attribute name, or NULL for none */
@@ -65,7 +58,7 @@ SZY_mxmlFindElement(mxml_node_t *node,	/* I - Current node */
   * Start with the next node...
   */
 
-  node = SZY_mxmlWalkNext(node, top, descend);
+  node = mxmlWalkNext(node, top, descend);
 
  /*
   * Loop until we find a matching element...
@@ -92,7 +85,7 @@ SZY_mxmlFindElement(mxml_node_t *node,	/* I - Current node */
       * Check for the attribute...
       */
 
-      if ((temp = SZY_mxmlElementGetAttr(node, attr)) != NULL)
+      if ((temp = mxmlElementGetAttr(node, attr)) != NULL)
       {
        /*
         * OK, we have the attribute, does it match?
@@ -108,7 +101,7 @@ SZY_mxmlFindElement(mxml_node_t *node,	/* I - Current node */
     */
 
     if (descend == MXML_DESCEND)
-      node = SZY_mxmlWalkNext(node, top, MXML_DESCEND);
+      node = mxmlWalkNext(node, top, MXML_DESCEND);
     else
       node = node->next;
   }
@@ -126,12 +119,12 @@ SZY_mxmlFindElement(mxml_node_t *node,	/* I - Current node */
  *
  * The first child node of the found node is returned if the given node has
  * children and the first child is a value node.
- * 
+ *
  * @since Mini-XML 2.7@
  */
 
 mxml_node_t *				/* O - Found node or NULL */
-SZY_mxmlFindPath(mxml_node_t *top,		/* I - Top node */
+mxmlFindPath(mxml_node_t *top,		/* I - Top node */
 	     const char  *path)		/* I - Path to element */
 {
   mxml_node_t	*node;			/* Current node */
@@ -188,7 +181,7 @@ SZY_mxmlFindPath(mxml_node_t *top,		/* I - Top node */
     * Search for the element...
     */
 
-    if ((node = SZY_mxmlFindElement(node, node, element, NULL, NULL,
+    if ((node = mxmlFindElement(node, node, element, NULL, NULL,
                                 descend)) == NULL)
       return (NULL);
   }
@@ -213,7 +206,7 @@ SZY_mxmlFindPath(mxml_node_t *top,		/* I - Top node */
  */
 
 mxml_node_t *				/* O - Next node or NULL */
-SZY_mxmlWalkNext(mxml_node_t *node,		/* I - Current node */
+mxmlWalkNext(mxml_node_t *node,		/* I - Current node */
              mxml_node_t *top,		/* I - Top node */
              int         descend)	/* I - Descend into tree - MXML_DESCEND, MXML_NO_DESCEND, or MXML_DESCEND_FIRST */
 {
@@ -251,7 +244,7 @@ SZY_mxmlWalkNext(mxml_node_t *node,		/* I - Current node */
  */
 
 mxml_node_t *				/* O - Previous node or NULL */
-SZY_mxmlWalkPrev(mxml_node_t *node,		/* I - Current node */
+mxmlWalkPrev(mxml_node_t *node,		/* I - Current node */
              mxml_node_t *top,		/* I - Top node */
              int         descend)	/* I - Descend into tree - MXML_DESCEND, MXML_NO_DESCEND, or MXML_DESCEND_FIRST */
 {
@@ -283,5 +276,5 @@ SZY_mxmlWalkPrev(mxml_node_t *node,		/* I - Current node */
 
 
 /*
- * End of "$Id: mxml-search.c 427 2011-01-03 02:03:29Z mike $".
+ * End of "$Id: mxml-search.c 451 2014-01-04 21:50:06Z msweet $".
  */

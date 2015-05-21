@@ -28,82 +28,82 @@ int EnCode(char *szBuf, int iLen, S_Data *v_sData)
 	char szId[32] = {0};
 	int iDataLen = 0;
 
-	xml = SZY_mxmlNewXML("1.0");
-	command = SZY_mxmlNewElement(xml, "devicecmd");
+	xml = mxmlNewXML("1.0");
+	command = mxmlNewElement(xml, "devicecmd");
 
 	if(v_sData->szCommandId!=-1)
 	{
-		id = SZY_mxmlNewElement(command, "cmdid");
+		id = mxmlNewElement(command, "cmdid");
 		sprintf(szId,"%d",v_sData->szCommandId);
-		SZY_mxmlNewText(id, 0, szId);
+		mxmlNewText(id, 0, szId);
 	}
 	if(strlen(v_sData->szCommandName)!=0)
 	{
-		name = SZY_mxmlNewElement(command, "command");
-		SZY_mxmlNewText(name, 0, v_sData->szCommandName);
+		name = mxmlNewElement(command, "command");
+		mxmlNewText(name, 0, v_sData->szCommandName);
 	}
 	if(strlen(v_sData->szType)!=0)
 	{
-		type = SZY_mxmlNewElement(command, "type");
-		SZY_mxmlNewText(type, 0, v_sData->szType);
+		type = mxmlNewElement(command, "type");
+		mxmlNewText(type, 0, v_sData->szType);
 	}
 	
 	if(v_sData->iParamCount>0)
-		params = SZY_mxmlNewElement(command, "params");
+		params = mxmlNewElement(command, "params");
 	
 	for (i = 0;i < v_sData->iParamCount; i++)
 	{
-		param = SZY_mxmlNewElement(params, "param");
-		key = SZY_mxmlNewElement(param, "key");
-		SZY_mxmlNewText(key, 0, v_sData->params[i].szKey);
-		values = SZY_mxmlNewElement(param, "value");
-		SZY_mxmlNewText(values, 0, v_sData->params[i].szValue);
+		param = mxmlNewElement(params, "param");
+		key = mxmlNewElement(param, "key");
+		mxmlNewText(key, 0, v_sData->params[i].szKey);
+		values = mxmlNewElement(param, "value");
+		mxmlNewText(values, 0, v_sData->params[i].szValue);
 	}
 	
-	iDataLen = SZY_mxmlSaveString(xml, szBuf, iLen, MXML_NO_CALLBACK);
+	iDataLen = mxmlSaveString(xml, szBuf, iLen, MXML_NO_CALLBACK);
 	
 	if(NULL != values)
 	{
-		SZY_mxmlDelete(values);
+		mxmlDelete(values);
 	}
 
 	if(NULL != key)
 	{
-		SZY_mxmlDelete(key);
+		mxmlDelete(key);
 	}
 
 	if(NULL != param)
 	{
-		SZY_mxmlDelete(param);
+		mxmlDelete(param);
 	}
 
 	if(NULL != params)
 	{
-		SZY_mxmlDelete(params);
+		mxmlDelete(params);
 	}
 	if(NULL != type)
 	{
-		SZY_mxmlDelete(type);
+		mxmlDelete(type);
 	}
 
 	if(NULL != name)
 	{
-		SZY_mxmlDelete(name);
+		mxmlDelete(name);
 	}
 
 	if(NULL != id)
 	{
-		SZY_mxmlDelete(id);
+		mxmlDelete(id);
 	}
 
 	if(NULL != command)
 	{
-		SZY_mxmlDelete(command);
+		mxmlDelete(command);
 	}
 
 	if(NULL != xml)
 	{
-		SZY_mxmlDelete(xml);
+		mxmlDelete(xml);
 	}
 
 	return iDataLen;
@@ -138,53 +138,53 @@ void DeCode(char *szBuf, S_Data *v_sData)
 	v_sData->iParamCount = 0;
 	printf("DeCode :%s",szBuf);
 
-	xml = SZY_mxmlLoadString(NULL, szBuf, MXML_TEXT_CALLBACK);
+	xml = mxmlLoadString(NULL, szBuf, MXML_TEXT_CALLBACK);
 
 	if(NULL == xml)
 	{
 		goto _DECODE_END;
 	}
-	command = SZY_mxmlFindElement(xml, xml, "devicecmd",NULL,NULL,MXML_DESCEND);
+	command = mxmlFindElement(xml, xml, "devicecmd",NULL,NULL,MXML_DESCEND);
 	if(NULL == command)
 	{
 		goto _DECODE_END;
 	}
 
-	id = SZY_mxmlFindElement(command, xml, "cmdid",NULL,NULL,MXML_DESCEND);
+	id = mxmlFindElement(command, xml, "cmdid",NULL,NULL,MXML_DESCEND);
 	if(NULL != id)
 	{
-		str = SZY_mxmlGetText(id, &white);
+		str = mxmlGetText(id, &white);
 		v_sData->szCommandId = atoi(str);
 		//printf("id = %p\n",id);
 		printf("id = %s\n",str);
 	}
 
 
-	name = SZY_mxmlFindElement(command, xml, "command",NULL,NULL,MXML_DESCEND);
+	name = mxmlFindElement(command, xml, "command",NULL,NULL,MXML_DESCEND);
 	if(NULL != name)
 	{
-		str = SZY_mxmlGetText(name, &white);
+		str = mxmlGetText(name, &white);
 		strcpy(v_sData->szCommandName, (str == NULL)?"":str);
 		//printf("name = %p\n",name);
 		printf("name = %s\n",str);
 	}
-	type = SZY_mxmlFindElement(command, xml, "type",NULL,NULL,MXML_DESCEND);
+	type = mxmlFindElement(command, xml, "type",NULL,NULL,MXML_DESCEND);
 	if(NULL != type)
 	{
-		str = SZY_mxmlGetText(type, &white);
+		str = mxmlGetText(type, &white);
 		strcpy(v_sData->szType, (str == NULL)?"":str);
 		//printf("type = %p\n",type);
 		//printf("type = %s\n",str);
 	}
 	
 
-	params = SZY_mxmlFindElement(command, xml, "params",NULL,NULL,MXML_DESCEND);
+	params = mxmlFindElement(command, xml, "params",NULL,NULL,MXML_DESCEND);
 	if(NULL != params)
 	{
 		goto _DECODE_END;
 	}
 	
-	param = SZY_mxmlFindElement(params, xml, "param",NULL,NULL,MXML_DESCEND);
+	param = mxmlFindElement(params, xml, "param",NULL,NULL,MXML_DESCEND);
 	if(NULL == param)
 	{	
 		goto _DECODE_END;
@@ -192,21 +192,21 @@ void DeCode(char *szBuf, S_Data *v_sData)
 
 	do
 	{
-		lmtTmp = SZY_mxmlFindElement(param, xml, "key",NULL,NULL,MXML_DESCEND);
+		lmtTmp = mxmlFindElement(param, xml, "key",NULL,NULL,MXML_DESCEND);
 		if(NULL == lmtTmp)
 		{
 			break ;
 		}
-		str = SZY_mxmlGetText(lmtTmp, &white); /* <key> */
+		str = mxmlGetText(lmtTmp, &white); /* <key> */
 		strcpy(v_sData->params[v_sData->iParamCount].szKey, (str == NULL)?"":str);
 		printf("key = %s\n",str);
 
-		lmtTmp = SZY_mxmlFindElement(param, xml, "value",NULL,NULL,MXML_DESCEND);
+		lmtTmp = mxmlFindElement(param, xml, "value",NULL,NULL,MXML_DESCEND);
 		if(NULL == lmtTmp)
 		{
 			break ;
 		}
-		str = SZY_mxmlGetText(lmtTmp, &white); /* <value> */
+		str = mxmlGetText(lmtTmp, &white); /* <value> */
 
 		
 		if(NULL == str)
@@ -223,12 +223,12 @@ void DeCode(char *szBuf, S_Data *v_sData)
 
 		printf("value = %s\n",str);
 
-		param = SZY_mxmlGetNextSibling(param);
+		param = mxmlGetNextSibling(param);
 		if(NULL == param)
 		{
 			break ;
 		}
-		param = SZY_mxmlFindElement(param, xml, "param",NULL,NULL,MXML_DESCEND);
+		param = mxmlFindElement(param, xml, "param",NULL,NULL,MXML_DESCEND);
 		if(NULL == param)
 		{
 			break ;
@@ -239,42 +239,42 @@ void DeCode(char *szBuf, S_Data *v_sData)
 _DECODE_END:
 	if(NULL != lmtTmp)
 	{
-		SZY_mxmlDelete(lmtTmp);
+		mxmlDelete(lmtTmp);
 	}
 
 	if(NULL != param)
 	{
-		SZY_mxmlDelete(param);
+		mxmlDelete(param);
 	}
 
 	if(NULL != params)
 	{
-		SZY_mxmlDelete(params);
+		mxmlDelete(params);
 	}
 
 	if(NULL != type)
 	{
-		SZY_mxmlDelete(type);
+		mxmlDelete(type);
 	}
 
 	if(NULL != name)
 	{
-		SZY_mxmlDelete(name);
+		mxmlDelete(name);
 	}
 
 	if(NULL != id)
 	{
-		SZY_mxmlDelete(id);
+		mxmlDelete(id);
 	}
 
 	if(NULL != command)
 	{
-		SZY_mxmlDelete(command);
+		mxmlDelete(command);
 	}
 
 	if(NULL != xml)
 	{
-		SZY_mxmlDelete(xml);
+		mxmlDelete(xml);
 	}
 }
 

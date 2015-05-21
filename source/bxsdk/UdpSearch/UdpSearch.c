@@ -229,6 +229,8 @@ void SearchServerThread()
 				if(commandName == 1000 || commandName == 1002)
 				{// 浏览端发来的
 					int sendInfo = 0;
+					SendXmlDataInfo(s_data);
+					#if 0
 					while(!bQuit)
 					{
 						// 修改PC浏览端和手机浏览端搜索流程，在没有收到反馈信息的时候，进行发送三次设备信息的操作。
@@ -239,7 +241,7 @@ void SearchServerThread()
 						}
 						SendXmlDataInfo(s_data);
 						sendInfo++;
-						#if 0
+						
 						FD_ZERO(&fds);
 						//FD_CLR(udpscan_socket,&fds);
 						FD_SET(g_udpScnSocket, &fds);
@@ -266,10 +268,8 @@ void SearchServerThread()
 						{
 							LOGOUT("pc receive err %d,  %s", errno, strerror(errno));
 						}
-						#endif
-				
 					}
-					
+					#endif
 				}
 			} // FD_ISSET(udpscan_socket,&fds)
 			else

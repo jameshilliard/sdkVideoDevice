@@ -1,9 +1,9 @@
 /*
- * "$Id: mxml-attr.c 408 2010-09-19 05:26:46Z mike $"
+ * "$Id: mxml-attr.c 451 2014-01-04 21:50:06Z msweet $"
  *
  * Attribute support code for Mini-XML, a small XML-like file parsing library.
  *
- * Copyright 2003-2010 by Michael R Sweet.
+ * Copyright 2003-2014 by Michael R Sweet.
  *
  * These coded instructions, statements, and computer programs are the
  * property of Michael R Sweet and are protected by Federal copyright
@@ -11,15 +11,7 @@
  * which should have been included with this file.  If this file is
  * missing or damaged, see the license at:
  *
- *     http://www.minixml.org/
- *
- * Contents:
- *
- *   mxmlElementDeleteAttr() - Delete an attribute.
- *   mxmlElementGetAttr()    - Get an attribute.
- *   mxmlElementSetAttr()    - Set an attribute.
- *   mxmlElementSetAttrf()   - Set an attribute with a formatted value.
- *   mxml_set_attr()         - Set or add an attribute name/value pair.
+ *     http://www.msweet.org/projects.php/Mini-XML
  */
 
 /*
@@ -45,7 +37,7 @@ static int	mxml_set_attr(mxml_node_t *node, const char *name,
  */
 
 void
-SZY_mxmlElementDeleteAttr(mxml_node_t *node,/* I - Element */
+mxmlElementDeleteAttr(mxml_node_t *node,/* I - Element */
                       const char  *name)/* I - Attribute name */
 {
   int		i;			/* Looping var */
@@ -53,7 +45,7 @@ SZY_mxmlElementDeleteAttr(mxml_node_t *node,/* I - Element */
 
 
 #ifdef DEBUG
-  fprintf(stderr, "SZY_mxmlElementDeleteAttr(node=%p, name=\"%s\")\n",
+  fprintf(stderr, "mxmlElementDeleteAttr(node=%p, name=\"%s\")\n",
           node, name ? name : "(null)");
 #endif /* DEBUG */
 
@@ -90,6 +82,9 @@ SZY_mxmlElementDeleteAttr(mxml_node_t *node,/* I - Element */
         memmove(attr, attr + 1, i * sizeof(mxml_attr_t));
 
       node->value.element.num_attrs --;
+
+      if (node->value.element.num_attrs == 0)
+        free(node->value.element.attrs);
       return;
     }
   }
@@ -104,7 +99,7 @@ SZY_mxmlElementDeleteAttr(mxml_node_t *node,/* I - Element */
  */
 
 const char *				/* O - Attribute value or NULL */
-SZY_mxmlElementGetAttr(mxml_node_t *node,	/* I - Element node */
+mxmlElementGetAttr(mxml_node_t *node,	/* I - Element node */
                    const char  *name)	/* I - Name of attribute */
 {
   int		i;			/* Looping var */
@@ -112,7 +107,7 @@ SZY_mxmlElementGetAttr(mxml_node_t *node,	/* I - Element node */
 
 
 #ifdef DEBUG
-  fprintf(stderr, "SZY_mxmlElementGetAttr(node=%p, name=\"%s\")\n",
+  fprintf(stderr, "mxmlElementGetAttr(node=%p, name=\"%s\")\n",
           node, name ? name : "(null)");
 #endif /* DEBUG */
 
@@ -166,7 +161,7 @@ SZY_mxmlElementGetAttr(mxml_node_t *node,	/* I - Element node */
  */
 
 void
-SZY_mxmlElementSetAttr(mxml_node_t *node,	/* I - Element node */
+mxmlElementSetAttr(mxml_node_t *node,	/* I - Element node */
                    const char  *name,	/* I - Name of attribute */
                    const char  *value)	/* I - Attribute value */
 {
@@ -174,7 +169,7 @@ SZY_mxmlElementSetAttr(mxml_node_t *node,	/* I - Element node */
 
 
 #ifdef DEBUG
-  fprintf(stderr, "SZY_mxmlElementSetAttr(node=%p, name=\"%s\", value=\"%s\")\n",
+  fprintf(stderr, "mxmlElementSetAttr(node=%p, name=\"%s\", value=\"%s\")\n",
           node, name ? name : "(null)", value ? value : "(null)");
 #endif /* DEBUG */
 
@@ -207,7 +202,7 @@ SZY_mxmlElementSetAttr(mxml_node_t *node,	/* I - Element node */
  */
 
 void
-SZY_mxmlElementSetAttrf(mxml_node_t *node,	/* I - Element node */
+mxmlElementSetAttrf(mxml_node_t *node,	/* I - Element node */
                     const char  *name,	/* I - Name of attribute */
                     const char  *format,/* I - Printf-style attribute value */
 		    ...)		/* I - Additional arguments as needed */
@@ -218,7 +213,7 @@ SZY_mxmlElementSetAttrf(mxml_node_t *node,	/* I - Element node */
 
 #ifdef DEBUG
   fprintf(stderr,
-          "SZY_mxmlElementSetAttrf(node=%p, name=\"%s\", format=\"%s\", ...)\n",
+          "mxmlElementSetAttrf(node=%p, name=\"%s\", format=\"%s\", ...)\n",
           node, name ? name : "(null)", format ? format : "(null)");
 #endif /* DEBUG */
 
@@ -234,11 +229,11 @@ SZY_mxmlElementSetAttrf(mxml_node_t *node,	/* I - Element node */
   */
 
   va_start(ap, format);
-  value = _SZY_mxml_vstrdupf(format, ap);
+  value = _mxml_vstrdupf(format, ap);
   va_end(ap);
 
   if (!value)
-    SZY_mxml_error("Unable to allocate memory for attribute '%s' in element %s!",
+    mxml_error("Unable to allocate memory for attribute '%s' in element %s!",
                name, node->value.element.name);
   else if (mxml_set_attr(node, name, value))
     free(value);
@@ -291,7 +286,7 @@ mxml_set_attr(mxml_node_t *node,	/* I - Element node */
 
   if (!attr)
   {
-    SZY_mxml_error("Unable to allocate memory for attribute '%s' in element %s!",
+    mxml_error("Unable to allocate memory for attribute '%s' in element %s!",
                name, node->value.element.name);
     return (-1);
   }
@@ -301,7 +296,7 @@ mxml_set_attr(mxml_node_t *node,	/* I - Element node */
 
   if ((attr->name = strdup(name)) == NULL)
   {
-    SZY_mxml_error("Unable to allocate memory for attribute '%s' in element %s!",
+    mxml_error("Unable to allocate memory for attribute '%s' in element %s!",
                name, node->value.element.name);
     return (-1);
   }
@@ -315,5 +310,5 @@ mxml_set_attr(mxml_node_t *node,	/* I - Element node */
 
 
 /*
- * End of "$Id: mxml-attr.c 408 2010-09-19 05:26:46Z mike $".
+ * End of "$Id: mxml-attr.c 451 2014-01-04 21:50:06Z msweet $".
  */
