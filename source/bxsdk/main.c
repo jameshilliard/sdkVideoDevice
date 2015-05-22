@@ -23,7 +23,7 @@ int main()
 	sigemptyset(&set);
 	sigaddset(&set, SIGPIPE);
 	sigprocmask(SIG_BLOCK, &set, NULL); 
-	Init_LogOut(LOGSIZE,LOGDIR,FALSE,TEMPDIR);
+	Init_LogOut(LOGSIZE,LOGDIR,TRUE,TEMPDIR);
 	LOGOUT("Init_LogOut over");
 	BOOL bRet=InitCfgMng(DEVICECONFIGDIR);
 	LOGOUT("InitCfgMng over bRet=%d",bRet);
