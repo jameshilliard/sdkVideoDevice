@@ -17,10 +17,10 @@ PRTMPUnit pRtmpServer=NULL;
 char g_serverNo[64]={0,};
 static unsigned int beatPrintfTimes=0;
 
-char	g_szServer[MATSERIPCOUNT][32];
+char	g_szServer[MATSERIPCOUNT][64];
 int 	g_iMasterPort = ROUTESERVERPORT;
 char 	g_server[200] = {0};
-
+int 	g_iServerStatus = SERVER_STATUS_OUTLINE;
 
 static int isValidPacket(LPTSTR recBuffer,DWORD recLength,MsgHead *vMsgHead,LPTSTR msgBuffer,DWORD msgLength)
 {
@@ -36,9 +36,37 @@ static int isValidPacket(LPTSTR recBuffer,DWORD recLength,MsgHead *vMsgHead,LPTS
 	memcpy(msgBuffer,recBuffer+sizeof(MsgHead),vMsgHead->uBodyLen);
 	return 0;
 }
-#define 	SERVERFILE					"/mnt/mtd/ipc/conf/config_platform.ini"
 
-int getServerNo(char * path,char serverNo[64])
+#define 	CONFIGPLATFORM				"/mnt/mtd/ipc/conf/config_platform.ini"
+#define 	ServerNoString				"devname"
+#define 	ServerString1				"sccsvraddr"
+#define 	ServerString2				""
+#define 	ServerString3				""
+#define 	ServerString4				""
+#define 	ServerPort					"sccsvrport"
+
+//[tutkcfg]                                        
+//tenable                        = "1              "
+//tfullfunc                      = "1              "
+//uid                            = "hk000001       "
+//svraddr1                       = "121.43.234.112 "
+//svraddr2                       = "122.248.234.207"
+//svraddr3                       = "m2.iotcplatform.com"
+//svraddr4                       = "m5.iotcplatform.com"
+//pushserver                     = "               "
+//floder                         = "               "
+//pushserport                    = "               "
+//[scccfg]                                         
+//sccenable                      = "1              "
+//sccsvraddr                     = "xxx            "
+//sccsvrport                     = "80             "
+//sccname                        = "               "
+//sccpasswd                      = "               "
+//devname                        = "ipcam          "
+//devpasswd                      = "               "
+//devlanpwd                      = "               "
+
+int getStringParams(char * path,char *name,char *serverNo,unsigned int size)
 {
 	FILE * fp;  
 	char * line = NULL;  
@@ -50,9 +78,14 @@ int getServerNo(char * path,char serverNo[64])
 	fp = fopen(path, "r");  
 	if(fp == NULL)  
 		return -1;
+	if(path==NULL || name==NULL)
+		return -2;
+	if(strlen(path)==0 || strlen(name)==0)
+		return -3;
+	memset(serverNo,0,size);
 	while((read = getline(&line, &len, fp)) != -1) 
 	{    
-		 if(strstr(line,"uid")==line)
+		 if(strstr(line,name)==line) //uid
 		 {
 			findPtr=strchr(line,'"');
 			if(findPtr!=NULL)
@@ -60,14 +93,19 @@ int getServerNo(char * path,char serverNo[64])
 				iRet=sscanf(findPtr,"\"%s\"",serverNo);
 				if(iRet==1)
 				{
-					printf("serverNo is %s\n",serverNo);
-					iRet=0;
-					break;
+					if(serverNo[0]!='"')
+					{
+						printf("%s=%s\n",name,serverNo);
+						iRet=0;
+						break;
+					}
 				}
 				
 			}
 		 }
-	}  
+	}
+	if(iRet!=0)
+		memset(serverNo,0,size);
 	if (line)  
 	 	free(line);  
 	if(fp != NULL)
@@ -184,7 +222,6 @@ static int get_OPEN_CHANNEL_PREVIEW(MsgHead *vMsgHead,LPCTSTR msgBuffer,MsgBody_
 	char u32IFrameString[32]={0,};
 	
 	//[112.124.113.127:1935:live:100:benxun123456:0:1080:720:32:6:12:60]
-	
 	//[121.43.234.112:1935:live:1739:12345678:1:320:176:0:100:1:8:128:1429778918924] 
 	iRet=sscanf(msgBuffer,"[%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^':']:%[^']']",
 				pParam->m_rtmpIp,rtmpPortString,pParam->m_rtmpPath,channelIdString,pParam->m_rtmpUUID,blFlagString
@@ -512,7 +549,7 @@ void printfVideoParam(char *ptrString,HI_S_Video_Ext videoEx)
 
 static int getMasterIpAndPort()
 {
-
+	#if 0
 	tagMasterServerCfg objGetMasterInfo;	
 	int iRet = GetCfgFile(&objGetMasterInfo, sizeof(tagMasterServerCfg), offsetof(tagConfigCfg, m_unMasterServerCfg.m_objMasterServerCfg), sizeof(tagMasterServerCfg));
 	if(iRet)
@@ -547,9 +584,44 @@ static int getMasterIpAndPort()
 	g_iMasterPort = objGetMasterInfo.m_iMasterPort;
 	if(g_iMasterPort==0)
 		g_iMasterPort=ROUTESERVERPORT;
+	#endif
+	memset(g_szServer,0,sizeof(g_szServer));
+	memset(g_server,0,sizeof(g_server));
+	g_iMasterPort=0;
+	int iRet=getStringParams(CONFIGPLATFORM,ServerString1,g_szServer[0],sizeof(g_szServer[0]));
+	if(iRet!=0)
+		LOGOUT("get server1 string is error iRet=%d",iRet);
+	iRet=getStringParams(CONFIGPLATFORM,ServerString2,g_szServer[1],sizeof(g_szServer[1]));
+	if(iRet!=0)
+		LOGOUT("get server2 string is error iRet=%d",iRet);
+	iRet=getStringParams(CONFIGPLATFORM,ServerString3,g_szServer[2],sizeof(g_szServer[2]));
+	if(iRet!=0)
+		LOGOUT("get server3 string is error iRet=%d",iRet);
+	iRet=getStringParams(CONFIGPLATFORM,ServerString4,g_szServer[3],sizeof(g_szServer[3]));
+	if(iRet!=0)
+		LOGOUT("get server4 string is error iRet=%d",iRet);
+	char portString[64]={0,};
+	iRet=getStringParams(CONFIGPLATFORM,ServerPort,portString,sizeof(portString));
+	if(iRet!=0)
+		LOGOUT("get port string is error iRet=%d",iRet);
+	if(strlen("portString")!=0)
+		g_iMasterPort=atoi(portString);
+	LOGOUT("before server1:%s,server2:%s,server3:%s,server4:%s,port:%d",g_szServer[0],g_szServer[1],g_szServer[2],g_szServer[3],g_iMasterPort);
+	if(strlen(g_szServer[0])!=0)
+		sprintf(g_server,"%s",g_szServer[0]);
+	else
+	{
+		sprintf(g_szServer[0],"%s",ROUTESERVER);
+		sprintf(g_server,"%s",ROUTESERVER);
+	}	
+	if(g_iMasterPort==0)
+		g_iMasterPort=ROUTESERVERPORT;
+	LOGOUT("after server1:%s,server2:%s,server3:%s,server4:%s,port:%d",g_szServer[0],g_szServer[1],g_szServer[2],g_szServer[3],g_iMasterPort);
+
 }
 int setMasterAndPort(char *server,int port)
 {
+	#if 0
 	if(server==NULL)
 		return -1;
 	if(strcmp(g_server,server)==0 && port==g_iMasterPort)
@@ -561,6 +633,7 @@ int setMasterAndPort(char *server,int port)
 	int iRet=SetCfgFile(&objSetMasterInfo, offsetof(tagConfigCfg, m_unMasterServerCfg.m_objMasterServerCfg), sizeof(tagMasterServerCfg));
 	getMasterIpAndPort();
 	return iRet;
+	#endif
 }
 
 static void *P_CtrlSocketThread()
@@ -607,6 +680,7 @@ static void *P_CtrlSocketThread()
 		{
 		case StatusIdle:
 		{
+			g_iServerStatus=SERVER_STATUS_OUTLINE;
 			clientStaus=StatusConnRoute;
 			bSendBeatFlag=FALSE;
 			curMsgType=0;
@@ -637,6 +711,7 @@ static void *P_CtrlSocketThread()
 						{	
 							reConFlag=FALSE;
 							clientStaus=StatusConnControl;
+							g_iServerStatus=SERVER_STATUS_ROUTESERVER_OK;
 							LOGOUT("ControlServer Change statusConn %s start",controlServer);
 							break;
 						}
@@ -740,8 +815,10 @@ static void *P_CtrlSocketThread()
 								{
 									clientStaus=StatusDisConn;
 									sleepTimeSecnod=60;
+									g_iServerStatus=SERVER_STATUS_REGISTER_NO;
 									break;
 								}
+								g_iServerStatus=SERVER_STATUS_REGISTER_OK;
 								curMsgType=CONTROL_PROTOCAL_SETTIMEOUTDURATION;
 								curMsgSendTime=nowTimeMs;
 								MsgBody_SETTIMEOUTDURATION mMsgBody_SETTIMEOUTDURATION;
@@ -1053,12 +1130,13 @@ static void *P_CtrlSocketThread()
 }
 
 
+
 int InitControlServer()
 {
 	int iRet;
 	pthread_t pCtrlThreadWork;
 	memset(g_serverNo,0,sizeof(g_serverNo));
-	iRet=getServerNo(SERVERFILE,g_serverNo);
+	iRet=getStringParams(CONFIGPLATFORM,ServerNoString,g_serverNo,sizeof(g_serverNo));
 	if(iRet!=0)
 	{
 		LOGOUT("getServerNo is error iRet=%d",iRet);

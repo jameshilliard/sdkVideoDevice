@@ -119,6 +119,8 @@ BOOL CipcToolDlg::OnInitDialog()
 	m_RecordListCtrl.InsertColumn( LIST_COL_MACADDRESS, (LPCTSTR)"Mac", LVCFMT_LEFT, 120 );
 	m_RecordListCtrl.InsertColumn( LIST_COL_SERVER, (LPCTSTR)"Server", LVCFMT_LEFT, 120 );
 	m_RecordListCtrl.InsertColumn( LIST_COL_PORT, (LPCTSTR)"Port", LVCFMT_LEFT, 120 );
+	m_RecordListCtrl.InsertColumn( LIST_COL_SERVERSTATUS, (LPCTSTR)"Status", LVCFMT_LEFT, 120 );
+	
 	
 	GetDlgItem(IDC_EDIT_USER)->SetWindowText("admin");
 	GetDlgItem(IDC_EDIT_PASSWORD)->SetWindowText("******");
@@ -276,6 +278,8 @@ int CipcToolDlg::reloveDeviceParamsXml(S_Data &sData,CString &mac)
 				deviceParams.m_server=it->second;
 			if(it->first=="port")
 				deviceParams.m_port=it->second;
+			if(it->first=="serverstatus")
+				deviceParams.m_serverStatus=it->second;
 		}
 		m_deviceParams[mac]=deviceParams;
 		return 0;
@@ -371,12 +375,20 @@ void CipcToolDlg::InsertReocrd()
 		m_RecordListCtrl.SetItemText(i,LIST_COL_SERVER,deviceParams.m_server);
 		m_RecordListCtrl.SetItemText(i,LIST_COL_PORT,deviceParams.m_port);
 		m_RecordListCtrl.SetItemText(i,LIST_COL_MACADDRESS,it->first);
+		if(deviceParams.m_serverStatus=="0")
+			m_RecordListCtrl.SetItemText(i,LIST_COL_SERVERSTATUS,"服务器连接不正常");
+		else if(deviceParams.m_serverStatus=="1")
+			m_RecordListCtrl.SetItemText(i,LIST_COL_SERVERSTATUS,"路由服务器连接正常");
+		else if(deviceParams.m_serverStatus=="2")
+			m_RecordListCtrl.SetItemText(i,LIST_COL_SERVERSTATUS,"设备未注册");
+		else if(deviceParams.m_serverStatus=="3")
+			m_RecordListCtrl.SetItemText(i,LIST_COL_SERVERSTATUS,"设备连接正常");
 		i++;
 	}
 }
 void CipcToolDlg::OnBnClickedButtonSearch()
 {
-	char scanrequestbuf[] = "<?xml version=\"1.0\" encoding=\"GB2312\" ?><devicecmd><cmdid>99</cmdid><command>1000</command></devicecmd>";
+	char scanrequestbuf[] = "<?xml version=\"1.0\" encoding=\"utf-8\" ?><devicecmd><cmdid>99</cmdid><command>1000</command></devicecmd>";
 	m_deviceParams.clear();
 	for(int j = 0; j< m_iNetCardNum; j++)
 	{

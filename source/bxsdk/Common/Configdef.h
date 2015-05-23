@@ -34,8 +34,8 @@
 #define		ROUTESERVERPORT		5002
 #define		CONTROLSERVERPORT	5000
 
-//#define 	ROUTESERVER			"www.benxunshida.com"
-#define 	ROUTESERVER			"121.43.234.112"
+#define 	ROUTESERVER			"www.benxunshida.com"
+//#define 	ROUTESERVER			"121.43.234.112"
 #define 	USER				"pick@testdevice"
 //#define 	USER				"pick@sd3"
 

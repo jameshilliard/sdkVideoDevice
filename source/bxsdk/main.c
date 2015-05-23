@@ -25,8 +25,8 @@ int main()
 	sigprocmask(SIG_BLOCK, &set, NULL); 
 	Init_LogOut(LOGSIZE,LOGDIR,TRUE,TEMPDIR);
 	LOGOUT("Init_LogOut over");
-	BOOL bRet=InitCfgMng(DEVICECONFIGDIR);
-	LOGOUT("InitCfgMng over bRet=%d",bRet);
+	//BOOL bRet=InitCfgMng(DEVICECONFIGDIR);
+	//LOGOUT("InitCfgMng over bRet=%d",bRet);
 	iRet=InitHiSDKVideoAllChannel();
 	LOGOUT("InitHiSDKVideoAllChannel iRet=%d over",iRet);
 	iRet=InitNetwork(CMDBUFFER);
@@ -44,7 +44,7 @@ int main()
 	LOGOUT("InitHiSDKVideoAllChannel %d over",iRet);
 	iRet=ReleaseControlServer();
 	ReleaseNetwork();
-	ReleaseCfgFile();
+	//ReleaseCfgFile();
 	Release_LogOut();
 	return 0;
 }

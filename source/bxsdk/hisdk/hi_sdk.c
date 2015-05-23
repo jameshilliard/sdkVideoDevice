@@ -110,9 +110,9 @@ HI_S32 OnStreamCallback(HI_U32 u32Handle, /* ¾ä±ú */
 			{
 				if(pRtmpServer!=NULL)
 				{
-					SendVideoUnit(pRtmpServer,pu8Buffer+sizeof(HI_S_AVFrame),u32Length-sizeof(HI_S_AVFrame),pstruAV->u32AVFramePTS);
 					//if(pstruAV->u32VFrameType==1)
 					//	LOGOUT("Get Video %u PTS: %u \n", pstruAV->u32VFrameType, pstruAV->u32AVFramePTS);
+					SendVideoUnit(pRtmpServer,pu8Buffer+sizeof(HI_S_AVFrame),u32Length-sizeof(HI_S_AVFrame),pstruAV->u32AVFramePTS);
 					/*if(GetRtmpConnectStatus() == 0)
 					{
 						
@@ -121,15 +121,13 @@ HI_S32 OnStreamCallback(HI_U32 u32Handle, /* ¾ä±ú */
 
 			}
 		}
-		else
-		if (pstruAV->u32AVFrameFlag == HI_NET_DEV_AUDIO_FRAME_FLAG)
+		else if (pstruAV->u32AVFrameFlag == HI_NET_DEV_AUDIO_FRAME_FLAG)
 		{
 			//printf("Audio %u PTS: %u \n", pstruAV->u32AVFrameLen, pstruAV->u32AVFramePTS);
 			//SaveRecordFile("Video.hx", pu8Buffer, u32Length);			
 		}
 	}
-	else
-	if (u32DataType == HI_NET_DEV_SYS_DATA)
+	else if (u32DataType == HI_NET_DEV_SYS_DATA)
 	{
 		pstruSys = (HI_S_SysHeader*)pu8Buffer;
 		printf("Video W:%u H:%u Audio: %u \n", pstruSys->struVHeader.u32Width, pstruSys->struVHeader.u32Height, pstruSys->struAHeader.u32Format);

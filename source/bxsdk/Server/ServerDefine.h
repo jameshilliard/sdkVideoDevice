@@ -5,11 +5,16 @@
 
 
 #define PARAM_MAXUSER 				50
-#define PARAM_MAXSECRET			32
+#define PARAM_MAXSECRET				32
 #define PARAM_MAXSERVERNO			32 
 
 #define MSG_HEAD_VERSION			0x1
 #define MSG_HEAD_PLATFORM			0x7
+
+#define SERVER_STATUS_OUTLINE			0
+#define SERVER_STATUS_ROUTESERVER_OK	1
+#define SERVER_STATUS_REGISTER_NO		2
+#define SERVER_STATUS_REGISTER_OK		3
 
 typedef enum {
 	StatusIdle = 1,

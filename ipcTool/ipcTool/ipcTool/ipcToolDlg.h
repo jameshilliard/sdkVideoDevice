@@ -21,6 +21,7 @@ using namespace std;
 #define LIST_COL_MACADDRESS		9
 #define LIST_COL_SERVER			10
 #define LIST_COL_PORT			11
+#define LIST_COL_SERVERSTATUS	12
 
 #define	MAX_SERVER_COUNTS		100
 #define MULTICAST_IP 			"245.255.255.250"	//¶à²¥×éµØÖ·
@@ -41,6 +42,7 @@ typedef struct DeviceParams_
 	CString m_gateway;
 	CString m_server;
 	CString m_port;
+	CString m_serverStatus;
 	DeviceParams_()
 	{
 		m_deviceId="";
@@ -53,6 +55,7 @@ typedef struct DeviceParams_
 		m_gateway="";
 		m_server="";
 		m_port="";
+		m_serverStatus="";
 	}
 }DeviceParams;
 

@@ -12,6 +12,7 @@ struct sockaddr_in LocalCastAddr;// 本地广播地址
 extern char g_serverNo[64];
 extern int 	g_iMasterPort;
 extern char g_server[200];
+extern int 	g_iServerStatus;
 
 // 发送本地信息，发给手机和PC浏览端的
 void SendXmlDataInfo(S_Data sv_data)
@@ -37,6 +38,7 @@ void SendXmlDataInfo(S_Data sv_data)
 	strcpy(stData.szCommandName,sv_data.szCommandName);
 	if(strcmp(stData.szCommandName,"1000")==0)
 	{
+		memset(szVersion,0,sizeof(szVersion));
 		sprintf(szVersion,"%s_%s",SDK_HARD_FWVERSION,SDK_SYSTEM_FWVERSION);
 		SetXmlValue(&stData, "version",szVersion);	
 		SetXmlValue(&stData, "ip", Network_IPAddress);		
@@ -49,8 +51,13 @@ void SendXmlDataInfo(S_Data sv_data)
 		SetXmlValue(&stData, "devicemode",DEVICEMODEL);
 		SetXmlValue(&stData, "deviceno",g_serverNo);
 		SetXmlValue(&stData, "server",g_server);
+		memset(szPort,0,sizeof(szPort));
 		sprintf(szPort,"%d",g_iMasterPort);
 		SetXmlValue(&stData, "port",szPort);
+
+		memset(szPort,0,sizeof(szPort));
+		sprintf(szPort,"%d",g_iServerStatus);
+		SetXmlValue(&stData, "serverstatus",szPort);	
 	}
 	else if(strcmp(stData.szCommandName,"1002")==0)
 	{
@@ -226,7 +233,7 @@ void SearchServerThread()
 				char szDevType[32]  = {0};
 				FreeXmlValue(&s_data);
 				LOGOUT("center reply %d msg",commandName);
-				if(commandName == 1000 || commandName == 1002)
+				if(commandName == 1000)//commandName == 1002
 				{// 浏览端发来的
 					int sendInfo = 0;
 					SendXmlDataInfo(s_data);
