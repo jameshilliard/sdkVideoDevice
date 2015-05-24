@@ -1,5 +1,11 @@
-http://192.168.1.117/cgi-bin/hi3510/param.cgi?cmd=setuipcamattr&-ui_enable=1&-ui_server=xxx&-ui_port=80&-ui_devname=ipcam
+http://192.168.1.116/cgi-bin/hi3510/param.cgi?cmd=setuipcamattr&-ui_enable=1&-ui_server=121.43.234.112&-ui_port=5002&-ui_devname=hk000007
 
+
+#define		ROUTESERVERPORT		5002
+#define		CONTROLSERVERPORT	5000
+
+#define 	ROUTESERVER			"www.benxunshida.com"
+//#define 	ROUTESERVER			"121.43.234.112"
 [tutkcfg]                                        
 tenable                        = "1              "
 tfullfunc                      = "1              "
