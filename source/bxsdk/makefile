@@ -9,7 +9,7 @@ FLAGS = -O2 -Wall -Wno-unused -Wno-format -fstrength-reduce -DHI_OS_LINUX -DCPU_
 #GXX = g++ $(INCLUDES) $(FLAGS)
 #GCC = gcc $(INCLUDES) $(FLAGS)
 
-
+#export PATH=$PATH:/opt/hisi-linux-nptl/arm-hisiv100-linux/target/bin
 GXX = arm-hisiv100nptl-linux-g++ $(INCLUDES) $(FLAGS)
 GCC = arm-hisiv100nptl-linux-gcc $(INCLUDES) $(FLAGS)
 

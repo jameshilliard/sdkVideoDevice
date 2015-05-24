@@ -23,6 +23,8 @@
 #define IDC_EDIT_USER                   1014
 #define IDC_EDIT_PASSWORD               1015
 #define IDC_COMBO_LANGUAGE              1017
+#define IDC_EDIT_USER2                  1019
+#define IDC_EDIT_HTTPPROT               1019
 
 // Next default values for new objects
 // 

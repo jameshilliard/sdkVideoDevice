@@ -108,22 +108,22 @@ BOOL CipcToolDlg::OnInitDialog()
 
 	m_RecordListCtrl.SetExtendedStyle(LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES);
 	m_RecordListCtrl.InsertColumn( LIST_COL_NO	, (LPCTSTR)"No", LVCFMT_LEFT, 40 );//插入列
-	m_RecordListCtrl.InsertColumn( LIST_COL_DEVICEID, (LPCTSTR)"DeviceId", LVCFMT_LEFT, 130 );
-	m_RecordListCtrl.InsertColumn( LIST_COL_VERSION, (LPCTSTR)"Version", LVCFMT_LEFT, 200 );
-	m_RecordListCtrl.InsertColumn( LIST_COL_PRODUCT, (LPCTSTR)"Product", LVCFMT_LEFT, 120 );
-	m_RecordListCtrl.InsertColumn( LIST_COL_DEVICETYPE, (LPCTSTR)"ProductType", LVCFMT_LEFT, 120 );
-	m_RecordListCtrl.InsertColumn( LIST_COL_DEVICETMODE,(LPCTSTR) "ProductMode", LVCFMT_LEFT, 120 );
-	m_RecordListCtrl.InsertColumn( LIST_COL_IPADDRESS, (LPCTSTR)"IPAddress", LVCFMT_LEFT, 120 );//插入列
-	m_RecordListCtrl.InsertColumn( LIST_COL_SUBNETMASK, (LPCTSTR)"Mask", LVCFMT_LEFT, 120 );//插入列
-	m_RecordListCtrl.InsertColumn( LIST_COL_GATEWAY, (LPCTSTR)"Gateway", LVCFMT_LEFT, 120 );
-	m_RecordListCtrl.InsertColumn( LIST_COL_MACADDRESS, (LPCTSTR)"Mac", LVCFMT_LEFT, 120 );
-	m_RecordListCtrl.InsertColumn( LIST_COL_SERVER, (LPCTSTR)"Server", LVCFMT_LEFT, 120 );
-	m_RecordListCtrl.InsertColumn( LIST_COL_PORT, (LPCTSTR)"Port", LVCFMT_LEFT, 120 );
-	m_RecordListCtrl.InsertColumn( LIST_COL_SERVERSTATUS, (LPCTSTR)"Status", LVCFMT_LEFT, 120 );
-	
+	m_RecordListCtrl.InsertColumn( LIST_COL_DEVICEID, (LPCTSTR)"DeviceId", LVCFMT_LEFT, 100 );
+	m_RecordListCtrl.InsertColumn( LIST_COL_VERSION, (LPCTSTR)"Version", LVCFMT_LEFT, 100 );
+	m_RecordListCtrl.InsertColumn( LIST_COL_PRODUCT, (LPCTSTR)"Product", LVCFMT_LEFT, 100 );
+	m_RecordListCtrl.InsertColumn( LIST_COL_DEVICETYPE, (LPCTSTR)"ProductType", LVCFMT_LEFT, 100 );
+	m_RecordListCtrl.InsertColumn( LIST_COL_DEVICETMODE,(LPCTSTR) "ProductMode", LVCFMT_LEFT, 100 );
+	m_RecordListCtrl.InsertColumn( LIST_COL_IPADDRESS, (LPCTSTR)"IPAddress", LVCFMT_LEFT, 100 );//插入列
+	m_RecordListCtrl.InsertColumn( LIST_COL_SUBNETMASK, (LPCTSTR)"Mask", LVCFMT_LEFT, 100 );//插入列
+	m_RecordListCtrl.InsertColumn( LIST_COL_GATEWAY, (LPCTSTR)"Gateway", LVCFMT_LEFT, 100 );
+	m_RecordListCtrl.InsertColumn( LIST_COL_MACADDRESS, (LPCTSTR)"Mac", LVCFMT_LEFT, 100 );
+	m_RecordListCtrl.InsertColumn( LIST_COL_SERVER, (LPCTSTR)"Server", LVCFMT_LEFT, 100 );
+	m_RecordListCtrl.InsertColumn( LIST_COL_PORT, (LPCTSTR)"Port", LVCFMT_LEFT, 100 );
+	m_RecordListCtrl.InsertColumn( LIST_COL_SERVERSTATUS, (LPCTSTR)"Status", LVCFMT_LEFT, 100 );
+	m_RecordListCtrl.InsertColumn( LIST_COL_HTTPPORT, (LPCTSTR)"HttpPort", LVCFMT_LEFT, 100 );
+
 	
 	GetDlgItem(IDC_EDIT_USER)->SetWindowText("admin");
-	GetDlgItem(IDC_EDIT_PASSWORD)->SetWindowText("******");
 
 	WSADATA Ws;
 	if ( WSAStartup(MAKEWORD(2,2), &Ws) != 0 )
@@ -276,8 +276,10 @@ int CipcToolDlg::reloveDeviceParamsXml(S_Data &sData,CString &mac)
 				deviceParams.m_deviceId=it->second;
 			if(it->first=="server")
 				deviceParams.m_server=it->second;
-			if(it->first=="port")
+			if(it->first=="serverport")
 				deviceParams.m_port=it->second;
+			if(it->first=="httpport")
+				deviceParams.m_httpPort=it->second;
 			if(it->first=="serverstatus")
 				deviceParams.m_serverStatus=it->second;
 		}
@@ -374,6 +376,7 @@ void CipcToolDlg::InsertReocrd()
 		m_RecordListCtrl.SetItemText(i,LIST_COL_GATEWAY,deviceParams.m_gateway);
 		m_RecordListCtrl.SetItemText(i,LIST_COL_SERVER,deviceParams.m_server);
 		m_RecordListCtrl.SetItemText(i,LIST_COL_PORT,deviceParams.m_port);
+		m_RecordListCtrl.SetItemText(i,LIST_COL_HTTPPORT,deviceParams.m_httpPort);
 		m_RecordListCtrl.SetItemText(i,LIST_COL_MACADDRESS,it->first);
 		if(deviceParams.m_serverStatus=="0")
 			m_RecordListCtrl.SetItemText(i,LIST_COL_SERVERSTATUS,"服务器连接不正常");
@@ -414,15 +417,18 @@ void CipcToolDlg::OnNMClickListRecord(NMHDR *pNMHDR, LRESULT *pResult)
 	int nSubItem = temp-> iSubItem;//列 
 	if(nSubItem == 0 || nSubItem == -1 || nItem == -1) 
 		return   ;
+	GetDlgItem(IDC_IPADDRESS_IP)->EnableWindow(FALSE);
+	GetDlgItem(IDC_IPADDRESS_MASK)->EnableWindow(FALSE);
+	GetDlgItem(IDC_IPADDRESS_GW)->EnableWindow(FALSE);
 	GetDlgItem(IDC_EDIT_DEVID)->SetWindowText(m_RecordListCtrl.GetItemText(nItem,LIST_COL_DEVICEID));
 	GetDlgItem(IDC_EDIT_MAC)->SetWindowText(m_RecordListCtrl.GetItemText(nItem,LIST_COL_MACADDRESS));
 	GetDlgItem(IDC_EDIT_SERVER)->SetWindowText(m_RecordListCtrl.GetItemText(nItem,LIST_COL_SERVER));
 	GetDlgItem(IDC_EDIT_PORT)->SetWindowText(m_RecordListCtrl.GetItemText(nItem,LIST_COL_PORT));
 	GetDlgItem(IDC_EDIT_VERSION)->SetWindowText(m_RecordListCtrl.GetItemText(nItem,LIST_COL_VERSION));
+	GetDlgItem(IDC_EDIT_HTTPPROT)->SetWindowText(m_RecordListCtrl.GetItemText(nItem,LIST_COL_HTTPPORT));
 	GetDlgItem(IDC_IPADDRESS_IP)->SetWindowText(m_RecordListCtrl.GetItemText(nItem,LIST_COL_IPADDRESS));
 	GetDlgItem(IDC_IPADDRESS_MASK)->SetWindowText(m_RecordListCtrl.GetItemText(nItem,LIST_COL_SUBNETMASK));
 	GetDlgItem(IDC_IPADDRESS_GW)->SetWindowText(m_RecordListCtrl.GetItemText(nItem,LIST_COL_GATEWAY));
-	
 	UpdateData(FALSE);
 	*pResult = 0;
 }
@@ -430,34 +436,41 @@ void CipcToolDlg::OnBnClickedButtonModify()
 {
 	S_Data sData;
 	// TODO: 在此添加控件通知处理程序代码
-	CString mac="";
+	CString ipcIP="";
 	CString deviceId="";
 	CString server="";
 	CString port="";
-	GetDlgItem(IDC_EDIT_MAC)->GetWindowText(mac);
+	CString user="";
+	CString password="";
+	CString httpPort="";
+	char httpString[4096]={0,};
+	char httpPassword[4096]={0,};
+
+	GetDlgItem(IDC_IPADDRESS_IP)->GetWindowText(ipcIP);
+	GetDlgItem(IDC_EDIT_HTTPPROT)->GetWindowText(httpPort);
+
 	GetDlgItem(IDC_EDIT_DEVID)->GetWindowText(deviceId);
 	GetDlgItem(IDC_EDIT_SERVER)->GetWindowText(server);
 	GetDlgItem(IDC_EDIT_PORT)->GetWindowText(port);
 	
-	sData.commandId=100;
-	sData.commandName="1002";
-	sData.params["mac"]=mac;
-	sData.params["deviceId"]=deviceId;
-	sData.params["server"]=server;
-	sData.params["port"]=port;
-	CString scanrequestbuf="";
-	CXMLMethod::GetInstance()->Encode(&sData,scanrequestbuf);
+	GetDlgItem(IDC_EDIT_USER)->GetWindowText(user);
+	GetDlgItem(IDC_EDIT_PASSWORD)->GetWindowText(password);
 	
-	m_deviceParams.clear();
-	for(int j = 0; j< m_iNetCardNum; j++)
-	{
-		if(m_UdpScanSocket[j] != NULL)
-		{
-			for(int k = 0;k< 2; k++)
-			{	
-				SearchDevice(j,scanrequestbuf.GetBuffer());// 搜索SEARCHTM次
-			}
-		}
-	}
+	printf("%s--",ipcIP.GetString());
+	sprintf(httpString,"http://%s:%s/cgi-bin/hi3510/param.cgi?cmd=setuipcamattr&-ui_enable=1&-ui_server=%s&-ui_port=%s&-ui_devname=%s",
+			ipcIP.GetString(),httpPort.GetString(),server.GetString(),port.GetString(),deviceId.GetString());
+	sprintf(httpPassword,"%s:%s",user.GetString(),password.GetString());
 
+	CHTTPClient chttpclient;
+	std::string strResult;
+	bool bRet=chttpclient.HttpGet((std::string)httpString,strResult,(std::string)httpPassword);
+	if(bRet)
+	{
+		if(strResult.empty())
+			strResult="password is error or params is error";
+		MessageBox(strResult.c_str(),"Set Ipc Params" ,MB_OK);
+	}
+		
+	else
+		MessageBox("connect fail", "Set Ipc Params" , MB_OK);
 }

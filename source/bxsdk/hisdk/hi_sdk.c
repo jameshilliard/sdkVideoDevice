@@ -146,103 +146,6 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 	return HI_SUCCESS;
 }
 
-int getUnameAndPassWord(char * path,char uname[64],char password[64])
-{
-	FILE * fp;  
-	char * line = NULL;  
-	size_t len = 0;  
-	ssize_t read;  
-	int count=0;
-	int userCount=0;
-	char *findPtr=NULL;
-	int iRet=-1;
-	fp = fopen(path, "r");  
-	if(fp == NULL)  
-		return -1;
-	while((read = getline(&line, &len, fp)) != -1) 
-	{    
-		 if(strstr(line,"username")==line)
-		 {
-			findPtr=strchr(line,'"');
-			if(findPtr!=NULL)
-			{
-				iRet=sscanf(findPtr,"\"%s\"",uname);
-				//printf("uname=%s--\n",uname);
-				if(iRet==1)
-					userCount=count;
-			}
-		 }
-		 
-		 if(strstr(line,"password")==line)
-		 {
-			findPtr=strchr(line,'"');
-			if(findPtr!=NULL)
-			{
-				iRet=sscanf(findPtr,"\"%s\"",password);
-				//printf("password=%s--\n",password);
-				if(count==(userCount+1))
-				{
-					iRet=0;
-					break;
-				}
-			}
-		 }
-		 count++;
-	}  
-	if (line)  
-	 	free(line);  
-	if(fp != NULL)
-		fclose(fp);
-	return iRet;
-}
-
-int getIPAndPort(char * path,char ip[64],char port[64])
-{
-	FILE * fp;  
-	char * line = NULL;  
-	size_t len = 0;  
-	ssize_t read;  
-	int count=0;
-	char *findPtr=NULL;
-	int iRet=-1;
-	fp = fopen(path, "r");  
-	if(fp == NULL)  
-		return -1;
-	while((read = getline(&line, &len, fp)) != -1) 
-	{    
-		 if(strstr(line,"ipaddr")==line)
-		 {
-			findPtr=strchr(line,'"');
-			if(findPtr!=NULL)
-			{
-				iRet=sscanf(findPtr,"\"%s\"",ip);
-				//printf("uname=%s--\n",ip);
-			}
-		 }
-		 
-		 if(strstr(line,"httpport")==line)
-		 {
-			findPtr=strchr(line,'"');
-			if(findPtr!=NULL)
-			{
-				iRet=sscanf(findPtr,"\"%s\"",port);
-				if(iRet==1)
-				{
-					iRet=0;
-					break;
-				}
-				//printf("password=%s--\n",port);
-			}
-		 }
-	}  
-	if (line)  
-	 	free(line);  
-	if(fp != NULL)
-		fclose(fp);
-	return iRet;
-}
-
-
 int InitHiSDKServer(HI_U32 *u32Handle,HI_U32 u32Stream)
 {
     HI_S32 s32Ret = HI_SUCCESS;
@@ -267,10 +170,10 @@ int InitHiSDKServer(HI_U32 *u32Handle,HI_U32 u32Stream)
 	char port[64]={0,};
 	memset(ip,0,sizeof(ip));
 	memset(port,0,sizeof(port));
-	#ifdef HI_OS_LINUX
-	iRet=getIPAndPort(NETFILE,ip,port);
-	#else
+	#ifdef CPU_ARM
 	iRet=1;
+	#else
+	iRet=getIPAndPort(NETFILE,ip,port);
 	#endif
 	if(iRet!=0)
 	{
@@ -282,6 +185,7 @@ int InitHiSDKServer(HI_U32 *u32Handle,HI_U32 u32Stream)
 		memcpy(ip,IPHOST,MIN(sizeof(ip),strlen(IPHOST)));
 	if(strlen(port)==0)
 		memcpy(port,IPPORT,MIN(sizeof(port),strlen(IPPORT)));
+	
 	HI_U16 u16Port=atoi(port);
 	if(*u32Handle!=0)
 	{

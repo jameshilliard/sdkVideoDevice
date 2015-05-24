@@ -5,6 +5,7 @@
 #include <CString>
 #include <Map>
 #include "./Utility/xml/XMLMethod.h"
+#include "./Utility/httpClient/httpClient.h"
 
 using namespace std;
 //显示设备信息列表序列号
@@ -22,6 +23,7 @@ using namespace std;
 #define LIST_COL_SERVER			10
 #define LIST_COL_PORT			11
 #define LIST_COL_SERVERSTATUS	12
+#define LIST_COL_HTTPPORT		13
 
 #define	MAX_SERVER_COUNTS		100
 #define MULTICAST_IP 			"245.255.255.250"	//多播组地址
@@ -43,6 +45,7 @@ typedef struct DeviceParams_
 	CString m_server;
 	CString m_port;
 	CString m_serverStatus;
+	CString m_httpPort;
 	DeviceParams_()
 	{
 		m_deviceId="";
@@ -56,6 +59,7 @@ typedef struct DeviceParams_
 		m_server="";
 		m_port="";
 		m_serverStatus="";
+		m_httpPort="";
 	}
 }DeviceParams;
 

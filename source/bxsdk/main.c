@@ -15,7 +15,8 @@
 #include "hisdk/source_sdk.h"
 #include "UdpSearch/UdpSearch.h"
 
-		
+BOOL g_main_start=TRUE;
+
 int main()
 {
 	int iRet = 0;
@@ -35,9 +36,9 @@ int main()
 	LOGOUT("InitControlServer iRet=%d over",iRet);
 	iRet=InitUdpSearch();
 	LOGOUT("InitUdpSearch iRet=%d over",iRet);
-	while(1)
+	while(g_main_start)
 	{
-		sleep(10);
+		sleep(1);
 		//LOGOUT("client sleep");
 	}
 	iRet=ReleaseHiSDKVideoAllChannel();

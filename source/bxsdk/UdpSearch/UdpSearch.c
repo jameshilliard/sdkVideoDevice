@@ -1,5 +1,6 @@
 #include "UdpSearch.h"
 #include "../Server/ServerDefine.h"
+#include "../hisdk/hi_param.h"
 
 BOOL bQuitUdpSearch = FALSE;
 BOOL bQuit = FALSE;
@@ -8,11 +9,13 @@ int g_udpScnSocket = -1;
 struct sockaddr_in g_updScanPcAddr;
 struct sockaddr_in LocalCastAddr;// 本地广播地址
 
+char szLastServerNo[64]={0};
+int  szLastServerPort[64]={0};
+char szLastServer[200]={0};
+char szLastHttpPort[64]={0};
 
-extern char g_serverNo[64];
-extern int 	g_iMasterPort;
-extern char g_server[200];
 extern int 	g_iServerStatus;
+extern BOOL g_main_start;
 
 // 发送本地信息，发给手机和PC浏览端的
 void SendXmlDataInfo(S_Data sv_data)
@@ -26,10 +29,18 @@ void SendXmlDataInfo(S_Data sv_data)
 	char szBcastAddr[32] = {0};			//广播地址
 	char szVersion[32] = {0};			//广播地址
 	char szPort[32]={0};
+	char szServerStatus[32]={0};
+	char szServerNo[64]={0};
+	int  szServerPort[64]={0};
+	char szServer[200]={0};
+	char szHttpPort[64]={0};
+	
 	int i = 0;
 	int isValidPacket=0;
 	char server[128]={0,};
 	char port[16]={0,};
+	int iRet=-1;
+	BOOL restart=FALSE;
 
 	GetDeviceNetInfo(Network_IPAddress, Network_Subnet,System_MACAddress, Network_GateWay,szBcastAddr);
 
@@ -39,7 +50,7 @@ void SendXmlDataInfo(S_Data sv_data)
 	if(strcmp(stData.szCommandName,"1000")==0)
 	{
 		memset(szVersion,0,sizeof(szVersion));
-		sprintf(szVersion,"%s_%s",SDK_HARD_FWVERSION,SDK_SYSTEM_FWVERSION);
+		sprintf(szVersion,"%s",SDK_SYSTEM_FWVERSION);
 		SetXmlValue(&stData, "version",szVersion);	
 		SetXmlValue(&stData, "ip", Network_IPAddress);		
 		SetXmlValue(&stData, "gateway", Network_GateWay);
@@ -49,15 +60,61 @@ void SendXmlDataInfo(S_Data sv_data)
 		SetXmlValue(&stData, "devicetype",DEVICETYPE);
 		SetXmlValue(&stData, "deviceproduct",DEVICEPRODUCT);
 		SetXmlValue(&stData, "devicemode",DEVICEMODEL);
-		SetXmlValue(&stData, "deviceno",g_serverNo);
-		SetXmlValue(&stData, "server",g_server);
-		memset(szPort,0,sizeof(szPort));
-		sprintf(szPort,"%d",g_iMasterPort);
-		SetXmlValue(&stData, "port",szPort);
+		
+		iRet=getStringParams(CONFIGPLATFORM,ServerNoString,szServerNo,sizeof(szServerNo));
+		if(iRet!=0)
+			LOGOUT("getServerNo is error iRet=%d",iRet);
+		int iRet=getStringParams(CONFIGPLATFORM,ServerString1,szServer,sizeof(szServer));
+		if(iRet!=0)
+			LOGOUT("get server1 string is error iRet=%d",iRet);
+		iRet=getStringParams(CONFIGPLATFORM,ServerPort,szServerPort,sizeof(szServerPort));
+		if(iRet!=0)
+			LOGOUT("get port string is error iRet=%d",iRet);
+		iRet=getStringParams(NETFILE,HttpPort,szHttpPort,sizeof(szHttpPort));
+		if(iRet!=0)
+			LOGOUT("get port string is error iRet=%d",iRet);	
+		
+		SetXmlValue(&stData, "deviceno",szServerNo);
+		SetXmlValue(&stData, "server",szServer);
+		SetXmlValue(&stData, "httpport",szHttpPort);
+		SetXmlValue(&stData, "serverport",szServerPort);
+		
+		memset(szServerStatus,0,sizeof(szServerStatus));
+		sprintf(szServerStatus,"%d",g_iServerStatus);
+		SetXmlValue(&stData, "serverstatus",szServerStatus);
 
-		memset(szPort,0,sizeof(szPort));
-		sprintf(szPort,"%d",g_iServerStatus);
-		SetXmlValue(&stData, "serverstatus",szPort);	
+		if(strlen(szLastHttpPort)==0)
+			strcpy(szLastHttpPort,szHttpPort);
+		else
+		{
+			if(strcmp(szLastHttpPort,szHttpPort)!=0)
+				restart=TRUE;
+		}
+
+		if(strlen(szLastServer)==0)
+			strcpy(szLastServer,szServer);
+		else
+		{
+			if(strcmp(szLastServer,szServer)!=0)
+				restart=TRUE;
+		}
+		
+		if(strlen(szLastServerPort)==0)
+			strcpy(szLastServerPort,szServerPort);
+		else
+		{
+			if(strcmp(szLastServerPort,szServerPort)!=0)
+				restart=TRUE;
+		}
+
+		if(strlen(szLastServerNo)==0)
+			strcpy(szLastServerNo,szServerNo);
+		else
+		{
+			if(strcmp(szLastServerNo,szServerNo)!=0)
+				restart=TRUE;
+		}
+		
 	}
 	else if(strcmp(stData.szCommandName,"1002")==0)
 	{
@@ -109,6 +166,10 @@ void SendXmlDataInfo(S_Data sv_data)
 		addrsize);
 
 	FreeXmlValue(&stData);
+
+	//if(restart)
+	//	g_main_start=FALSE;
+	
 }
 
 

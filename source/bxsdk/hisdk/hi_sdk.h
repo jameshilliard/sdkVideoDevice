@@ -6,16 +6,7 @@
 #include "hi_type.h"
 #include "hi_net_dev_sdk.h"
 #include "hi_net_dev_errors.h"
-
-
-#define 	UNAME					"admin"
-#define 	PWORD					"admin"
-#define 	IPHOST					"127.0.0.1"
-#define 	IPPORT					"80"
-#define 	RECORD_FILE 			"test.hx"
-#define 	UNAMEFILE				"/mnt/mtd/ipc/conf/config_user.ini"
-#define 	NETFILE					"/mnt/mtd/ipc/conf/config_net.ini"
-
+#include "hi_param.h"
 
 #define		DEVICEWIDTHBIG			1280
 #define		DEVICEHIGHHBIG			720

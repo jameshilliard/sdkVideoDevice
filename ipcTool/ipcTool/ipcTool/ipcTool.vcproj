@@ -301,6 +301,22 @@
 					</File>
 				</Filter>
 			</Filter>
+			<Filter
+				Name="httpClient"
+				>
+				<File
+					RelativePath=".\Utility\httpClient\httpClient.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Utility\httpClient\httpClient.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Utility\httpClient\urlParser.hpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"

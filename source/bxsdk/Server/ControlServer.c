@@ -8,6 +8,7 @@
 #include "../rtmp/RtmpDLL.h"
 //#include "../hisdk/source_sdk.h"
 #include "../hisdk/hi_sdk.h"
+#include "../hisdk/hi_param.h"
 
 
 
@@ -35,82 +36,6 @@ static int isValidPacket(LPTSTR recBuffer,DWORD recLength,MsgHead *vMsgHead,LPTS
 		return -4;
 	memcpy(msgBuffer,recBuffer+sizeof(MsgHead),vMsgHead->uBodyLen);
 	return 0;
-}
-
-#define 	CONFIGPLATFORM				"/mnt/mtd/ipc/conf/config_platform.ini"
-#define 	ServerNoString				"devname"
-#define 	ServerString1				"sccsvraddr"
-#define 	ServerString2				""
-#define 	ServerString3				""
-#define 	ServerString4				""
-#define 	ServerPort					"sccsvrport"
-
-//[tutkcfg]                                        
-//tenable                        = "1              "
-//tfullfunc                      = "1              "
-//uid                            = "hk000001       "
-//svraddr1                       = "121.43.234.112 "
-//svraddr2                       = "122.248.234.207"
-//svraddr3                       = "m2.iotcplatform.com"
-//svraddr4                       = "m5.iotcplatform.com"
-//pushserver                     = "               "
-//floder                         = "               "
-//pushserport                    = "               "
-//[scccfg]                                         
-//sccenable                      = "1              "
-//sccsvraddr                     = "xxx            "
-//sccsvrport                     = "80             "
-//sccname                        = "               "
-//sccpasswd                      = "               "
-//devname                        = "ipcam          "
-//devpasswd                      = "               "
-//devlanpwd                      = "               "
-
-int getStringParams(char * path,char *name,char *serverNo,unsigned int size)
-{
-	FILE * fp;  
-	char * line = NULL;  
-	size_t len = 0;  
-	ssize_t read;  
-	int count=0;
-	char *findPtr=NULL;
-	int iRet=-1;
-	fp = fopen(path, "r");  
-	if(fp == NULL)  
-		return -1;
-	if(path==NULL || name==NULL)
-		return -2;
-	if(strlen(path)==0 || strlen(name)==0)
-		return -3;
-	memset(serverNo,0,size);
-	while((read = getline(&line, &len, fp)) != -1) 
-	{    
-		 if(strstr(line,name)==line) //uid
-		 {
-			findPtr=strchr(line,'"');
-			if(findPtr!=NULL)
-			{
-				iRet=sscanf(findPtr,"\"%s\"",serverNo);
-				if(iRet==1)
-				{
-					if(serverNo[0]!='"')
-					{
-						printf("%s=%s\n",name,serverNo);
-						iRet=0;
-						break;
-					}
-				}
-				
-			}
-		 }
-	}
-	if(iRet!=0)
-		memset(serverNo,0,size);
-	if (line)  
-	 	free(line);  
-	if(fp != NULL)
-		fclose(fp);
-	return iRet;
 }
 
 static long long getTimeStamp(void)
