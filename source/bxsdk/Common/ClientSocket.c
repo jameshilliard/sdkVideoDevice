@@ -217,7 +217,7 @@ static void *RecvProc(void *data)
 			pthread_mutex_lock(&m_SockMutex);
 			mSocketData=socketInfo[i];
 			pthread_mutex_unlock(&m_SockMutex);
-			if(ret<0 && mSocketData.socketId>0)
+			if(mSocketData.socketId>0)
 			{
 				memset(&info,0,sizeof(info)); 
 				getsockopt(mSocketData.socketId, IPPROTO_TCP, TCP_INFO, &info, (socklen_t *)&len);  

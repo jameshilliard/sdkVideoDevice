@@ -23,18 +23,28 @@ int 	g_iMasterPort = ROUTESERVERPORT;
 char 	g_server[200] = {0};
 int 	g_iServerStatus = SERVER_STATUS_OUTLINE;
 
-static int isValidPacket(LPTSTR recBuffer,DWORD recLength,MsgHead *vMsgHead,LPTSTR msgBuffer,DWORD msgLength)
+static int isValidPacket(LPTSTR recBuffer,DWORD *startLength,DWORD *recLength,MsgHead *vMsgHead,LPTSTR msgBuffer,DWORD msgLength)
 {
 	if(recBuffer==NULL || vMsgHead==NULL || msgBuffer==NULL)
 		return -1;
+	if(*recLength<sizeof(MsgHead))
+		return -2;
 	memcpy(vMsgHead,recBuffer,sizeof(MsgHead));
 	if(vMsgHead->uHeadLen!=sizeof(MsgHead))
-		return -2;
-	if(recLength!=(vMsgHead->uBodyLen+sizeof(MsgHead)))
 		return -3;
-	if(vMsgHead->uHeadLen>msgLength)
+	if(recLength<=(vMsgHead->uBodyLen+sizeof(MsgHead)))
 		return -4;
+	if(vMsgHead->uHeadLen>msgLength)
+		return -5;
 	memcpy(msgBuffer,recBuffer+sizeof(MsgHead),vMsgHead->uBodyLen);
+	*startLength+=vMsgHead->uBodyLen+sizeof(MsgHead);
+	if((*recLength-(vMsgHead->uBodyLen+sizeof(MsgHead)))<0)
+	{
+		*startLength=0;
+		*recLength=0;
+		return -6;
+	}
+	*recLength=*recLength-vMsgHead->uBodyLen-sizeof(MsgHead);
 	return 0;
 }
 
@@ -576,7 +586,8 @@ static void *P_CtrlSocketThread()
 	char  curServerStampBuffer[SOCKET_PARKET_SIZE];
 	unsigned short uOtherMsgType=0;//消息类型
 	MsgHead recMsgHead;
-	DWORD length;
+	DWORD length=0;
+	DWORD startMsgAddr=0;
 	BOOL  beatTimeTwoSend=FALSE;
 	BOOL  bSendBeatFlag=FALSE;
 	//BOOL  timeStampFristFlag=FALSE;
@@ -588,7 +599,6 @@ static void *P_CtrlSocketThread()
 	MsgGlobal_Device globalDeviceStatus;
 	BOOL 	bSendErrorPlay=FALSE;
 	int i=0;
-	
 	unsigned short curMsgType=0;//消息类型
 	DWORD 	curMsgSendTime=0;//消息类型
 	
@@ -700,14 +710,32 @@ static void *P_CtrlSocketThread()
 		break;
 		case StatusWorking:
 		{	
+			
 			nowTimeMs=getTickCountMs();
-			iRet=GetSocketData(socketId,&v_dwSymb,sizeof(recBuffer),recBuffer,&length);
+			if(length>0)
+			{
+				v_dwSymb=CMDCORRECT;
+				iRet=0;
+			}
+			else
+			{
+				startMsgAddr=0;
+				length=0;
+				iRet=GetSocketData(socketId,&v_dwSymb,sizeof(recBuffer),recBuffer,&length);
+			}
 			if(iRet==0)
 			{
 				if(v_dwSymb==CMDCORRECT)
 				{
 					beatTimeTwoSend=FALSE;
-					iRet=isValidPacket(recBuffer,length,&recMsgHead,recMsgBuffer,sizeof(recMsgBuffer));
+					if(startMsgAddr>=sizeof(recBuffer) || (startMsgAddr+length)>sizeof(recBuffer))
+					{
+						startMsgAddr=0;
+						length=0;
+						break;
+					}
+					iRet=isValidPacket(recBuffer+startMsgAddr,&startMsgAddr,&length,&recMsgHead,recMsgBuffer,sizeof(recMsgBuffer)); 
+					printf("iRet=%d,startMsgAddr=%d,length=%d---\n",iRet,startMsgAddr,length);
 					if(iRet==0)
 					{
 						if(recMsgHead.uMsgType!=CONTROL_PROTOCAL_KEEPALIVE_ACK)
@@ -978,10 +1006,17 @@ static void *P_CtrlSocketThread()
 							}
 								break;
 						}
-						memset(recBuffer,0,sizeof(recBuffer));
 						memset(recMsgBuffer,0,sizeof(recMsgBuffer));
 					}
-				}
+					else
+					{
+						startMsgAddr=0;
+						length=0;
+						memset(recBuffer,0,sizeof(recBuffer));
+						memset(recMsgBuffer,0,sizeof(recMsgBuffer));
+						LOGOUT("error packet %d ",iRet);
+					}
+				}	
 				else if(v_dwSymb==CMDRECONNECT)
 				{
 					sleep(1);

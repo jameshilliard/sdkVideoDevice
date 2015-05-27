@@ -216,7 +216,7 @@ int RtmpLiveEncoder::SendVideoDataPacket(char *x264buffer,int buflen, unsigned i
 	//printf("SendVideoDataPacket-----timestamp %d--------------0\n", timestamp);
 	static int sendNumber = 0;
 	sendNumber ++;
-	if(sendNumber >100)
+	if(sendNumber >20)
 	{
 		//printf("SendHeart---------------0\n");
 		SendHeart();

@@ -23,7 +23,7 @@
 
 // 设备类型
 #define SDK_HARD_FWVERSION			"SYIPC-1.0.0"
-#define SDK_SYSTEM_FWVERSION		"1.0.0003"	// SDK版本号
+#define SDK_SYSTEM_FWVERSION		"1.0.0004"	// SDK版本号
 
 #define LOGSIZE						256*1024
 #define CMDBUFFER					256*1024
