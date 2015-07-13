@@ -1,0 +1,55 @@
+LIB = -L./lib/  -ldl -lrt -lpthread -lm
+#INCLUDES =  -I/usr/local/include
+INCLUDES = -I./include
+
+#关闭所有 未使用变量、printf格式化、警告 
+FLAGS = -O3 -Wall -Wno-unused -Wno-format -O -fstrength-reduce
+#FLAGS += -g -rdynamic
+
+#GXX = gcc $(INCLUDES) $(FLAGS)
+#GCC = gcc $(INCLUDES) $(FLAGS)
+
+GXX = arm-hisiv100nptl-linux-gcc $(INCLUDES) $(FLAGS)
+GCC = arm-hisiv100nptl-linux-gcc $(INCLUDES) $(FLAGS)
+
+CSRCS := $(wildcard ./*.c)
+CSRCS += $(wildcard ./Common/*.c)
+CSRCS += $(wildcard ./LogOut/*.c)
+CSRCS += $(wildcard ./Server/*.c)
+
+VPATH = ./Common:./LogOut:./Server
+
+OBJDIR := ./objs
+DEPDIR := ./deps
+
+COBJS = $(addprefix $(OBJDIR)/,$(notdir $(patsubst %.c,%.o,$(CSRCS))))
+CPPOBJS = $(addprefix $(OBJDIR)/,$(notdir $(patsubst %.cpp,%.o,$(CPPSRCS))))
+
+DEPS = $(patsubst %.c,%.d,$(COBJS))
+DEPS += $(patsubst %.cpp,%.d,$(CPPOBJS))  
+
+CS_P = libszySDK.a
+ALL_OUTPUT = $(CS_P)
+all: $(ALL_OUTPUT)
+
+#$(CDEPS) $(CPPDEPS)	
+$(CS_P):  $(COBJS) $(CPPOBJS) 
+	ar cr $(CS_P) $(CPPOBJS) $(COBJS) 
+	
+sinclude $(wildcard $(DEPDIR)/*.d)
+	
+$(OBJDIR)/%.o : %.c
+	@mkdir -p $(OBJDIR) $(DEPDIR)
+	$(GCC) -MM -MT$(OBJDIR)/$(notdir $@) $< -o $(DEPDIR)/$(notdir $(basename $<).d )
+	$(GCC) -o $(OBJDIR)/$(notdir $@) -c $<
+
+$(OBJDIR)/%.o : %.cpp
+	@mkdir -p $(OBJDIR) $(DEPDIR)
+	$(GXX) -MM -MT$(OBJDIR)/$(notdir $@) $< -o $(DEPDIR)/$(notdir $(basename $<).d )
+	$(GXX) -o $(OBJDIR)/$(notdir $@) -c $<
+	
+clean:
+	rm -f $(OBJDIR)/*.o
+	rm -f $(DEPDIR)/*.d
+	rm -f $(CS_P)
+
