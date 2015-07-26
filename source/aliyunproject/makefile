@@ -30,7 +30,7 @@ DEPS = $(patsubst %.c,%.d,$(COBJS))
 DEPS += $(patsubst %.cpp,%.d,$(CPPOBJS))  
 
 
-CS_P = sdkDemo
+CS_P = aliyunOss.bin
 ALL_OUTPUT = $(CS_P)
 all: $(ALL_OUTPUT)
 

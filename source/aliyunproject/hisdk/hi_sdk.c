@@ -4,11 +4,10 @@
 #include <pthread.h>
 #include "hi_sdk.h"
 #include "../LogOut/LogOut.h"
-#include "../rtmp/RtmpDLL.h"
 
 
 
-extern PRTMPUnit 	pRtmpServer;
+//extern PRTMPUnit 	pRtmpServer;
 static HI_U32 		u32HandleHight=0;
 static HI_U32 		u32HandleMid=0;
 static HI_U32 		u32HandleLow=0;
@@ -109,11 +108,11 @@ HI_S32 OnStreamCallback(HI_U32 u32Handle, /* ¾ä±ú */
 			}
 			if(validU32Handle==u32Handle)
 			{
-				if(pRtmpServer!=NULL)
+				//if(pRtmpServer!=NULL)
 				{
 					//if(pstruAV->u32VFrameType==1)
 					//	LOGOUT("Get Video %u PTS: %u \n", pstruAV->u32VFrameType, pstruAV->u32AVFramePTS);
-					SendVideoUnit(pRtmpServer,pu8Buffer+sizeof(HI_S_AVFrame),u32Length-sizeof(HI_S_AVFrame),pstruAV->u32AVFramePTS);
+					//SendVideoUnit(pRtmpServer,pu8Buffer+sizeof(HI_S_AVFrame),u32Length-sizeof(HI_S_AVFrame),pstruAV->u32AVFramePTS);
 					/*if(GetRtmpConnectStatus() == 0)
 					{
 						

@@ -1,8 +1,8 @@
 #include "source_sdk.h"
 #include "../LogOut/LogOut.h"
-#include "../rtmp/RtmpDLL.h"
+//#include "../rtmp/RtmpDLL.h"
 
-extern PRTMPUnit pRtmpServer;
+//extern PRTMPUnit pRtmpServer;
 
 DeviceVideoParam deviceVideoParam[MAXCHANNEL];
 
@@ -99,11 +99,11 @@ int	 GetVideoData(const char *filePath,VIDEO_HEADER *pvHeader,char *pData,long *
 ***********************************************************************************/
 void SendPlayData(DeviceVideoParam mDeviceVideoParam,VIDEO_HEADER vHeader,char *pvData,AUDIO_HEADER aheader,char *paData)
 {
-	if(pRtmpServer!=NULL)
-	{
-		SendVideoUnit(pRtmpServer,pvData,vHeader.len,vHeader.ts);
-		printf("Video %u PTS: %u %d %d \n", vHeader.fr, vHeader.ts,vHeader.w,vHeader.h);
-	}
+	//if(pRtmpServer!=NULL)
+	//{
+		//SendVideoUnit(pRtmpServer,pvData,vHeader.len,vHeader.ts);
+	//	printf("Video %u PTS: %u %d %d \n", vHeader.fr, vHeader.ts,vHeader.w,vHeader.h);
+	//}
 }
 
 BOOL getDeviceVideoParam(DeviceVideoParam *pDeviceVideoParam,unsigned int size)

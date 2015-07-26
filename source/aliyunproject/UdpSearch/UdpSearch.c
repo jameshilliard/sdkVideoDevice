@@ -1,5 +1,5 @@
 #include "UdpSearch.h"
-#include "../Server/ServerDefine.h"
+//#include "../Server/ServerDefine.h"
 #include "../hisdk/hi_param.h"
 
 BOOL bQuitUdpSearch = FALSE;
@@ -14,7 +14,7 @@ int  szLastServerPort[64]={0};
 char szLastServer[200]={0};
 char szLastHttpPort[64]={0};
 
-extern int 	g_iServerStatus;
+int 	g_iServerStatus=0;
 extern BOOL g_main_start;
 
 // 发送本地信息，发给手机和PC浏览端的
@@ -141,7 +141,7 @@ void SendXmlDataInfo(S_Data sv_data)
 		if(isValidPacket==1)
 		{
 			LOGOUT("test");
-			setMasterAndPort(server,atoi(port));
+			//setMasterAndPort(server,atoi(port));
 		}
 		else
 			return;
