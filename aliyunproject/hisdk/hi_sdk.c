@@ -114,6 +114,10 @@ static void SaveRecordFile(HI_CHAR* pPath, HI_U8* pu8Buffer, HI_U32 u32Length)
 #ifdef DEBUG_G711_FILE
 char   g711aFileBuffer[1024*1024]={0};
 #endif
+ 
+static	HI_U32 u32Width=DEVICEWIDTHBIG;	 /* 视频宽 */
+static	HI_U32 u32Height=DEVICEHIGHHBIG;	 /* 视频高 */
+
 HI_S32 onRecordTask(HI_U32 u32Handle, /* 句柄 */
                                 HI_U32 u32DataType,     /* 数据类型，视频或音频数据或音视频复合数据 */
                                 HI_U8*  pu8Buffer,      /* 数据包含帧头 */
@@ -124,7 +128,7 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* 句柄 */
 	HI_S32 iRet=0;
 	HI_U32 validU32Handle=0;
 	static HI_U32 u32WaitIFrame=0;
-	static HI_U32 u32FileTime=30*1000;
+	static HI_U32 u32FileTime=5*1000;
 	static HI_U32 u32LastStartTPS=0;
 	HI_U32 i=0;
 	static HI_U8  g711Buffer[1000]={0};
@@ -169,14 +173,14 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* 句柄 */
 			memset(&joseph_aac_config,0,sizeof(joseph_aac_config));
 			memset(&joseph_mp4_config,0,sizeof(joseph_mp4_config));
 
-			//joseph_mp4_config.m_vFrameDur = 0;
-			//joseph_mp4_config.timeScale = 90000;	
-			//joseph_mp4_config.fps = 25; 			 
-			//joseph_mp4_config.width = DEVICEWIDTHBIG;			
-			//joseph_mp4_config.height = DEVICEHIGHHBIG;
-			//joseph_mp4_config.video = MP4_INVALID_TRACK_ID; 
-			//joseph_mp4_config.audio = MP4_INVALID_TRACK_ID;
-			//joseph_mp4_config.hFile = NULL;
+			joseph_mp4_config.m_vFrameDur = 0;
+			joseph_mp4_config.timeScale = 90000;	
+			joseph_mp4_config.fps = 25; 			 
+			joseph_mp4_config.width = u32Width;			
+			joseph_mp4_config.height = u32Height;
+			joseph_mp4_config.video = MP4_INVALID_TRACK_ID; 
+			joseph_mp4_config.audio = MP4_INVALID_TRACK_ID;
+			joseph_mp4_config.hFile = NULL;
 			iRet=InitMp4Module(&joseph_aac_config,&joseph_mp4_config);
 			if(iRet!=0)
 			{
@@ -304,6 +308,8 @@ HI_S32 OnStreamCallback(HI_U32 u32Handle, /* 句柄 */
 	else if (u32DataType == HI_NET_DEV_SYS_DATA)
 	{
 		pstruSys = (HI_S_SysHeader*)pu8Buffer;
+		u32Width=pstruSys->struVHeader.u32Width;
+		u32Height=pstruSys->struVHeader.u32Height;
 		printf("Video W:%u H:%u Audio: %u \n", pstruSys->struVHeader.u32Width, pstruSys->struVHeader.u32Height, pstruSys->struAHeader.u32Format);
 	} 
 

@@ -362,14 +362,14 @@ int InitMp4Encoder(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *josep
 		CloseMp4Encoder(joseph_mp4_config);
 	}
 	//joseph_mp4_config =(JOSEPH_MP4_CONFIG *)malloc(sizeof(JOSEPH_MP4_CONFIG));
-	joseph_mp4_config->m_vFrameDur = 0;
-	joseph_mp4_config->video = MP4_INVALID_TRACK_ID;	
-	joseph_mp4_config->audio = MP4_INVALID_TRACK_ID;
-	joseph_mp4_config->hFile = NULL;
-	joseph_mp4_config->timeScale = 90000;	
-	joseph_mp4_config->fps = 25;              
-	joseph_mp4_config->width = 1280;          
-	joseph_mp4_config->height = 960; 
+	//joseph_mp4_config->m_vFrameDur = 0;
+	//joseph_mp4_config->video = MP4_INVALID_TRACK_ID;	
+	//joseph_mp4_config->audio = MP4_INVALID_TRACK_ID;
+	//joseph_mp4_config->hFile = NULL;
+	//joseph_mp4_config->timeScale = 90000;	
+	//joseph_mp4_config->fps = 25;              
+	//joseph_mp4_config->width = 1280;          
+	//joseph_mp4_config->height = 960; 
 	//joseph_aac_config->nSampleRate = 8000;
 	//joseph_aac_config->nChannels = 1;
 	//joseph_aac_config->nPCMBitSize = 16;
