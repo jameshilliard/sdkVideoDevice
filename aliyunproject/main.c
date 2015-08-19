@@ -16,7 +16,7 @@ BOOL g_main_start=TRUE;
 
 int main()
 {
-	int iRet = 0;
+	int iRet = 0;//
 	sigset_t set;
 	sigemptyset(&set);
 	sigaddset(&set, SIGPIPE);
