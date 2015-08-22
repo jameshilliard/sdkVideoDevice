@@ -377,7 +377,9 @@ int InitMp4Encoder(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *josep
 	//joseph_aac_config->nMaxOutputBytes = 0;
 	
 	/*file handle*/
-	joseph_mp4_config->hFile = MP4Create(JOSEPH_MP4_FILE, 0);
+	//joseph_mp4_config->hFile = MP4Create(JOSEPH_MP4_FILE, 0);
+	joseph_mp4_config->hFile = MP4Create(joseph_mp4_config->nFifoName, 0);
+	
 	if(joseph_mp4_config->hFile == MP4_INVALID_FILE_HANDLE)
 	{
         LOGOUT("open file fialed.\n");
@@ -694,7 +696,7 @@ int Mp4FileAudioEncode(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *j
 							joseph_aac_config->nInputSamples, joseph_aac_config->pbAACBuffer,\
 							joseph_aac_config->nMaxOutputBytes);
 		
-		LOGOUT("nRet  %d  joseph_aac_config->nInputSamples %d",nRet,joseph_aac_config->nInputSamples);
+		//LOGOUT("nRet  %d  joseph_aac_config->nInputSamples %d",nRet,joseph_aac_config->nInputSamples);
 		if(nRet<=0)
 		{
 			LOGOUT("faacEncEncode fail %d",nRet);

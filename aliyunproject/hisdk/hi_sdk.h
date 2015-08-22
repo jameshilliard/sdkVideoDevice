@@ -9,6 +9,7 @@
 #include "hi_net_dev_sdk.h"
 #include "hi_net_dev_errors.h"
 #include "hi_param.h"
+#include "../Common/Typedef.h"
 
 #define		DEVICEWIDTHBIG			1280
 #define		DEVICEHIGHHBIG			960
@@ -20,6 +21,15 @@
 #define		DEVICEHIGHHSMALL		176
 
 #define 	VIDEOBUFFERSIZE			1024*1024*4
+
+typedef struct 
+{
+	HI_U32 m_u32MotionCountPerSecond[20]; //记录每秒移动侦测的次数
+	HI_U32 m_u32MotionStatus;  //0停止 1开始
+	DWORD  m_u32MotionStartTime;
+	DWORD  m_u32MotionLastSecond;
+	
+} HI_Motion_Data;
 
 #  ifdef __cplusplus
 extern "C" {

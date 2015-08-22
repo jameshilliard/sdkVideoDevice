@@ -57,7 +57,9 @@ static HI_U32 		u32ChannelFlag=1;  // 1 hight 2 mid 3 low
 static HI_S_Video_Ext curVideoParam;
 static JOSEPH_ACC_CONFIG joseph_aac_config;
 static JOSEPH_MP4_CONFIG joseph_mp4_config;
-static HI_U32  		u32RecordCmd=RECORDSTART;
+static HI_U32  		u32RecordCmd=RECORDIDLE;
+static HI_Motion_Data motionData;
+
 
 int getVideoParam(HI_U32 *u32Handle,HI_S_Video_Ext *sVideo)
 {
@@ -117,6 +119,34 @@ char   g711aFileBuffer[1024*1024]={0};
  
 static	HI_U32 u32Width=DEVICEWIDTHBIG;	 /* 视频宽 */
 static	HI_U32 u32Height=DEVICEHIGHHBIG;	 /* 视频高 */
+
+static void getTimeNameString(int timeStamp,char *timeStr,int size)
+{
+	struct tm * timeinfo;
+	struct tm utc_tm;;
+	timeinfo = gmtime_r( (time_t *)&timeStamp,&utc_tm );
+	strftime(timeStr,size,("%Y%m%d%H%M%S"),timeinfo);
+	return;
+}
+
+HI_S32 takePicture(HI_U32 u32Handle,char fileName[256])
+{
+
+	char *sData = (char*)malloc(1024*1024);
+	int nSize = 0;
+	HI_S32 s32Ret = HI_NET_DEV_SnapJpeg(u32Handle,(HI_U8*)sData, 1024*1024, &nSize);
+	if(s32Ret == HI_SUCCESS)
+	{
+		FILE *fp = fopen(fileName, "wb+");
+		if(!fp)
+			free(sData);
+		fwrite((const char*)sData, 1, nSize, fp);
+		fclose( fp );
+	}
+	free(sData);
+	sData = NULL;
+	return s32Ret;
+}
 
 HI_S32 onRecordTask(HI_U32 u32Handle, /* 句柄 */
                                 HI_U32 u32DataType,     /* 数据类型，视频或音频数据或音视频复合数据 */
@@ -181,6 +211,18 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* 句柄 */
 			joseph_mp4_config.video = MP4_INVALID_TRACK_ID; 
 			joseph_mp4_config.audio = MP4_INVALID_TRACK_ID;
 			joseph_mp4_config.hFile = NULL;
+			memset(joseph_mp4_config.nFifoName,0,sizeof(joseph_mp4_config.nFifoName));
+			char timeString[128]={0};
+			time_t localTime;
+			time((time_t *)&localTime);
+			getTimeNameString(localTime,timeString,128);
+			sprintf(joseph_mp4_config.nFifoName,"%s.mp4",timeString);
+
+			char photoString[256]={0};
+			sprintf(photoString,"%s.jpg",timeString);
+			
+			iRet=takePicture(u32Handle,photoString);
+			LOGOUT("takePiture %s is %d",photoString,iRet);
 			iRet=InitMp4Module(&joseph_aac_config,&joseph_mp4_config);
 			if(iRet!=0)
 			{
@@ -260,7 +302,7 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* 句柄 */
 			{
 
 				int uSize=(u32Length-sizeof(HI_S_AVFrame)-4);
-				printf("Audio %d %d--\n",pstruAV->u32AVFrameLen,uSize);
+				//printf("Audio %d %d--\n",pstruAV->u32AVFrameLen,uSize);
 				Mp4FileAudioEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)(pu8Buffer+sizeof(HI_S_AVFrame)+4),u32Length-sizeof(HI_S_AVFrame)-4);
 				if((pstruAV->u32AVFramePTS-u32LastStartTPS)>u32FileTime)
 					*u32Status=RECORDSTOP;
@@ -316,6 +358,7 @@ HI_S32 OnStreamCallback(HI_U32 u32Handle, /* 句柄 */
 	return HI_SUCCESS;
 }
 
+
 HI_S32 OnDataCallback(HI_U32 u32Handle, /* 句柄 */
                                 HI_U32 u32DataType,       /* 数据类型*/
                                 HI_U8*  pu8Buffer,      /* 数据 */
@@ -323,8 +366,84 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* 句柄 */
                                 HI_VOID* pUserData    /* 用户数据*/
                                 )
 {
-	//printf("u32Handle=%d,u32DataType=%d,pu8Buffer=%s,u32Length=%d,pUserData=%s\n",u32Handle,
-	//	   u32DataType,pu8Buffer,u32Length,pUserData);
+	//printf("time=%d,u32Handle=%d,u32DataType=%d,pu8Buffer=%s,u32Length=%d,pUserData=%s\n",
+	//	    getTickCountMs(),u32Handle,u32DataType,pu8Buffer,u32Length,pUserData);
+	if(u32DataType==0)
+	{
+		printf("u32RecordCmd=%d\n",u32RecordCmd);
+		switch(u32RecordCmd)
+		{
+		case RECORDIDLE:
+		{
+			if(motionData.m_u32MotionStatus==0)
+			{
+				printf("motionData.m_u32MotionStatus==0\n");
+				motionData.m_u32MotionStartTime=getTickCountMs();
+				motionData.m_u32MotionStatus=1;
+				motionData.m_u32MotionLastSecond=5;
+				memset(motionData.m_u32MotionCountPerSecond,0,sizeof(motionData.m_u32MotionCountPerSecond));
+			}
+			else if(motionData.m_u32MotionStatus==1)
+			{
+				DWORD nowTime=getTickCountMs()-motionData.m_u32MotionStartTime;
+				DWORD endTime=motionData.m_u32MotionLastSecond*1000;
+				printf("nowTime=%d endTime=%d\n",nowTime,endTime);
+				if(nowTime>=0&&nowTime<=endTime)
+				{
+					HI_U32 second=nowTime/1000;
+					printf("sizeof(motionData.m_u32MotionCountPerSecond)=%d\n",sizeof(motionData.m_u32MotionCountPerSecond));		
+					if(second>=0 && second<=motionData.m_u32MotionLastSecond)
+					{
+						motionData.m_u32MotionCountPerSecond[second]++;
+					}
+				}
+				else if(nowTime>endTime)
+				{
+					HI_U32 i=0;
+					HI_U32 motionCount=0;
+ 					for(i=0;i<motionData.m_u32MotionLastSecond;i++)
+					{
+						if(motionData.m_u32MotionCountPerSecond[i]!=0)
+						{
+							motionCount++;
+						}
+					}
+					LOGOUT("motionCount is %d",motionCount);
+					if(motionCount>(motionData.m_u32MotionLastSecond/2))
+					{
+						motionData.m_u32MotionStatus=2;
+						u32RecordCmd=RECORDSTART;
+					}
+					else
+					{
+						motionData.m_u32MotionStartTime+=1000;
+						for(i=0;i<motionData.m_u32MotionLastSecond;i++)
+						{
+							if(i==(motionData.m_u32MotionLastSecond-1))
+								motionData.m_u32MotionCountPerSecond[i]=0;
+							else
+								motionData.m_u32MotionCountPerSecond[i]=motionData.m_u32MotionCountPerSecond[i+1];
+						}
+					}
+				}
+				else
+				{
+					motionData.m_u32MotionStatus=0;
+				}
+			}
+			else
+			{
+				motionData.m_u32MotionStatus=0;
+			}	
+		}
+			break;
+		case RECORDSTART:
+			LOGOUT("RECORDSTART");
+			break;	
+		default:
+			break;
+		}
+	}
 	return HI_SUCCESS;
 }
 
@@ -336,6 +455,7 @@ int InitHiSDKServer(HI_U32 *u32Handle,HI_U32 u32Stream)
 	
 	char uname[64]={0,};
 	char password[64]={0,};
+	memset(&motionData,0,sizeof(motionData));
 	memset(uname,0,sizeof(uname));
 	memset(password,0,sizeof(password));
 	int iRet=getUnameAndPassWord(UNAMEFILE,uname,password);
