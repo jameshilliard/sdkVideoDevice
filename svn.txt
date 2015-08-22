@@ -3,3 +3,5 @@ svn+ssh://forgetorsf@svn.code.sf.net/p/sdkvideodevice/svn
 svn+ssh://forgetorsf@svn.code.sf.net/p/fight/svn/ 
 forgetorsf
 forgetor119556259
+ÓÃ»§Ãû: zhangsong556259@163.com
+ÃÜÂë:zssaliyuntest123
