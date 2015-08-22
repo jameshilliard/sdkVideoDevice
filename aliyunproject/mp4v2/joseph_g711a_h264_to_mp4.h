@@ -57,6 +57,7 @@ typedef struct Joseph_Mp4_Config
 	unsigned short height;         // ”∆µ∏ﬂ
 	unsigned int  valid;
 	unsigned long 	nFifoName[256];
+	unsigned long 	nPictureName[256];
 }JOSEPH_MP4_CONFIG;
 
 #ifdef __cplusplus

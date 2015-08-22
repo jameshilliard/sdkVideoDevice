@@ -671,36 +671,51 @@ void test_append_object_from_buffer_zmt()
   aos_http_io_deinitialize();
 }*/
 //
-char getFilePath(char *buf, char type)
+int getFilePath(char *fullName, char *fileName)
 {
+	if(fullName==NULL || fileName==NULL)
+		return -1;
 	time_t m_tNowSeconds = time (NULL);
-	struct tm *ptm = localtime  ( &m_tNowSeconds );
-	
-	if(buf != NULL)
+	struct tm *ptm = localtime(&m_tNowSeconds);
+	char *ptr=NULL;
+	ptr=strstr(fileName,".mp4");
+	if(ptr!=NULL)
 	{
-		if(type == VIDEO)
-		{
-			sprintf(buf, "Videos/Ipcid/%04d%02d%02d/%04d%02d%02d%02d%02d%02d.mp4",
-				ptm->tm_year + 1900,ptm->tm_mon + 1,ptm->tm_mday,
-				ptm->tm_year + 1900,ptm->tm_mon + 1,ptm->tm_mday,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
-		}
-		else if(type == PHOTOS)
-		{
-			sprintf(buf, "Photos/Ipcid/%04d%02d%02d/%04d%02d%02d%02d%02d%02d.jpg",
-				ptm->tm_year + 1900,ptm->tm_mon + 1,ptm->tm_mday,
-				ptm->tm_year + 1900,ptm->tm_mon + 1,ptm->tm_mday,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
-		}
+		sprintf(fullName, "Videos/Ipcid/%04d%02d%02d/%s",ptm->tm_year+1900,ptm->tm_mon+1,ptm->tm_mday,fileName);	
+		return 0;
 	}
+	else
+	{
+		ptr=strstr(fileName,".jpg");
+		if(ptr!=NULL)
+		{
+			sprintf(fullName, "Photos/Ipcid/%04d%02d%02d/%s",ptm->tm_year+1900,ptm->tm_mon+1,ptm->tm_mday,fileName);
+			return 0;
+		}
+			
+	}
+	printf("file is no mp4 or jpg");
+	return -2;
 }
-//
+
 bool upLoadFile(char *fileName)
 {
 	//Videos/Ipcid/yymmdd/ yyyymmddhhmmss.mp4
-	//VIDEOTYPE type = VIDEO;
+	if(fileName==NULL)
+	{
+		printf("upLoadFile fileName error\n");
+		return false;
+	}
 	char pathBuf[1024] = {0};
-	getFilePath(pathBuf,  VIDEO);
+	int iRet=getFilePath(pathBuf,fileName);
+	if(iRet!=0)
+	{
+		printf("getFilePath error\n");
+		return false;
+	}
+		
 	char *object_name = pathBuf;
-	char data[1024] = {0};
+	char *data=malloc(256*1024);
 	int size = 0;
 	int filePos = 0;
 	int upLoadSize = 0;
@@ -713,8 +728,7 @@ bool upLoadFile(char *fileName)
 		{
 			while (!feof(uploadFile)) 
 			{ 
-			
-				size = fread(data, 1, 1024, uploadFile);
+				size = fread(data, 1, 256*1024, uploadFile);
 				if(size > 0)
 				{
 					test_oss_local_from_buf(object_name, data, size, filePos);
@@ -734,6 +748,7 @@ bool upLoadFile(char *fileName)
 		upResult =  false;
 	}
 	printf("pathfilename %s---\n", pathBuf);
+	free(data);
 	return upResult;
 
 }

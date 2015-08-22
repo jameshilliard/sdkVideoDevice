@@ -59,8 +59,8 @@ static JOSEPH_ACC_CONFIG joseph_aac_config;
 static JOSEPH_MP4_CONFIG joseph_mp4_config;
 static HI_U32  		u32RecordCmd=RECORDIDLE;
 static HI_Motion_Data motionData;
-
-
+static HI_U32 		u32SendMediaToAliyunStatus=0;
+	
 int getVideoParam(HI_U32 *u32Handle,HI_S_Video_Ext *sVideo)
 {
 	HI_S32 s32Ret = HI_SUCCESS;
@@ -131,21 +131,61 @@ static void getTimeNameString(int timeStamp,char *timeStr,int size)
 
 HI_S32 takePicture(HI_U32 u32Handle,char fileName[256])
 {
-
 	char *sData = (char*)malloc(1024*1024);
-	int nSize = 0;
-	HI_S32 s32Ret = HI_NET_DEV_SnapJpeg(u32Handle,(HI_U8*)sData, 1024*1024, &nSize);
-	if(s32Ret == HI_SUCCESS)
+	if(sData==NULL)
 	{
-		FILE *fp = fopen(fileName, "wb+");
-		if(!fp)
-			free(sData);
-		fwrite((const char*)sData, 1, nSize, fp);
-		fclose( fp );
+		LOGOUT("malloc is erreor take picture");
+		return -1;
+	}
+	int nSize = 0;
+	HI_S32 s32Ret = -1;
+	s32Ret = HI_NET_DEV_SnapJpeg(u32Handle,(HI_U8*)sData, 1024*1024, &nSize);
+	if(s32Ret==HI_SUCCESS)
+	{
+		int i=0;
+		int flag=0;
+		for(i=0;i<100;i++)
+		{
+			if(sData[i]==0x0d)
+			{
+				if(sData[i+1]==0x0a && sData[i+2]==0x0d && sData[i+3]==0x0a)
+				{
+					flag=1;
+					break;
+				}
+			}
+		}
+		if(flag==1)
+		{
+			FILE *fp = fopen(fileName, "wb+");
+			if(fp==NULL)
+			{
+				printf("errno=%d\n",errno);
+				//message=strerror(errno);
+				//printf("Mesg:%s\n",message);
+				LOGOUT("fail open %s,take picture error is %s",fileName,strerror(errno));
+			}
+			else
+			{
+				printf("write phote %s is %d\n",fileName,nSize);
+				fwrite((const char*)sData+(i+4), 1, nSize-(i+4), fp);
+				fclose( fp );
+			}
+		}
 	}
 	free(sData);
 	sData = NULL;
 	return s32Ret;
+}
+
+
+void * sendMediaToAliyunThread(void* param)
+{	
+	while(0)
+	{
+		usleep(100);
+	}
+	return NULL;
 }
 
 HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
@@ -158,7 +198,7 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 	HI_S32 iRet=0;
 	HI_U32 validU32Handle=0;
 	static HI_U32 u32WaitIFrame=0;
-	static HI_U32 u32FileTime=5*1000;
+	static HI_U32 u32FileTime=30*1000;
 	static HI_U32 u32LastStartTPS=0;
 	HI_U32 i=0;
 	static HI_U8  g711Buffer[1000]={0};
@@ -215,14 +255,14 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 			char timeString[128]={0};
 			time_t localTime;
 			time((time_t *)&localTime);
+			localTime+=CHINATIME;
 			getTimeNameString(localTime,timeString,128);
-			sprintf(joseph_mp4_config.nFifoName,"%s.mp4",timeString);
-
-			char photoString[256]={0};
-			sprintf(photoString,"%s.jpg",timeString);
+			sprintf(joseph_mp4_config.nFifoName,"media/%s.mp4",timeString);	
+			memset(joseph_mp4_config.nPictureName,0,sizeof(joseph_mp4_config.nPictureName));
+			sprintf(joseph_mp4_config.nPictureName,"media/%s.jpg",timeString);
 			
-			iRet=takePicture(u32Handle,photoString);
-			LOGOUT("takePiture %s is %d",photoString,iRet);
+			iRet=takePicture(u32Handle,joseph_mp4_config.nPictureName);
+			LOGOUT("takePiture %s is %d",joseph_mp4_config.nPictureName,iRet);
 			iRet=InitMp4Module(&joseph_aac_config,&joseph_mp4_config);
 			if(iRet!=0)
 			{
@@ -318,8 +358,12 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 			}
 			else
 			{
-				*u32Status=RECORDIDLE;
 				LOGOUT("CloseMp4Module is success %d",iRet);
+				upLoadFile(joseph_mp4_config.nFifoName);
+				unlink(joseph_mp4_config.nFifoName);
+				upLoadFile(joseph_mp4_config.nPictureName);
+				unlink(joseph_mp4_config.nPictureName);
+				*u32Status=RECORDIDLE;
 			}
 			
 		}
@@ -370,7 +414,7 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 	//	    getTickCountMs(),u32Handle,u32DataType,pu8Buffer,u32Length,pUserData);
 	if(u32DataType==0)
 	{
-		printf("u32RecordCmd=%d\n",u32RecordCmd);
+		//printf("u32RecordCmd=%d\n",u32RecordCmd);
 		switch(u32RecordCmd)
 		{
 		case RECORDIDLE:
@@ -391,7 +435,6 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 				if(nowTime>=0&&nowTime<=endTime)
 				{
 					HI_U32 second=nowTime/1000;
-					printf("sizeof(motionData.m_u32MotionCountPerSecond)=%d\n",sizeof(motionData.m_u32MotionCountPerSecond));		
 					if(second>=0 && second<=motionData.m_u32MotionLastSecond)
 					{
 						motionData.m_u32MotionCountPerSecond[second]++;
@@ -416,14 +459,15 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 					}
 					else
 					{
-						motionData.m_u32MotionStartTime+=1000;
-						for(i=0;i<motionData.m_u32MotionLastSecond;i++)
-						{
-							if(i==(motionData.m_u32MotionLastSecond-1))
-								motionData.m_u32MotionCountPerSecond[i]=0;
-							else
-								motionData.m_u32MotionCountPerSecond[i]=motionData.m_u32MotionCountPerSecond[i+1];
-						}
+						motionData.m_u32MotionStatus=0;
+						//motionData.m_u32MotionStartTime+=1000;
+						//for(i=0;i<motionData.m_u32MotionLastSecond;i++)
+						//{
+						//	if(i==(motionData.m_u32MotionLastSecond-1))
+						//		motionData.m_u32MotionCountPerSecond[i]=0;
+						//	else
+						//		motionData.m_u32MotionCountPerSecond[i]=motionData.m_u32MotionCountPerSecond[i+1];
+						//}
 					}
 				}
 				else
@@ -785,6 +829,21 @@ int InitHiSDKVideoAllChannel()
 	#endif
 	LOGOUT("hight handle 0x%x=%d,mid handle 0x%x=%d,low handle 0x%x=%d",&u32HandleHight,u32HandleHight,
 			&u32HandleMid,u32HandleMid,&u32HandleLow,u32HandleLow);
+	
+	pthread_t m_sendMediaToAliyunThread;//ÊµÊ±²¥·Å£¬¹ý³Ì¿ØÖÆÏß³Ì
+	#if 0
+	g_videoQuene=InitVideoQuene(VIDEOBUFFERSIZE);
+	if(g_videoQuene==NULL)
+	{
+		LOGOUT("InitVideoQuene %d failure",VIDEOBUFFERSIZE);
+	}
+	#endif
+	iRet = pthread_create(&m_sendMediaToAliyunThread, NULL, sendMediaToAliyunThread, NULL);
+	if(iRet != 0)
+	{
+		LOGOUT("can't create thread: %s",strerror(iRet));
+		return -1;
+	}
 	return iRet;
 }  
 
