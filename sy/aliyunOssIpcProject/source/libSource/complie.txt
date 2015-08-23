@@ -1,0 +1,21 @@
+1.openssl
+./config --prefix=/home/samba/share/sourceOpen/AliYun/arm/libarmOs no-asm shared  --cross-compile-prefix=arm-hisiv100nptl-linux-
+2.xml2
+./configure --prefix=/home/samba/share/sourceOpen/AliYun/arm/libarmOs --host=arm-hisiv100nptl-linux CC=arm-hisiv100nptl-linux-gcc --with-minimum --with-xpath --with-tree --with-writer
+3.utf8proc
+make -j4 CC=arm-hisiv100nptl-linux-gcc
+4.curl
+./configure --host=arm-none-linux --prefix=/home/samba/share/sourceOpen/AliYun/arm/libarmOs CC=arm-hisiv100nptl-linux-gcc --enable-shared --enable-static --without-libidn --without-ssl --without-librtmp --without-gnutls --without-nss --without-libssh2 --without-zlib --without-winidn --disable-rtsp --disable-ldap --disable-ldaps --disable-ipv6
+5.apr-1.5.2
+./configure --prefix=/home/samba/share/sourceOpen/AliYun/arm/libarmOs --host=arm-hisiv100nptl-linux CC=arm-hisiv100nptl-linux-gcc CXX=arm-hisiv100nptl-linux-g++ LD=arm-hisiv100nptl-linux-ld ac_cv_file__dev_zero=yes ac_cv_sizeof_struct_iovec=8 ac_cv_func_setpgrp_void=yes apr_cv_tcp_nodelay_with_cork=yes --cache=arm-hisiv100nptl-linux.cache
+6.apr-util
+./configure --host=arm-hisiv100nptl-linux CC=arm-hisiv100nptl-linux-gcc --prefix=/home/samba/share/sourceOpen/AliYun/arm/libarmOs --with-apr=/home/samba/share/sourceOpen/AliYun/arm/libarmOs
+7.faac mp4v2
+如何编译：
+1../configure --host=arm-hisiv100nptl-linux --prefix=/home/samba/share/sourceOpen/AliYun/arm/libarmOs
+2.make
+3.make install
+优化
+在不修改源码的情况下，faac的内存占用非常高，每路音频在13M左右。如果多路音频的话，内存将很快耗尽。
+搜索MAX_CHANNELS的定义，默认是6 和64，全部改成1（一般都是单声道）。
+重新编译，运行，内存占用降为2.5M左右。
