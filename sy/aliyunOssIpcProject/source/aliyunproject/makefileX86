@@ -1,4 +1,4 @@
-LIB = -L./libx86 -lNetLib -loss_c_sdk -lutf8proc  -laprutil-1 -lapr-1 -lcurl -lxml2 -lfaac -lmp4v2 -ldl -lrt -lpthread -lm -Wl,--rpath=./libx86
+LIB = -L./liball/libx86 -lNetLib -loss_c_sdk -lutf8proc  -laprutil-1 -lapr-1 -lcurl -lxml2 -lfaac -lmp4v2 -ldl -lrt -lpthread -lm -Wl,--rpath=./liball/libx86
 INCLUDES = -I./include\
 		   -I./include/libxml2\
 		   -I./include/apr-1\

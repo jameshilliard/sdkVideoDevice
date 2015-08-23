@@ -1,4 +1,4 @@
-LIB = -L./libarm -lNetLib -loss_c_sdk -lutf8proc  -laprutil-1 -lapr-1 -lcurl -lxml2 -lfaac -lmp4v2 -ldl -lrt -lpthread -lm -Wl,--rpath=./libarm
+LIB = -L./liball/libarm -lNetLib -loss_c_sdk -lutf8proc  -laprutil-1 -lapr-1 -lcurl -lxml2 -lfaac -lmp4v2 -ldl -lrt -lpthread -lm -Wl,--rpath=./liball/libarm
 INCLUDES = -I./include\
 		   -I./include/libxml2\
 		   -I./include/apr-1\

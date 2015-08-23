@@ -1,4 +1,4 @@
-LIB = -L./libcentos64 -lNetLib -loss_c_sdk -lutf8proc  -laprutil-1 -lapr-1 -lcurl -lxml2 -lfaac -lmp4v2 -ldl -lrt -lpthread -lm -Wl,--rpath=./libcentos64
+LIB = -L./liball/libcentos64 -lNetLib -loss_c_sdk -lutf8proc  -laprutil-1 -lapr-1 -lcurl -lxml2 -lfaac -lmp4v2 -ldl -lrt -lpthread -lm -Wl,--rpath=./liball/libcentos64
 INCLUDES = -I./include\
 		   -I./include/libxml2\
 		   -I./include/apr-1\
