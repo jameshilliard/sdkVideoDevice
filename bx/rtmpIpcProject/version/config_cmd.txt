@@ -1,0 +1,28 @@
+http://192.168.1.116/cgi-bin/hi3510/param.cgi?cmd=setuipcamattr&-ui_enable=1&-ui_server=121.43.234.112&-ui_port=5002&-ui_devname=hk000007
+
+
+#define		ROUTESERVERPORT		5002
+#define		CONTROLSERVERPORT	5000
+
+#define 	ROUTESERVER			"www.benxunshida.com"
+//#define 	ROUTESERVER			"121.43.234.112"
+[tutkcfg]                                        
+tenable                        = "1              "
+tfullfunc                      = "1              "
+uid                            = "hk000001       "
+svraddr1                       = "121.43.234.112 "
+svraddr2                       = "122.248.234.207"
+svraddr3                       = "m2.iotcplatform.com"
+svraddr4                       = "m5.iotcplatform.com"
+pushserver                     = "push1.ipcam.hk "
+floder                         = "apns           "
+pushserport                    = "80             "
+[scccfg]                                         
+sccenable                      = "1              "
+sccsvraddr                     = "xxx            "
+sccsvrport                     = "80             "
+sccname                        = "               "
+sccpasswd                      = "               "
+devname                        = "ipcam          "
+devpasswd                      = "               "
+devlanpwd                      = "               "
