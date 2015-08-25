@@ -253,7 +253,7 @@ void SearchServerThread()
 	}
 	else
 	{
-		LOGOUT("setsockopt OK\n");
+		LOGOUT("setsockopt OK");
 	}
 	
 	BroadcastAddr.sin_family = AF_INET;

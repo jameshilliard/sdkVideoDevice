@@ -5,7 +5,37 @@ const char b64_alphabet[65] = {
     "abcdefghijklmnopqrstuvwxyz"
     "0123456789+/=" };
 
+INT32U getFullMemory(void)
+{
+    struct sysinfo s_info;
+    int error;
+    error = sysinfo(&s_info);
+    printf("getFullMemory %lu kb\n",s_info.freeram);
+    return s_info.freeram;
+}
+
+BOOL isDeviceAccess(const char *filePath)
+{
+    INT32S iRet = FALSE;
+	if(NULL == filePath)
+	{
+		printf("filePath is NULL\n");
+		return FALSE;
+	}
+	if(0 == strlen(filePath))
+	{
+        printf("filePath size is 0\n");
+        return FALSE;
+	}
+	iRet = access(filePath,F_OK);
 	
+	if(iRet < 0)
+		return FALSE;
+	else
+		return TRUE;
+}
+
+
 //获取开机到现在的毫秒数
 DWORD getTickCountMs()
 {

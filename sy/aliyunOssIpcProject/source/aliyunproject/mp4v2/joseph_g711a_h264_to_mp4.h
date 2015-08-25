@@ -18,10 +18,9 @@
 
 #define 	RECORDIDLE		0x1000
 #define 	RECORDSTART		0x1001
-#define 	RECORDVIDEO     0x1002
-#define 	RECORDAUDIO     0x1003
+#define 	RECORDVIDEO		0x1002
+#define 	RECORDDELETE	0x1003
 #define 	RECORDSTOP      0x1004
-
 
 typedef unsigned int  	uint32_t;
 typedef unsigned char   uint8_t;
@@ -56,8 +55,11 @@ typedef struct Joseph_Mp4_Config
 	unsigned short width;          // ”∆µøÌ
 	unsigned short height;         // ”∆µ∏ﬂ
 	unsigned int  valid;
-	unsigned long 	nFifoName[256];
-	unsigned long 	nPictureName[256];
+	char  	nFifoName[256];
+	char 	nPictureName[256];
+	char 	nFifoEndName[256];
+	char 	nPictureEndName[256];
+
 }JOSEPH_MP4_CONFIG;
 
 #ifdef __cplusplus

@@ -4,9 +4,12 @@
 #include "Typedef.h"
 #include "../LogOut/LogOut.h"
 
+
 #  ifdef __cplusplus
 extern "C" {
 #  endif /* __cplusplus */
+	BOOL 	isDeviceAccess(const char *filePath);
+	INT32U  getFullMemory(void);
 	DWORD 	getTickCountMs();
 	void 	squeeze(char *s,int maxSize,int c);
 	DWORD	getFileSize(LPCTSTR path);

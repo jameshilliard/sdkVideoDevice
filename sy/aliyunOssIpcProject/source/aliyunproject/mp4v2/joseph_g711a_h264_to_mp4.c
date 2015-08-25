@@ -418,32 +418,32 @@ int Mp4VEncode(JOSEPH_MP4_CONFIG* joseph_mp4_config, unsigned char* naluData, in
 	if(naluData[0]==0 && naluData[1]==0 && naluData[2]==0 && naluData[3]==1 && naluData[4]==0x67)
 	{
 		index = NALU_SPS;
-		printf("%s[%d]====NALU_SPS\n",__FUNCTION__,__LINE__);
+		//printf("%s[%d]====NALU_SPS\n",__FUNCTION__,__LINE__);
 	}
 	if(index!=NALU_SPS && joseph_mp4_config->video == MP4_INVALID_TRACK_ID)
 	{
-		printf("index!=NALU_SPS && joseph_mp4_config->video == MP4_INVALID_TRACK_ID");
+		//printf("index!=NALU_SPS && joseph_mp4_config->video == MP4_INVALID_TRACK_ID");
 		return -1;
 	}
 	if(naluData[0]==0 && naluData[1]==0 && naluData[2]==0 && naluData[3]==1 && naluData[4]==0x68)
 	{
 		index = NALU_PPS;
-		printf("%s[%d]====NALU_PPS\n",__FUNCTION__,__LINE__);
+		//printf("%s[%d]====NALU_PPS\n",__FUNCTION__,__LINE__);
 	}
 	if(naluData[0]==0 && naluData[1]==0 && naluData[2]==0 && naluData[3]==1 && naluData[4]==0x65)
 	{
 		index = NALU_I;
-		printf("%s[%d]====NALU_I\n",__FUNCTION__,__LINE__);
+		LOGOUT("%s[%d]====NALU_I",__FUNCTION__,__LINE__);
 	}
 	if(naluData[0]==0 && naluData[1]==0 && naluData[2]==0 && naluData[3]==1 && naluData[4]==0x61)
 	{
 		index = NALU_P;
-		printf("%s[%d]====NALU_P\n",__FUNCTION__,__LINE__);
+		//printf("%s[%d]====NALU_P\n",__FUNCTION__,__LINE__);
 	}
 	if(naluData[0]==0 && naluData[1]==0 && naluData[2]==0 && naluData[3]==1 && naluData[4]==0x6)
 	{
 		index = NALU_SET;
-		printf("%s[%d]====NALU_SET\n",__FUNCTION__,__LINE__);
+		//printf("%s[%d]====NALU_SET\n",__FUNCTION__,__LINE__);
 	}
 	
 	switch(index)

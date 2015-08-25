@@ -27,9 +27,11 @@ typedef struct
 {
 	HI_U32 m_u32MotionCountPerSecond[20]; //记录每秒移动侦测的次数
 	HI_U32 m_u32MotionStatus;  //0停止 1开始
+	DWORD  m_u32MotionFirstTime;
+	DWORD  m_u32MotionEndTime;
 	DWORD  m_u32MotionStartTime;
 	DWORD  m_u32MotionLastSecond;
-	
+	DWORD  m_u32MotionTimesIsValid;
 } HI_Motion_Data;
 
 #  ifdef __cplusplus

@@ -24,6 +24,9 @@
 #include <unistd.h>
 #include <stdarg.h>
 #include <sys/statfs.h>
+#include <linux/unistd.h>     /* 包含调用 _syscallX 宏等相关信息*/
+#include <linux/kernel.h>     /* 包含sysinfo结构体信息*/
+#include <sys/sysinfo.h>
 
 
 typedef unsigned char	uchar;
