@@ -269,6 +269,12 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 			time((time_t *)&localTime);
 			localTime+=CHINATIME;
 			getTimeNameString(localTime,timeString,128);
+
+			if(isDeviceAccess(SYSTEM_MEDIA_SAVEFILEPATH)==FALSE)
+			{
+				mkdir(SYSTEM_MEDIA_SAVEFILEPATH,0777);
+				LOGOUT("mkidr %s",SYSTEM_MEDIA_SAVEFILEPATH);
+			}
 			memset(joseph_mp4_config.nFifoName,0,sizeof(joseph_mp4_config.nFifoName));
 			sprintf(joseph_mp4_config.nFifoName,"%s/%s.mp4_recording",SYSTEM_MEDIA_SAVEFILEPATH,timeString);	
 			memset(joseph_mp4_config.nPictureName,0,sizeof(joseph_mp4_config.nPictureName));
