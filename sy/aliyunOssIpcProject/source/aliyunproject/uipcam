@@ -1,6 +1,6 @@
 #!/bin/sh
 
-rm_aliyunOss.lib_proc
+rm_libs()
 {
 	rm /lib/libapr-1.so
 	rm /lib/libapr-1.so.0
@@ -20,7 +20,7 @@ rm_aliyunOss.lib_proc
 	rm /lib/libutf8proc.so
 }
 
-link_aliyunOss.lib_proc
+ln_libs()
 {
 	ln -s /mnt/mtd/ipc/tmpfs/lib/libapr-1.so.0.5.2 /lib/libapr-1.so
 	ln -s /mnt/mtd/ipc/tmpfs/lib/libapr-1.so.0.5.2 /lib/libapr-1.so.0
@@ -41,17 +41,17 @@ link_aliyunOss.lib_proc
 
 }
 
-watch_aliyunOss.bin_proc()
+watch_oss_bin()
 {
 ##############watch aliyunOss.bin	
 	ps | grep  aliyunOss.bin | grep -v  grep >> /dev/null
 	if [ $? -eq 1 ]; then
-		tar /mnt/mtd/ipc/aliyunOss.tar.gz -c /mnt/mtd/ipc/tmpfs/
-		/mnt/mtd/ipc/tmpfs/aliyunOss.bin & 
+		tar zxvf /mnt/mtd/ipc/lib.tar.gz  -C /mnt/mtd/ipc/tmpfs/
+		/mnt/mtd/ipc/aliyunOss.bin & 
 		ps | grep  aliyunOss.bin | grep -v  grep >> /dev/null
 		if [ $? -eq 1 ]; then
-			rm_aliyunOss.lib_proc
-			link_aliyunOss.lib_proc
+			rm_libs
+			ln_libs
 		fi
 	fi
 	
@@ -59,7 +59,7 @@ watch_aliyunOss.bin_proc()
 
 while [ 1 ]
 do
-watch_aliyunOss.bin_proc
+watch_oss_bin
 sleep 5
 done
 
