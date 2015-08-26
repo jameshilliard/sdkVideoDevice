@@ -10,20 +10,20 @@
 #define PACKED_(x) 
 #endif
 
-#define CFGCHECKMSG					"sykj-hello"
+#define CFGCHECKMSG					"sykj-aliyun"
 #define MATSERIPCOUNT 				4
 // 视频
 #define BAS_BUFFER_DEFAULT_SIZE		330*1024		
 #define SIZE_VIDEO_PACKED			(BAS_BUFFER_DEFAULT_SIZE - 3000)	// 视频发送最大缓冲区
 
 
-#define	MAXCAMERANUM				1	// 最大通道数目
-#define CONFIGFILENAME				"CfgFile.ini"			// 配置文件名字
+#define	MAXCAMERANUM				1						// 最大通道数目
+#define CONFIGFILENAME				"SyCfgFile.ini"			// 配置文件名字
 
 
 // 设备类型
-#define SDK_HARD_FWVERSION			"SYIPC-1.0.0"
-#define SDK_SYSTEM_FWVERSION		"1.0.0004"	// SDK版本号
+#define SDK_HARD_FWVERSION			"SYKJIPC-1.0.0"
+#define SDK_SYSTEM_FWVERSION		"1.0.0000"	// SDK版本号
 
 #define LOGSIZE						256*1024
 #define CMDBUFFER					256*1024
@@ -60,7 +60,7 @@ typedef struct PACKED_(8) tagDevInfoCfg_
 	char	m_szDeviceId[20];		// 设备ID
 	char	m_szProductMode[20];	// 设备型号
 	char	m_szPassword[20];		// 设备密码
-	char    m_szDeviceName[20];
+	char    m_szDeviceName[20];		
 }tagDevInfoCfg;
 
 typedef struct PACKED_(8) tagMasterServerCfg_

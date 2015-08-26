@@ -171,38 +171,6 @@ void SendXmlDataInfo(S_Data sv_data)
 	//	g_main_start=FALSE;
 	
 }
-
-
-int GetResult(S_Data sv_data,char *reData,int size)
-{
-	if(reData==NULL)
-		return -1;
-	S_Data re_sData;
-	int i=0;
-	memset(&re_sData,0,sizeof(re_sData));
-	DeCode(reData,&re_sData);
-	if(sv_data.szCommandId==re_sData.szCommandId)
-	{
-		LOGOUT("center receive serverinfo");
-		if(strcmp(re_sData.szCommandName,"9999")==0)
-		{
-			for(i=0;i<re_sData.iParamCount;i++)
-			{
-				LOGOUT("center receive serverinfo");
-				if(strcmp(re_sData.params[i].szKey,"result")==0)
-				{
-					LOGOUT("center receive serverinfo");
-					if(strcmp(re_sData.params[i].szValue,"1")==0)
-						return 0;
-				}
-			}
-		}
-		else
-			return -1;
-	}
-	else
-		return -1;
-}
 	
 // 搜索线程
 void SearchServerThread()
@@ -298,46 +266,6 @@ void SearchServerThread()
 				{// 浏览端发来的
 					int sendInfo = 0;
 					SendXmlDataInfo(s_data);
-					#if 0
-					while(!bQuit)
-					{
-						// 修改PC浏览端和手机浏览端搜索流程，在没有收到反馈信息的时候，进行发送三次设备信息的操作。
-						if (sendInfo > 2)
-						{
-							close(g_udpScnSocket);
-							return;
-						}
-						SendXmlDataInfo(s_data);
-						sendInfo++;
-						
-						FD_ZERO(&fds);
-						//FD_CLR(udpscan_socket,&fds);
-						FD_SET(g_udpScnSocket, &fds);
-						tv.tv_sec = 1;
-						tv.tv_usec = 0;
-						if (select(g_udpScnSocket + 1, &fds, NULL, NULL, &tv))
-						{
-							if (FD_ISSET(g_udpScnSocket,&fds)) 
-							{
-								recvnum = recvfrom(g_udpScnSocket, data, sizeof(data), 0,
-									(struct sockaddr *) &g_updScanPcAddr,
-									&addrsize);
-								if(recvnum>0)
-								{
-									if(GetResult(s_data,data,recvnum)==0)
-									{
-										LOGOUT("center receive serverinfo");
-										break;
-									}
-								}
-							}
-						}
-						else
-						{
-							LOGOUT("pc receive err %d,  %s", errno, strerror(errno));
-						}
-					}
-					#endif
 				}
 			} // FD_ISSET(udpscan_socket,&fds)
 			else
