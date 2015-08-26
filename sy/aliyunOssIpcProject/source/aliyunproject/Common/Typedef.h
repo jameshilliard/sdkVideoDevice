@@ -86,7 +86,8 @@ enum ERR_CODE
 	ERR_THREAD,
 };
 
-#define XMLDATALEN 4096
+#define XMLDATALEN 	4096
+#define MAX_PATH	256
 typedef struct XmlData_
 {
 	int m_iXmlLen;					// 数据长度（xml类型+xml数据内容长度+结束符长度）

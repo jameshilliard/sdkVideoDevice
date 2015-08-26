@@ -11,17 +11,31 @@
 #include "hi_param.h"
 #include "../Common/Typedef.h"
 
-#define		DEVICEWIDTHBIG			1280
-#define		DEVICEHIGHHBIG			960
+#define		DEVICEWIDTHBIG						1280
+#define		DEVICEHIGHHBIG						960
 
-#define		DEVICEWIDTHMID			640
-#define		DEVICEHIGHHMID			352
+#define		DEVICEWIDTHMID						640
+#define		DEVICEHIGHHMID						352
 
-#define		DEVICEWIDTHSMALL		320
-#define		DEVICEHIGHHSMALL		176
-#define 	CHINATIME 				8*3600
+#define		DEVICEWIDTHSMALL					320
+#define		DEVICEHIGHHSMALL					176
+#define 	CHINATIME 							8*3600
 
-#define 	VIDEOBUFFERSIZE			1024*1024*4
+#define 	BEFORE_RECORD_MOTION_LASTTIME		5
+#define 	BEFORE_RECORD_MOTION_TIMES			3
+
+#define 	CONTINUES_RECORD_MOTION_LASTTIME	5
+#define 	CONTINUES_RECORD_MOTION_TIMES		3
+
+#define		END_RECORD_MOTION_TIME				3*60
+
+#define 	VIDEOBUFFERSIZE						1024*1024*4
+
+#ifndef DEBUG_CPU_X86
+#define     SYSTEM_MEDIA_SAVEFILEPATH			"/mnt/mtd/ipc/tmpfs/sd/mediaSave"
+#else
+#define     SYSTEM_MEDIA_SAVEFILEPATH			"mediaSave"
+#endif
 
 typedef struct 
 {

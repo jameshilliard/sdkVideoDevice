@@ -51,29 +51,17 @@ int ReleaseVideoQuene(Queue *vQueue)
 #ifndef DEBUG_CPU_X86
 
 //extern PRTMPUnit 	pRtmpServer;
-static HI_U32 		u32HandleHight=0;
-static HI_U32 		u32HandleMid=0;
-static HI_U32 		u32HandleLow=0;
-static HI_U32 		u32ChannelFlag=1;  // 1 hight 2 mid 3 low
-static HI_S_Video_Ext curVideoParam;
-static JOSEPH_ACC_CONFIG joseph_aac_config;
-static JOSEPH_MP4_CONFIG joseph_mp4_config;
-static HI_U32  		u32RecordCmd=RECORDIDLE;
-static HI_Motion_Data motionData;
-static HI_U32 		u32SendMediaToAliyunStatus=0;
+static HI_U32 				u32HandleHight=0;
+static HI_U32 				u32HandleMid=0;
+static HI_U32 				u32HandleLow=0;
+static HI_U32 				u32ChannelFlag=1;  // 1 hight 2 mid 3 low
+static HI_S_Video_Ext 		curVideoParam;
+static JOSEPH_ACC_CONFIG 	joseph_aac_config;
+static JOSEPH_MP4_CONFIG 	joseph_mp4_config;
+static HI_U32  				u32RecordCmd=RECORDIDLE;
+static HI_Motion_Data 		motionData;
+static HI_U32 				u32SendMediaToAliyunStatus=0;
 
-#define     SYSTEM_MEDIA_SAVEFILEPATH		"/mnt/mtd/ipc/tmpfs/sd/mediaSave"
-
-#define 	BEFORE_RECORD_MOTION_LASTTIME		5
-#define 	BEFORE_RECORD_MOTION_TIMES			3
-
-#define 	CONTINUES_RECORD_MOTION_LASTTIME	5
-#define 	CONTINUES_RECORD_MOTION_TIMES		3
-
-#define		END_RECORD_MOTION_TIME				3*60
-
-
-	
 int getVideoParam(HI_U32 *u32Handle,HI_S_Video_Ext *sVideo)
 {
 	HI_S32 s32Ret = HI_SUCCESS;
@@ -1017,10 +1005,12 @@ void * playThread(void* param)
 				joseph_aac_config.nSampleRate = 8000;
 				joseph_aac_config.nChannels = 1;
 				joseph_aac_config.nPCMBitSize = 16;
-				strcpy(joseph_aac_config.nFifoName,"test.mp4");
-				joseph_aac_config.fpIn=joseph_aac_config.nFifoName;
-
 				
+				strcpy(joseph_mp4_config.nFifoName,"test.mp4");
+				strcpy(joseph_mp4_config.nPictureName,"test.mp4");
+				strcpy(joseph_mp4_config.nFifoEndName,"test.mp4");
+				strcpy(joseph_mp4_config.nPictureEndName,"test.mp4");
+					
 				joseph_mp4_config.m_vFrameDur = 0;
 				joseph_mp4_config.timeScale = 90000;	
 				joseph_mp4_config.fps = 25; 			 
@@ -1051,8 +1041,8 @@ void * playThread(void* param)
 				iRet=get_g711a_frame(&joseph_mp4_config,nBuffer,i++);
 				if(iRet>0)
 				{
-					printf("=====%d=====\m",i);
-					Mp4FileEncode(&joseph_aac_config,&joseph_mp4_config,RECORDVIDEO,nBuffer,iRet);
+					//printf("=====%d=====\m",i);
+					//Mp4FileEncode(&joseph_aac_config,&joseph_mp4_config,RECORDVIDEO,nBuffer,iRet);
 				}
 				else
 				{
@@ -1061,8 +1051,6 @@ void * playThread(void* param)
 				}
 				usleep(10*1000);
 			}
-			break;
-		case RECORDAUDIO:
 			break;
 		case RECORDSTOP:
 			{

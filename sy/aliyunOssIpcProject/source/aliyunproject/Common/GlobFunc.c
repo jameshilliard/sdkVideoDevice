@@ -202,6 +202,34 @@ INT32S writeFile(LPCTSTR filePath,LPCTSTR fileBuffer,DWORD size)
 	return iRet;
 }
 
+int readMediaFile(const char *pszDir,char fileName[MAX_PATH])
+{
+    DIR    *dir;
+    struct dirent *ptr;
+	unsigned int count=0;
+    dir = opendir(pszDir); ///open the dir
+    while((ptr = readdir(dir)) != NULL) ///read the list of this dir
+    {
+		switch(ptr->d_type)
+		{
+			case DT_REG:
+				if(strstr(ptr->d_name,"jpg") || strstr(ptr->d_name,"mp4"))
+				{
+					printf("d_type:%s %d d_name: %s\n",pszDir,ptr->d_type,ptr->d_name);
+					strcpy(fileName,ptr->d_name);
+					closedir(dir);
+					return 0;
+				}
+				break;
+			default:
+				break; 
+		}
+	
+    }
+    closedir(dir);
+    return -1;
+}
+
 INT32S readFile(LPCTSTR filePath,LPCTSTR fileBuffer,DWORD bufferSize,DWORD *fileSize)
 {
 	if(NULL==filePath || NULL==fileBuffer)
