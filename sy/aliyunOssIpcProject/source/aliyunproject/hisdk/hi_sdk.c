@@ -263,15 +263,20 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 				mkdir(SYSTEM_MEDIA_SAVEFILEPATH,0777);
 				LOGOUT("mkidr %s",SYSTEM_MEDIA_SAVEFILEPATH);
 			}
+			if(isDeviceAccess(SYSTEM_MEDIA_SENDFILEPATH)==FALSE)
+			{
+				mkdir(SYSTEM_MEDIA_SENDFILEPATH,0777);
+				LOGOUT("mkidr %s",SYSTEM_MEDIA_SENDFILEPATH);
+			}
 			memset(joseph_mp4_config.nFifoName,0,sizeof(joseph_mp4_config.nFifoName));
-			sprintf(joseph_mp4_config.nFifoName,"%s/%s.mp4_recording",SYSTEM_MEDIA_SAVEFILEPATH,timeString);	
+			sprintf(joseph_mp4_config.nFifoName,"%s/%s.mp4",SYSTEM_MEDIA_SAVEFILEPATH,timeString);	
 			memset(joseph_mp4_config.nPictureName,0,sizeof(joseph_mp4_config.nPictureName));
-			sprintf(joseph_mp4_config.nPictureName,"%s/%s.jpg_recording",SYSTEM_MEDIA_SAVEFILEPATH,timeString);
+			sprintf(joseph_mp4_config.nPictureName,"%s/%s.jpg",SYSTEM_MEDIA_SAVEFILEPATH,timeString);
 
 			memset(joseph_mp4_config.nFifoEndName,0,sizeof(joseph_mp4_config.nFifoEndName));
-			sprintf(joseph_mp4_config.nFifoEndName,"%s/%s.mp4",SYSTEM_MEDIA_SAVEFILEPATH,timeString);	
+			sprintf(joseph_mp4_config.nFifoEndName,"%s/%s.mp4",SYSTEM_MEDIA_SENDFILEPATH,timeString);	
 			memset(joseph_mp4_config.nPictureEndName,0,sizeof(joseph_mp4_config.nPictureEndName));
-			sprintf(joseph_mp4_config.nPictureEndName,"%s/%s.jpg",SYSTEM_MEDIA_SAVEFILEPATH,timeString);
+			sprintf(joseph_mp4_config.nPictureEndName,"%s/%s.jpg",SYSTEM_MEDIA_SENDFILEPATH,timeString);
 
 			iRet=takePicture(u32Handle,joseph_mp4_config.nPictureName);
 			LOGOUT("takePiture %s is %d",joseph_mp4_config.nPictureName,iRet);
@@ -382,12 +387,18 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 			{				
 				rename(joseph_mp4_config.nFifoName,joseph_mp4_config.nFifoEndName);
 				rename(joseph_mp4_config.nPictureName,joseph_mp4_config.nPictureEndName);
+				LOGOUT("rename(%s)",joseph_mp4_config.nFifoEndName);
+				LOGOUT("rename(%s)",joseph_mp4_config.nPictureEndName);
+				#if 0
 				upLoadFile(joseph_mp4_config.nFifoEndName);
 				upLoadFile(joseph_mp4_config.nPictureEndName);
 				LOGOUT("upLoadFile(%s)",joseph_mp4_config.nFifoEndName);
 				LOGOUT("upLoadFile(%s)",joseph_mp4_config.nPictureEndName);
+				unlink(joseph_mp4_config.nFifoEndName);
+				unlink(joseph_mp4_config.nPictureEndName);
 				LOGOUT("unlink(%s)",joseph_mp4_config.nFifoEndName);
 				LOGOUT("unlink(%s)",joseph_mp4_config.nPictureEndName);
+				#endif
 			}
 			else
 			{
@@ -548,7 +559,6 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 				else
 				{
 					u32RecordCmd=RECORDSTOP;
-					motionData.m_u32MotionStatus=0;
 				}
 			}
 		}
@@ -888,11 +898,6 @@ int stopVideoStream(HI_U32 *u32Handle)
 
 int InitHiSDKVideoAllChannel()
 {
-	if(isDeviceAccess(SYSTEM_MEDIA_SAVEFILEPATH)==FALSE)
-	{
-		mkdir(SYSTEM_MEDIA_SAVEFILEPATH,0777);
-		LOGOUT("mkidr %s",SYSTEM_MEDIA_SAVEFILEPATH);
-	}
 	HI_NET_DEV_Init();
 	memset(&curVideoParam,0,sizeof(curVideoParam));
 	int iRet=-1;

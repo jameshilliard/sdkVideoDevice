@@ -33,8 +33,10 @@
 
 #ifndef DEBUG_CPU_X86
 #define     SYSTEM_MEDIA_SAVEFILEPATH			"/mnt/mtd/ipc/tmpfs/sd/mediaSave"
+#define     SYSTEM_MEDIA_SENDFILEPATH			"/mnt/mtd/ipc/tmpfs/sd/mediaSend"
 #else
 #define     SYSTEM_MEDIA_SAVEFILEPATH			"mediaSave"
+#define     SYSTEM_MEDIA_SENDFILEPATH			"mediaSend"
 #endif
 
 typedef struct 

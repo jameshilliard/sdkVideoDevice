@@ -204,21 +204,39 @@ INT32S writeFile(LPCTSTR filePath,LPCTSTR fileBuffer,DWORD size)
 
 int readMediaFile(const char *pszDir,char fileName[MAX_PATH])
 {
-    DIR    *dir;
+	if(pszDir==NULL)
+		return -1;
+	if(strlen(pszDir)==0)
+		return -1;
+	if(isDeviceAccess(pszDir)==FALSE)
+	{
+		return -1;
+	}
+	DIR    *dir;
     struct dirent *ptr;
 	unsigned int count=0;
+	
     dir = opendir(pszDir); ///open the dir
+    int iRet=-1;
     while((ptr = readdir(dir)) != NULL) ///read the list of this dir
     {
 		switch(ptr->d_type)
 		{
 			case DT_REG:
-				if(strstr(ptr->d_name,"jpg") || strstr(ptr->d_name,"mp4"))
+				if(strstr(ptr->d_name,"jpg"))
+				{
+					iRet=1;
+				}
+				if(strstr(ptr->d_name,"mp4"))
+				{
+					iRet=2;
+				}
+				if(iRet==1 || iRet==2)
 				{
 					printf("d_type:%s %d d_name: %s\n",pszDir,ptr->d_type,ptr->d_name);
 					strcpy(fileName,ptr->d_name);
 					closedir(dir);
-					return 0;
+					return iRet;
 				}
 				break;
 			default:
@@ -227,7 +245,7 @@ int readMediaFile(const char *pszDir,char fileName[MAX_PATH])
 	
     }
     closedir(dir);
-    return -1;
+    return iRet;
 }
 
 INT32S readFile(LPCTSTR filePath,LPCTSTR fileBuffer,DWORD bufferSize,DWORD *fileSize)

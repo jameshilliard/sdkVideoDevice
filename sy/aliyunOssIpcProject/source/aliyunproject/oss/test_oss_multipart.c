@@ -1,7 +1,8 @@
 #include <time.h>
+#include "../LogOut/LogOut.h"
 #include "test_oss_multipart.h"
 #include "oss_api.h"
-//#include "../LogOut/LogOut.h"
+
 
 void create_bucket_name()
 {
@@ -44,7 +45,8 @@ int test_oss_local_file(char *object_name,char *data, int size, int *upLoadSize)
 {
 	if (aos_http_io_initialize("oss_test", 0) != AOSE_OK)
 	{
-		exit(1);//zss++ why
+		LOGOUT("aos_http_io_initialize exit");
+		return -1; //exit(1) 程序退出关闭所有的IO;
 	}
 	
 	aos_pool_t *p;
@@ -105,9 +107,9 @@ int test_oss_local_from_buf(char *object_name,char *data, int dataSize, int file
 {
 	if (aos_http_io_initialize("oss_test", 0) != AOSE_OK)
 	{
-		exit(1); //zss++ why
+		LOGOUT("aos_http_io_initialize exit");
+		return -1;
 	}
-	
 	aos_pool_t *p;
 	int is_oss_domain = 1;//是否使用三级域名，可通过is_oss_domain函数初始化
 	oss_request_options_t * oss_request_options;
@@ -152,93 +154,76 @@ int test_oss_local_from_buf(char *object_name,char *data, int dataSize, int file
     s = oss_append_object_from_buffer(oss_request_options, &bucket, &object, filePos, &buffer, headers, &resp_headers);
 	if(s->code != 200)
 	{
-		printf("oss_append_object_from_buffer:%d--size:%d----0\n", s->code, filePos);
-		return -1;
-	}
-
-	aos_pool_destroy(p);
-	aos_http_io_deinitialize();
-    return 0;
-}
-
-int getFilePath(char *fullName, char *fileName)
-{
-	if(fullName==NULL || fileName==NULL)
-		return -1;
-	time_t m_tNowSeconds = time (NULL);
-	struct tm *ptm = localtime(&m_tNowSeconds);
-	char *ptr=NULL;
-	ptr=strstr(fileName,".mp4");
-	if(ptr!=NULL)
-	{
-		sprintf(fullName, "Videos/Ipcid/%04d%02d%02d/%s",ptm->tm_year+1900,ptm->tm_mon+1,ptm->tm_mday,fileName);	
-		return 0;
+		LOGOUT("oss_append_object_from_buffer failure:s->code:%d error_msg:%s size:%d", s->code,s->error_msg,filePos);
+		return s->code;
 	}
 	else
 	{
-		ptr=strstr(fileName,".jpg");
-		if(ptr!=NULL)
-		{
-			sprintf(fullName, "Photos/Ipcid/%04d%02d%02d/%s",ptm->tm_year+1900,ptm->tm_mon+1,ptm->tm_mday,fileName);
-			return 0;
-		}
-			
+		//LOGOUT("oss_append_object_from_buffer success:s->code:%d error_msg:%s size:%d", s->code,s->error_msg,filePos);
 	}
-	printf("file is no mp4 or jpg");
-	return -2;
+	aos_pool_destroy(p);
+	//aos_http_io_deinitialize();
+    return 0;
 }
 
-
-bool upLoadFile(char *fileName)
-{
-	//Videos/Ipcid/yymmdd/yyyymmddhhmmss.mp4
-	if(fileName==NULL)
+int upLoadFile(char *filePath,char *fileName)
+{	
+	if(fileName==NULL || filePath==NULL)
 	{
-		printf("upLoadFile fileName error\n");
-		return false;
+		LOGOUT("upLoadFile fileName filePath is error\n");
+		return -1;
 	}
-	char pathBuf[1024] = {0};
-	int iRet=getFilePath(pathBuf,fileName);
-	if(iRet!=0)
+	if(strlen(filePath)==0 || strlen(fileName)==0)
 	{
-		printf("getFilePath error\n");
-		return false;
+		LOGOUT("upLoadFile strlen fileName filePath is error\n");
+		return -1;	
 	}
 	
-	char *object_name = pathBuf;
-	char *data=malloc(256*1024);
+	char *object_name = fileName;
+	char *data=malloc(64*1024);
+	if(data==NULL)
+	{
+		LOGOUT("malloc data is error\n");
+		return -1;	
+	}
 	int size = 0;
 	int filePos = 0;
 	int upLoadSize = 0;
-	bool upResult = false;
+	int upResult = -1;
 	if(fileName != NULL)
 	{
-
-		FILE* uploadFile = fopen(fileName,"r");
-		if(uploadFile)
+		int fd= open(filePath,O_RDWR);
+		if(fd>0)
 		{
-			while (!feof(uploadFile)) 
+			while(1) 
 			{ 
-				size = fread(data, 1, 256*1024, uploadFile);
-				if(size > 0)
+				size = read(fd,data,64*1024);
+				if(size>0)
 				{
-					test_oss_local_from_buf(object_name, data, size, filePos);
+					//LOGOUT("fd=%d read size is %d,error=%d",fd,size,errno);
+					upResult=test_oss_local_from_buf(object_name, data, size, filePos);
 					filePos += size;
 				}
+				else
+				{
+					//LOGOUT("fd=%d read size is %d,error=%d",fd,size,errno);
+					break;
+				}
+				usleep(100);
 			}
-			upResult = true;
+			close(fd);
 		}
 		else
 		{
-			upResult = false;
+			upResult = -1;
 		}
 		
 	}
 	else
 	{
-		upResult =  false;
+		upResult = -1;
 	}
-	//printf("pathfilename %s---\n", pathBuf);
+	
 	free(data);
 	return upResult;
 }
