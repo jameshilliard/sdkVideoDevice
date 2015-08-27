@@ -5,7 +5,7 @@ const char b64_alphabet[65] = {
     "abcdefghijklmnopqrstuvwxyz"
     "0123456789+/=" };
 
-INT32U getFullMemory(void)
+INT32U getFreeMemory(void)
 {
     struct sysinfo s_info;
     int error;
@@ -130,6 +130,73 @@ int split( char **szArray, char *v_szSplitStr, const char *v_szDdelim, int v_iAr
 	}
 	return iArrayCount;
 }
+
+
+/************************************************************************
+**函数：SzySdkSendData
+**功能：发送函数
+**参数：
+        [in] - v_iSocket：socket句柄
+		     - v_szSendBuf:发送缓冲区
+			 - v_iSendLen：发送长度
+返回：-1:失败，0：成功 
+**备注：
+       1). 
+************************************************************************/
+int SzySdkSendData(int v_iSocket, char *v_szSendBuf, int v_iSendLen)
+{
+    if((v_iSocket < 0) || (NULL == v_szSendBuf) || v_iSendLen < 0)
+    {
+        return -1;
+    }
+	fd_set fdWrite,eset;
+	struct timeval tv;
+	int iRet = 0;
+	int iSendCount = 0;
+	int iSendSize = 0;
+	int iTotalSendSize = 0;
+
+	do
+	{
+		tv.tv_sec = 0;
+		tv.tv_usec = 50*1000;
+		iSendSize = 0;
+
+		FD_ZERO(&fdWrite);
+		FD_ZERO(&eset);
+		FD_SET(v_iSocket, &eset);
+		FD_SET(v_iSocket, &fdWrite);
+
+		iRet = select(v_iSocket+1, NULL, &fdWrite, &eset, &tv);
+		if(iRet <= 0 )
+		{
+			continue;
+		}
+
+		if( FD_ISSET(v_iSocket, &eset) )
+		{
+			continue;
+		}
+		else if( FD_ISSET(v_iSocket, &fdWrite) )
+		{
+			iSendSize = send(v_iSocket, v_szSendBuf + iTotalSendSize, v_iSendLen - iTotalSendSize, 0);
+			if(iSendSize < 0)
+			{
+				return -1;
+			}
+			iTotalSendSize += iSendSize;
+
+			if(iTotalSendSize >= v_iSendLen)
+			{
+				//SZY_LOG("iTotalSendSize = %d, iSendSize = %d",iTotalSendSize, iSendSize);
+				return 0;// 发送完全退出
+			}
+		}
+	}while ((iSendCount++ < 10));
+
+	return -1;
+}
+
 BOOL creatDir(LPCTSTR pDir)  
 {  
     INT32S i = 0;  

@@ -905,8 +905,8 @@ int InitHiSDKVideoAllChannel()
 	if(iRet!=0)
 		LOGOUT("InitHiSDKServer Hight is faliure,iRet=%d",iRet);
 
-	INT32U mem=getFullMemory();
-	LOGOUT("getFullMemory()=%d",mem);
+	INT32U mem=getFreeMemory();
+	LOGOUT("getFreeMemory()=%d",mem);
 	#if 0
 	iRet=InitHiSDKServer(&u32HandleMid,1);
 	if(iRet!=0)

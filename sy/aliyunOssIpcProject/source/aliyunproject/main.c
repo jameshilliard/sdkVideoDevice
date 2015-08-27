@@ -10,7 +10,7 @@
 #include "Common/ConfigMng.h"
 #include "Common/ClientSocket.h"
 #include "hisdk/hi_sdk.h"
-#include "UdpSearch/UdpSearch.h"
+#include "toolComm/UdpSearch.h"
 
 BOOL g_main_start=TRUE;
 

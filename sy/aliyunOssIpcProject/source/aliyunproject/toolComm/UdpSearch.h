@@ -1,5 +1,5 @@
-#ifndef _SZY_UDPSEARCH_H_
-#define _SZY_UDPSEARCH_H_
+#ifndef _SY_UDPSEARCH_H_
+#define _SY_UDPSEARCH_H_
 
 #include "../Common/Typedef.h"
 #include "../Common/Configdef.h"
@@ -13,7 +13,7 @@
 #define PC_TOOL_PORT 			60011
 #define	SCAN_SERVER_PORT		60012
 // TCPÁ¬½Ó¶Ë¿Ú
-#define SERVER_PORT 			60014
+#define SERVER_PORT 			60015
 
 #  ifdef __cplusplus
 extern "C" {

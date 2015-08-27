@@ -17,19 +17,26 @@
 #define SIZE_VIDEO_PACKED			(BAS_BUFFER_DEFAULT_SIZE - 3000)	// 视频发送最大缓冲区
 
 
-#define	MAXCAMERANUM				1						// 最大通道数目
-#define CONFIGFILENAME				"SyCfgFile.ini"			// 配置文件名字
+#define	MAXCAMERANUM			1						// 最大通道数目
+#define CONFIGFILENAME			"SyCfgFile.ini"			// 配置文件名字
 
+// devtool的xml类型
+#define CONNETTYPE "View-DeviceTool"
 
 // 设备类型
-#define SDK_HARD_FWVERSION			"SYKJIPC-1.0.0"
-#define SDK_SYSTEM_FWVERSION		"1.0.0000"	// SDK版本号
+#define SDK_HARD_FWVERSION		"SYKJIPC-1.0.0"
+#define SDK_SYSTEM_FWVERSION	"1.0.0000"	// SDK版本号
 
-#define LOGSIZE						256*1024
-#define CMDBUFFER					256*1024
-#define DEVICECONFIGDIR				"/mnt/mtd/ipc"
-#define	LOGDIR						"/mnt/mtd/ipc/tmpfs/syflash"
-#define TEMPDIR 					"/mnt/mtd/ipc/tmpfs/sytmp"
+// 设备编号和产品型号配置文件名字
+#define SERVERNOFILENAME  		"serverNo"
+#define PRODUCTFILENAME  		"productNo"
+#define PASSWORDFILE	  		"password"
+
+#define LOGSIZE					256*1024
+#define CMDBUFFER				256*1024
+#define DEVICECONFIGDIR			"/mnt/mtd/ipc"
+#define	LOGDIR					"/mnt/mtd/ipc/tmpfs/syflash"
+#define TEMPDIR 				"/mnt/mtd/ipc/tmpfs/sytmp"
 
 #define		ROUTESERVERPORT		5002
 #define		CONTROLSERVERPORT	5000
@@ -41,10 +48,6 @@
 
 #define		SECRET				"123456"
 #define 	SERVERNO0			"hk000000"
-
-//#define 	SERVERNO0			"hk000000"
-//#define 	SERVERNO1			"hk000001"
-//#define 	SERVERNO2			"hk000002"
 
 #define		DEVICEPRODUCT					"BXSD"
 #define 	DEVICEMODEL 					"9100"

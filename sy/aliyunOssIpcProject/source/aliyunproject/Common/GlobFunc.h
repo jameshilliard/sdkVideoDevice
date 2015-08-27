@@ -8,7 +8,7 @@
 extern "C" {
 #  endif /* __cplusplus */
 	BOOL 	isDeviceAccess(const char *filePath);
-	INT32U  getFullMemory(void);
+	INT32U  getFreeMemory(void);
 	DWORD 	getTickCountMs();
 	void 	squeeze(char *s,int maxSize,int c);
 	DWORD	getFileSize(LPCTSTR path);
