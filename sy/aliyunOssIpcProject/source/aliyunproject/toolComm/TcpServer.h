@@ -1,6 +1,7 @@
-#ifndef _SZY_TCPSERVER_H_
-#define _SZY_TCPSERVER_H_
+#ifndef _SY_TCPSERVER_H_
+#define _SY_TCPSERVER_H_
 
+#if 0
 #include "../GlobalShare/szyTypedef.h"
 #include "../GlobalShare/InnerDataMng.h"
 #include "../mxml/mxmlparser.h"
@@ -73,5 +74,6 @@ extern "C" {
 }
 #  endif /* __cplusplus */
 
+#endif
 
 #endif

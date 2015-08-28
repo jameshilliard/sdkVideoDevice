@@ -31,13 +31,13 @@ int main()
 	//LOGOUT("InitNetwork iRet=%d over",iRet);
 	//iRet=InitControlServer();
 	//LOGOUT("InitControlServer iRet=%d over",iRet);
-	iRet=initAliyunOssTask();
-	LOGOUT("initAliyunOssTask iRet=%d over",iRet);
-	iRet=InitUdpSearch();
-	LOGOUT("InitUdpSearch iRet=%d over",iRet);
+	//iRet=initAliyunOssTask();
+	//LOGOUT("initAliyunOssTask iRet=%d over",iRet);
+	//iRet=InitUdpSearch();
+	//LOGOUT("InitUdpSearch iRet=%d over",iRet);
 	while(g_main_start)
 	{
-		sleep(1);
+		sleep(5);
 		//LOGOUT("client sleep");
 	}
 	iRet=ReleaseHiSDKVideoAllChannel();
