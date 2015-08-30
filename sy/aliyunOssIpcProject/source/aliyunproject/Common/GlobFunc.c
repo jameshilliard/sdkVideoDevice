@@ -346,7 +346,7 @@ int readMediaFile(const char *pszDir,char fileName[MAX_PATH])
 		return -1;
 	if(strlen(pszDir)==0)
 		return -1;
-	if(0==isDeviceAccess(pszDir))
+	if(0!=isDeviceAccess(pszDir))
 	{
 		return -1;
 	}

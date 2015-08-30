@@ -12,7 +12,7 @@
 #define IDC_BUTTON_RESTART              1002
 #define IDC_BUTTON_WEB                  1003
 #define IDC_EDIT_DEVID                  1005
-#define IDC_EDIT_VERSION                1006
+#define IDC_EDIT_SECRET                 1006
 #define IDC_IPADDRESS_IP                1007
 #define IDC_IPADDRESS_MASK              1008
 #define IDC_IPADDRESS_GW                1009

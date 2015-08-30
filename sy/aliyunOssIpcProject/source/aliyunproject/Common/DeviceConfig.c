@@ -71,7 +71,7 @@ INT32S InitDeviceConfig(const char *v_szFlashPath,tagConfigCfg *g_pstConfigCfg)
 		LOGOUT("v_szFlashPath or g_pstConfigCfg is NULL or strlen = 0");
 		return -1;
 	}
-	if(0==isDeviceAccess(v_szFlashPath))
+	if(0!=isDeviceAccess(v_szFlashPath))
 	{
 		mkdir(v_szFlashPath,0777);
 		LOGOUT("mkidr %s",v_szFlashPath);

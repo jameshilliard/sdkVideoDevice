@@ -7,6 +7,7 @@
 #include "../Common/NetFunc.h"
 #include "../mxml/mxmlparser.h"
 #include "../Common/DeviceConfig.h"
+#include "../Common/GlobVariable.h"
 
 //网络参数设置
 #define MULTICAST_IP 			"235.255.255.250"	//多播组地址

@@ -13,8 +13,8 @@
 #include "hisdk/hi_sdk.h"
 #include "toolComm/UdpSearch.h"
 
-BOOL g_main_start=TRUE;
 
+BOOL g_main_start=TRUE;
 
 void InitAllConfig()
 {
@@ -62,7 +62,7 @@ int main()
 	LOGOUT("InitUdpSearch iRet=%d over",iRet);
 	while(g_main_start)
 	{
-		sleep(5);
+		sleep(2);
 		//LOGOUT("client sleep");
 	}
 	RealseUdpSearch();

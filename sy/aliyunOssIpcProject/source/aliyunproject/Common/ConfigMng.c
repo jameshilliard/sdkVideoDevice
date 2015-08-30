@@ -50,7 +50,7 @@ BOOL InitCfgMng(const char *v_szFlashPath,tagConfigCfg *v_pstConfigCfg)
 		}
 	}
 	
-	fread((char*)&v_pstConfigCfg, 1, sizeof(tagConfigCfg), _RdFile);
+	fread((char*)v_pstConfigCfg, 1, sizeof(tagConfigCfg), _RdFile);
 	if(strncmp(CFGCHECKMSG, v_pstConfigCfg->m_szSpecCode, MIN(sizeof(CFGCHECKMSG) - 1 , sizeof(v_pstConfigCfg->m_szSpecCode) - 1)))
 	{
 		if(!InitConfigFile(v_pstConfigCfg))
@@ -87,7 +87,7 @@ BOOL InitConfigFile(tagConfigCfg *v_pstConfigCfg)
 	_RdFile = fopen(g_szCfgFilePath, "wb+");
 	if (!_RdFile)
 	{
-		LOGOUT("can not cerate config file for write");
+		LOGOUT("can not cerate %s config file for write",g_szCfgFilePath);
 		return FALSE;
 	}
 
@@ -127,8 +127,9 @@ BOOL InitConfigFile(tagConfigCfg *v_pstConfigCfg)
 	
 	fwrite((char*)&objConfigCfg, sizeof(objConfigCfg), 1, _RdFile);
 	if(NULL!=v_pstConfigCfg)
+	{
 		memcpy((char*)v_pstConfigCfg,(char*)&objConfigCfg, sizeof(objConfigCfg));
-		
+	}
 	fflush(_RdFile);
 	fclose(_RdFile);
 

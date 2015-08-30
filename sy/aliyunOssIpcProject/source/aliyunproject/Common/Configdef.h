@@ -93,8 +93,7 @@ typedef struct __attribute__((packed, aligned(8))) tagCapParamCfg_
 
 typedef struct __attribute__((packed, aligned(8))) tagDevInfoCfg_
 {
-	char	m_szPassword[80];		// 设备密码
-	char    m_szDeviceName[80];		
+	char	m_szPassword[80];		// 设备密码	
 	char 	m_szReserver[80];
 }tagDevInfoCfg;
 

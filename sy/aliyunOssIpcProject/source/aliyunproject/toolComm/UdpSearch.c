@@ -3,23 +3,131 @@
 
 
 
-BOOL bQuitUdpSearch = FALSE;
-BOOL bQuit = FALSE;
+BOOL 				bQuitUdpSearch = FALSE;
+BOOL 				bQuit = FALSE;
+int 				g_udpScnSocket = -1;
+struct sockaddr_in 	g_updScanPcAddr;
+struct sockaddr_in 	LocalCastAddr;// 本地广播地址
+int 				g_iServerStatus=0;
 
-int g_udpScnSocket = -1;
-struct sockaddr_in g_updScanPcAddr;
-struct sockaddr_in LocalCastAddr;// 本地广播地址
+static void SendXmlDataInfo(char *v_szBcastAddr,S_Data *v_pstData)
+{
+	XmlData stXmlData;
+	stXmlData.m_iXmlLen = EnCode(stXmlData.szXmlDataBuf, sizeof(stXmlData.szXmlDataBuf), v_pstData);
+	socklen_t addrsize = sizeof(g_updScanPcAddr);
+	sendto(g_udpScnSocket, (BYTE *)stXmlData.szXmlDataBuf,stXmlData.m_iXmlLen , 0,
+		(struct sockaddr *) &g_updScanPcAddr,
+		addrsize);
+	LocalCastAddr.sin_addr.s_addr = inet_addr(v_szBcastAddr);
+	sendto(g_udpScnSocket, (BYTE *)stXmlData.szXmlDataBuf,stXmlData.m_iXmlLen , 0,
+		(struct sockaddr *) &LocalCastAddr,
+		addrsize);
+}
 
-char szLastServerNo[64]={0};
-char szLastServerPort[64]={0};
-char szLastServer[200]={0};
-char szLastHttpPort[64]={0};
-
-int 	g_iServerStatus=0;
-
-
+static INT32S resolveCmd1000(S_Data *v_pstData,char *v_szDeviceIp, char *v_szDevSubnet, char *v_szDevHwMask, char *v_szDevGw)
+{
+	char szVersion[32] = {0};
+	char szPort[32]={0};
+	char szServerStatus[32]={0};
+	char szServerNo[80]={0};
+	char szServerPort[80]={0};
+	char szSecret[80]={0};
+	char szServer[236]={0};
+	char szHttpPort[80]={0};
+	int  iRet=-1;
+	memset(szVersion,0,sizeof(szVersion));
+	sprintf(szVersion,"%s",SDK_SYSTEM_FWVERSION);
+	SetXmlValue(v_pstData, "version",szVersion);	
+	SetXmlValue(v_pstData, "ip", v_szDeviceIp);		
+	SetXmlValue(v_pstData, "gateway", v_szDevGw);
+	SetXmlValue(v_pstData, "mac", v_szDevHwMask); 
+	SetXmlValue(v_pstData, "ipmask", v_szDevSubnet);
+	//设备类型 设备厂商 设备型号 设备码
+	SetXmlValue(v_pstData, "devicetype",DE_DEVICETYPE);
+	SetXmlValue(v_pstData, "deviceproduct",DE_DEVICEPRODUCT);
+	SetXmlValue(v_pstData, "devicemode",DE_DEVICEMODEL);
+	
+	iRet=getStringParams(CONFIGPLATFORM,ServerNoString,szServerNo,sizeof(szServerNo));
+	if(iRet!=0)
+		LOGOUT("getServerNo is error iRet=%d",iRet);
+	iRet=getStringParams(CONFIGPLATFORM,ServerString1,szServer,sizeof(szServer));
+	if(iRet!=0)
+		LOGOUT("get server1 string is error iRet=%d",iRet);
+	
+	if(0==strlen(g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword));
+	{
+		sprintf(szSecret,"%s",g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword);
+		LOGOUT("get secret:%s",szSecret);
+		SetXmlValue(v_pstData, "secret",szSecret);
+	}
+	if(0==strlen(g_szServerNO))
+	{
+		strcpy(szServerNo,g_szServerNO);
+		LOGOUT("get serverNo:%s",g_szServerNO);
+		SetXmlValue(v_pstData, "deviceno",szServerNo);
+	}
+	if(0==strlen(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP))
+	{
+		sprintf(szServer,"%s",g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP);
+		LOGOUT("get server:%s",szServer);
+		SetXmlValue(v_pstData, "server",szServer);
+	}
+	sprintf(szServerPort,"%d",g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort);
+	LOGOUT("get port:%d",szServerPort);
+	SetXmlValue(v_pstData, "serverport",szServerPort);
+	iRet=getStringParams(NETFILE,HttpPort,szHttpPort,sizeof(szHttpPort));
+	if(iRet!=0)
+		LOGOUT("get httpPort string is error iRet=%d",iRet);	
+	SetXmlValue(v_pstData, "httpport",szHttpPort);
+	
+	memset(szServerStatus,0,sizeof(szServerStatus));
+	sprintf(szServerStatus,"%d",g_iServerStatus);
+	SetXmlValue(v_pstData, "serverstatus",szServerStatus);
+	return 0;
+}
+static INT32S resolveCmd1002(S_Data *v_pSData,S_Data *v_pstData,char *v_szDevHwMask)
+{
+	int iRet=0;
+	int i=0;
+	int isValidPacket=0;
+	char server[236]={0,};
+	char port[16]={0,};
+	LOGOUT("test %d",v_pSData->iParamCount);
+	for(i=0;i<v_pSData->iParamCount;i++)
+	{
+		if(strcmp(v_pSData->params[i].szKey,"mac")==0)
+		{
+			if(strcmp(v_pSData->params[i].szValue,v_szDevHwMask)==0)
+			{
+				LOGOUT("test");
+				isValidPacket=1;
+			}
+		}
+		if(strcmp(v_pSData->params[i].szKey,"server")==0)
+		{
+			strcpy(server,v_pSData->params[i].szValue);
+		}
+		if(strcmp(v_pSData->params[i].szKey,"port")==0)
+		{
+			strcpy(port,v_pSData->params[i].szValue);
+		}
+	}
+	if(isValidPacket==1)
+	{
+		LOGOUT("test");
+		//setMasterAndPort(server,atoi(port));
+		SetXmlValue(v_pstData, "mac", v_szDevHwMask); 
+		SetXmlValue(v_pstData, "result", "10000");
+		iRet=0;
+	}
+	else
+	{
+		iRet=-1;
+	}
+	return iRet;
+}
 // 发送本地信息，发给手机和PC浏览端的
-void SendXmlDataInfo(S_Data sv_data)
+static void resoloveCmd(S_Data *sv_data)
 {
 	S_Data stData;
 	char szTemp[20] = {0};
@@ -28,149 +136,31 @@ void SendXmlDataInfo(S_Data sv_data)
 	char Network_Subnet[32] = {0};		//子网掩码Mask
 	char Network_GateWay[32] = {0};		//默认网关或路由器地址
 	char szBcastAddr[32] = {0};			//广播地址
-	char szVersion[32] = {0};			//广播地址
-	char szPort[32]={0};
-	char szServerStatus[32]={0};
-	char szServerNo[64]={0};
-	char szServerPort[64]={0};
-	char szServer[200]={0};
-	char szHttpPort[64]={0};
 	
 	int i = 0;
 	int isValidPacket=0;
-	char server[128]={0,};
-	char port[16]={0,};
+
 	int iRet=-1;
 	BOOL restart=FALSE;
 
 	GetDeviceNetInfo(Network_IPAddress, Network_Subnet,System_MACAddress, Network_GateWay,szBcastAddr);
 
 	memset(&stData, 0, sizeof(stData));
-	stData.szCommandId = sv_data.szCommandId;
-	strcpy(stData.szCommandName,sv_data.szCommandName);
+	stData.szCommandId = sv_data->szCommandId;
+	strcpy(stData.szCommandName,sv_data->szCommandName);
 	if(strcmp(stData.szCommandName,"1000")==0)
 	{
-		memset(szVersion,0,sizeof(szVersion));
-		sprintf(szVersion,"%s",SDK_SYSTEM_FWVERSION);
-		SetXmlValue(&stData, "version",szVersion);	
-		SetXmlValue(&stData, "ip", Network_IPAddress);		
-		SetXmlValue(&stData, "gateway", Network_GateWay);
-		SetXmlValue(&stData, "mac", System_MACAddress);	
-		SetXmlValue(&stData, "ipmask", Network_Subnet);
-		//设备类型 设备厂商 设备型号 设备码
-		SetXmlValue(&stData, "devicetype",DE_DEVICETYPE);
-		SetXmlValue(&stData, "deviceproduct",DE_DEVICEPRODUCT);
-		SetXmlValue(&stData, "devicemode",DE_DEVICEMODEL);
-		
-		iRet=getStringParams(CONFIGPLATFORM,ServerNoString,szServerNo,sizeof(szServerNo));
-		if(iRet!=0)
-			LOGOUT("getServerNo is error iRet=%d",iRet);
-		int iRet=getStringParams(CONFIGPLATFORM,ServerString1,szServer,sizeof(szServer));
-		if(iRet!=0)
-			LOGOUT("get server1 string is error iRet=%d",iRet);
-		iRet=getStringParams(CONFIGPLATFORM,ServerPort,szServerPort,sizeof(szServerPort));
-		if(iRet!=0)
-			LOGOUT("get port string is error iRet=%d",iRet);
-		iRet=getStringParams(NETFILE,HttpPort,szHttpPort,sizeof(szHttpPort));
-		if(iRet!=0)
-			LOGOUT("get port string is error iRet=%d",iRet);	
-		
-		SetXmlValue(&stData, "deviceno",szServerNo);
-		SetXmlValue(&stData, "server",szServer);
-		SetXmlValue(&stData, "httpport",szHttpPort);
-		SetXmlValue(&stData, "serverport",szServerPort);
-		
-		memset(szServerStatus,0,sizeof(szServerStatus));
-		sprintf(szServerStatus,"%d",g_iServerStatus);
-		SetXmlValue(&stData, "serverstatus",szServerStatus);
-
-		if(strlen(szLastHttpPort)==0)
-			strcpy(szLastHttpPort,szHttpPort);
-		else
-		{
-			if(strcmp(szLastHttpPort,szHttpPort)!=0)
-				restart=TRUE;
-		}
-
-		if(strlen(szLastServer)==0)
-			strcpy(szLastServer,szServer);
-		else
-		{
-			if(strcmp(szLastServer,szServer)!=0)
-				restart=TRUE;
-		}
-		
-		if(strlen(szLastServerPort)==0)
-			strcpy(szLastServerPort,szServerPort);
-		else
-		{
-			if(strcmp(szLastServerPort,szServerPort)!=0)
-				restart=TRUE;
-		}
-
-		if(strlen(szLastServerNo)==0)
-			strcpy(szLastServerNo,szServerNo);
-		else
-		{
-			if(strcmp(szLastServerNo,szServerNo)!=0)
-				restart=TRUE;
-		}
-		
+		iRet=resolveCmd1000(&stData,Network_IPAddress, Network_Subnet,System_MACAddress, Network_GateWay);
 	}
 	else if(strcmp(stData.szCommandName,"1002")==0)
 	{
-		LOGOUT("test %d",sv_data.iParamCount);
-		for(i=0;i<sv_data.iParamCount;i++)
-		{
-			if(strcmp(sv_data.params[i].szKey,"mac")==0)
-			{
-				if(strcmp(sv_data.params[i].szValue,System_MACAddress)==0)
-				{
-					LOGOUT("test");
-					isValidPacket=1;
-				}
-			}
-			if(strcmp(sv_data.params[i].szKey,"server")==0)
-			{
-				strcpy(server,sv_data.params[i].szValue);
-			}
-			if(strcmp(sv_data.params[i].szKey,"port")==0)
-			{
-				strcpy(port,sv_data.params[i].szValue);
-			}
-		}
-		if(isValidPacket==1)
-		{
-			LOGOUT("test");
-			//setMasterAndPort(server,atoi(port));
-		}
-		else
-			return;
-			
-		SetXmlValue(&stData, "mac", System_MACAddress);	
-		SetXmlValue(&stData, "result", "1");	
+		iRet=resolveCmd1002(sv_data,&stData,System_MACAddress);
 	}
-
-	
-	XmlData stXmlData;
-	stXmlData.m_iXmlLen = EnCode(stXmlData.szXmlDataBuf, sizeof(stXmlData.szXmlDataBuf), &stData);
-
-	socklen_t addrsize = sizeof(g_updScanPcAddr);
-
-	sendto(g_udpScnSocket, (BYTE *)stXmlData.szXmlDataBuf,stXmlData.m_iXmlLen , 0,
-		(struct sockaddr *) &g_updScanPcAddr,
-		addrsize);
-
-	LocalCastAddr.sin_addr.s_addr = inet_addr(szBcastAddr);
-	sendto(g_udpScnSocket, (BYTE *)stXmlData.szXmlDataBuf,stXmlData.m_iXmlLen , 0,
-		(struct sockaddr *) &LocalCastAddr,
-		addrsize);
-
+	if(0==iRet)
+	{
+		SendXmlDataInfo(szBcastAddr,&stData);
+	}
 	FreeXmlValue(&stData);
-
-	//if(restart)
-	//	g_main_start=FALSE;
-	
 }
 
 // 搜索线程
@@ -261,13 +251,16 @@ void SearchServerThread()
 				char szUserName[32] = {0};
 				char szPassWord[32] = {0};
 				char szDevType[32]  = {0};
-				FreeXmlValue(&s_data);
 				LOGOUT("center reply %d msg",commandName);
-				if(commandName == 1000)//commandName == 1002
-				{// 浏览端发来的
-					int sendInfo = 0;
-					SendXmlDataInfo(s_data);
+				if(commandName == 1000)
+				{	//浏览端发来的
+					resoloveCmd(&s_data);
 				}
+				else if(commandName == 1002)
+				{
+					resoloveCmd(&s_data);
+				}
+				FreeXmlValue(&s_data);
 			} // FD_ISSET(udpscan_socket,&fds)
 			else
 			{

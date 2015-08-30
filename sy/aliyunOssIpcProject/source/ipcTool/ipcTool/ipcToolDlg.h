@@ -24,6 +24,7 @@ using namespace std;
 #define LIST_COL_PORT			11
 #define LIST_COL_SERVERSTATUS	12
 #define LIST_COL_HTTPPORT		13
+#define LIST_COL_SECRET			14
 
 #define	MAX_SERVER_COUNTS		100
 #define MULTICAST_IP 			"245.255.255.250"	//¶à²¥×éµØÖ·
@@ -46,6 +47,7 @@ typedef struct DeviceParams_
 	CString m_port;
 	CString m_serverStatus;
 	CString m_httpPort;
+	CString m_secret;
 	DeviceParams_()
 	{
 		m_deviceId="";
@@ -60,6 +62,7 @@ typedef struct DeviceParams_
 		m_port="";
 		m_serverStatus="";
 		m_httpPort="";
+		 m_secret="";
 	}
 }DeviceParams;
 

@@ -260,12 +260,12 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 			localTime+=CHINATIME;
 			getTimeNameString(localTime,timeString,128);
 
-			if(0==isDeviceAccess(SYSTEM_MEDIA_SAVEFILEPATH))
+			if(0!=isDeviceAccess(SYSTEM_MEDIA_SAVEFILEPATH))
 			{
 				mkdir(SYSTEM_MEDIA_SAVEFILEPATH,0777);
 				LOGOUT("mkidr %s",SYSTEM_MEDIA_SAVEFILEPATH);
 			}
-			if(0==isDeviceAccess(SYSTEM_MEDIA_SENDFILEPATH))
+			if(0!=isDeviceAccess(SYSTEM_MEDIA_SENDFILEPATH))
 			{
 				mkdir(SYSTEM_MEDIA_SENDFILEPATH,0777);
 				LOGOUT("mkidr %s",SYSTEM_MEDIA_SENDFILEPATH);
