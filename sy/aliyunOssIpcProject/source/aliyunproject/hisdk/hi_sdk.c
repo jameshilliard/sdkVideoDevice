@@ -466,9 +466,9 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 			motionData.m_u32MotionStartTime=getTickCountMs();
 			motionData.m_u32MotionFirstTime=motionData.m_u32MotionStartTime;
 			motionData.m_u32MotionStatus=1;
-			motionData.m_u32MotionLastSecond=BEFORE_RECORD_MOTION_LASTTIME;
-			motionData.m_u32MotionTimesIsValid=BEFORE_RECORD_MOTION_TIMES;
-			motionData.m_u32MotionEndTime=END_RECORD_MOTION_TIME;
+			motionData.m_u32MotionLastSecond=DE_BEFORE_RECORD_MOTION_LASTTIME;
+			motionData.m_u32MotionTimesIsValid=DE_BEFORE_RECORD_MOTION_TIMES;
+			motionData.m_u32MotionEndTime=DE_END_RECORD_MOTION_TIME;
 			memset(motionData.m_u32MotionCountPerSecond,0,sizeof(motionData.m_u32MotionCountPerSecond));
 			u32RecordCmd=RECORDSTART;
 		}
@@ -509,9 +509,9 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 				{
 					motionData.m_u32MotionStatus=2;
 					motionData.m_u32MotionStartTime=getTickCountMs();
-					motionData.m_u32MotionLastSecond=CONTINUES_RECORD_MOTION_LASTTIME;
-					motionData.m_u32MotionTimesIsValid=CONTINUES_RECORD_MOTION_TIMES;
-					motionData.m_u32MotionEndTime=END_RECORD_MOTION_TIME;
+					motionData.m_u32MotionLastSecond=DE_CONTINUES_RECORD_MOTION_LASTTIME;
+					motionData.m_u32MotionTimesIsValid=DE_CONTINUES_RECORD_MOTION_TIMES;
+					motionData.m_u32MotionEndTime=DE_END_RECORD_MOTION_TIME;
 					memset(motionData.m_u32MotionCountPerSecond,0,sizeof(motionData.m_u32MotionCountPerSecond));
 				}
 				else
@@ -551,9 +551,9 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 				{
 					motionData.m_u32MotionStatus=2;
 					motionData.m_u32MotionStartTime=getTickCountMs();
-					motionData.m_u32MotionLastSecond=CONTINUES_RECORD_MOTION_LASTTIME;
-					motionData.m_u32MotionTimesIsValid=CONTINUES_RECORD_MOTION_TIMES;
-					motionData.m_u32MotionEndTime=END_RECORD_MOTION_TIME;
+					motionData.m_u32MotionLastSecond=DE_CONTINUES_RECORD_MOTION_LASTTIME;
+					motionData.m_u32MotionTimesIsValid=DE_CONTINUES_RECORD_MOTION_TIMES;
+					motionData.m_u32MotionEndTime=DE_END_RECORD_MOTION_TIME;
 					memset(motionData.m_u32MotionCountPerSecond,0,sizeof(motionData.m_u32MotionCountPerSecond));
 				}
 				else

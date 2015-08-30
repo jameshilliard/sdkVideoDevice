@@ -33,8 +33,8 @@ int main()
 	//LOGOUT("InitControlServer iRet=%d over",iRet);
 	//iRet=initAliyunOssTask();
 	//LOGOUT("initAliyunOssTask iRet=%d over",iRet);
-	//iRet=InitUdpSearch();
-	//LOGOUT("InitUdpSearch iRet=%d over",iRet);
+	iRet=InitUdpSearch();
+	LOGOUT("InitUdpSearch iRet=%d over",iRet);
 	while(g_main_start)
 	{
 		sleep(5);
