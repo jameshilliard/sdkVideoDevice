@@ -12,17 +12,15 @@ char g_szCfgFilePath[256] = {0};
         [in] - v_szFlashPath：存放配置信息文件的位置
         [out] - 
 **返回：FALSE:失败，TRUE:成功
-        
-**作者：沈海波, 2014-04-04
 **备注：
        1). 
 ************************************************************************/
-BOOL InitCfgMng(char *v_szFlashPath)
+BOOL InitCfgMng(const char *v_szFlashPath,tagConfigCfg *v_pstConfigCfg)
 {
 	BOOL bRet = TRUE;
-	if(NULL == v_szFlashPath)
+	if(NULL == v_szFlashPath || NULL==v_pstConfigCfg || 0==strlen(v_szFlashPath))
 	{
-		LOGOUT("v_szFlashPath is NULL!");
+		LOGOUT("v_szFlashPath or v_pstConfigCfg is NULL!");
 		bRet = FALSE;
 		goto _INIT_END;
 	}
@@ -30,14 +28,13 @@ BOOL InitCfgMng(char *v_szFlashPath)
 	pthread_mutex_init(&m_CfgMutex, NULL);
 	
 	FILE* _RdFile = NULL;
-	tagConfigCfg objConfigCfg;
 
 	memset(g_szCfgFilePath, 0, sizeof(g_szCfgFilePath));
 	sprintf(g_szCfgFilePath, "%s/%s", v_szFlashPath, CONFIGFILENAME);
 	_RdFile = fopen(g_szCfgFilePath, "rb+");
 	if(!_RdFile)
 	{
-		if(!InitConfigFile(v_szFlashPath))
+		if(!InitConfigFile(v_pstConfigCfg))
 		{
 			bRet = FALSE;
 			goto _INIT_END;
@@ -53,10 +50,10 @@ BOOL InitCfgMng(char *v_szFlashPath)
 		}
 	}
 	
-	fread((char*)&objConfigCfg, 1, sizeof(tagConfigCfg), _RdFile);
-	if(strncmp(CFGCHECKMSG, objConfigCfg.m_szSpecCode, MIN(sizeof(CFGCHECKMSG) - 1 , sizeof(objConfigCfg.m_szSpecCode) - 1)))
+	fread((char*)&v_pstConfigCfg, 1, sizeof(tagConfigCfg), _RdFile);
+	if(strncmp(CFGCHECKMSG, v_pstConfigCfg->m_szSpecCode, MIN(sizeof(CFGCHECKMSG) - 1 , sizeof(v_pstConfigCfg->m_szSpecCode) - 1)))
 	{
-		if(!InitConfigFile(v_szFlashPath))
+		if(!InitConfigFile(v_pstConfigCfg))
 		{
 			bRet = FALSE;
 			goto _INIT_END;
@@ -80,16 +77,13 @@ _INIT_END:
         [in] - v_szFlashPath:参数配置文件路径
         [out] - null
 **返回：FALSE:失败，TRUE:成功
-        
-**作者：沈海波, 2014-04-04
 **备注：
        1). 
 ************************************************************************/
-BOOL InitConfigFile()
+BOOL InitConfigFile(tagConfigCfg *v_pstConfigCfg)
 {
 	int i = 0;
 	FILE* _RdFile = NULL;
-
 	_RdFile = fopen(g_szCfgFilePath, "wb+");
 	if (!_RdFile)
 	{
@@ -102,8 +96,8 @@ BOOL InitConfigFile()
 	strcpy(objConfigCfg.m_szSpecCode, CFGCHECKMSG);
 
 	// tagMasterServerCfg主控参数默认值
-	strcpy(objConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP, ROUTESERVER);
-	objConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort = ROUTESERVERPORT;
+	strcpy(objConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP, DE_ROUTESERVER);
+	objConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort = DE_ROUTESERVERPORT;
 
 	// tagCapParamCfg摄像头信息默认参数
 	for (i = 0; i< MAXCAMERANUM; i++)
@@ -118,7 +112,23 @@ BOOL InitConfigFile()
 		objConfigCfg.m_unCapParamCfg.m_objCapParamCfg[i].m_bAlarmSwitch = DE_ALARMSWITCH;
 	}
 
+	//aliyun 配置
+	strcpy(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szBuctetName, DE_ALBUCKETNAME);
+	strcpy(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szOssEndPoint, DE_ALENDPOINT);
+	strcpy(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeyId, DE_ALACCESSKEYID);
+	strcpy(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeySecret, DE_ALACCESSSECRET);
+
+	
+	objConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iBefRecLastTime = DE_BEFORE_RECORD_MOTION_LASTTIME;
+	objConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iBefRecTimes = DE_BEFORE_RECORD_MOTION_TIMES;
+	objConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iConRecLastTime = DE_CONTINUES_RECORD_MOTION_LASTTIME;
+	objConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iConRecTimes = DE_CONTINUES_RECORD_MOTION_LASTTIME;
+	objConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iEndRecTime = DE_END_RECORD_MOTION_TIME;
+	
 	fwrite((char*)&objConfigCfg, sizeof(objConfigCfg), 1, _RdFile);
+	if(NULL!=v_pstConfigCfg)
+		memcpy((char*)v_pstConfigCfg,(char*)&objConfigCfg, sizeof(objConfigCfg));
+		
 	fflush(_RdFile);
 	fclose(_RdFile);
 
@@ -132,8 +142,6 @@ BOOL InitConfigFile()
 			   v_uiSaveBegin：保存的数据在tagConfigCfg结构体中的偏移位置
 			   v_uiSaveSize：保存的数据的结构体大小
 **返回：0：成功，其他：失败
-        
-**作者：沈海波, 2014-04-08
 **备注：
        1). 
 ************************************************************************/
@@ -155,7 +163,7 @@ int SetCfgFile(void *v_pSrc, unsigned int v_uiSaveBegin, unsigned int v_uiSaveSi
 	_RdFile = fopen(g_szCfgFilePath, "rb+");
 	if (!_RdFile)
 	{
-		if (!InitConfigFile())
+		if (!InitConfigFile(NULL))
 		{
 			iRet = ERR_CFG;
 			goto _SETCFGEND;
@@ -195,8 +203,6 @@ _SETCFGEND:
 			   v_uiGetBegin：获取的数据在tagConfigCfg结构体中的偏移位置
 			   v_uiGetSize：获取的数据的结构体大小
 **返回：0：成功，其他：失败
-        
-**作者：沈海波, 2014-04-08
 **备注：
        1). 
 ************************************************************************/
@@ -222,7 +228,7 @@ int GetCfgFile( void *v_pDes, unsigned int v_uiDesSize, unsigned int v_uiGetBegi
 	_RdFile = fopen(g_szCfgFilePath, "rb+");
 	if (!_RdFile)
 	{
-		if (!InitConfigFile())
+		if (!InitConfigFile(NULL))
 		{
 			iRet = ERR_CFG;
 			goto _GETCFGEND;

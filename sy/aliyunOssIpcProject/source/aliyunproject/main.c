@@ -7,16 +7,46 @@
 
 #include "LogOut/LogOut.h"
 #include "Common/Typedef.h"
-#include "Common/ConfigMng.h"
+#include "Common/DeviceConfig.h"
 #include "Common/ClientSocket.h"
+#include "Common/GlobVariable.h"
 #include "hisdk/hi_sdk.h"
 #include "toolComm/UdpSearch.h"
 
 BOOL g_main_start=TRUE;
 
+
+void InitAllConfig()
+{
+	INT32S iRet=InitDeviceConfig(DEVICECONFIGDIR,&g_stConfigCfg);
+	LOGOUT("InitCfgMng over iRet=%d",iRet);
+	iRet=GetServerNo(DEVICECONFIGDIR,g_szServerNO,sizeof(g_szServerNO));
+	if(0==strlen(g_szServerNO))
+	{
+		LOGOUT("GetServerNo over iRet=%d",iRet);
+	}
+	else
+	{
+		LOGOUT("GetServerNo %s over iRet=%d",g_szServerNO,iRet);
+	}	
+	iRet=GetProductId(DEVICECONFIGDIR,g_szProductId,sizeof(g_szProductId));
+	if(0==strlen(g_szProductId))
+	{
+		LOGOUT("GetProductId over iRet=%d",iRet);
+	}
+	else
+	{
+		LOGOUT("GetProductId %s over iRet=%d",g_szProductId,iRet);
+	}
+}
+
+void ReleaseAllConfig()
+{
+	ReleaseDeviceConfig();
+}
 int main()
 {
-	int iRet = 0;//
+	int iRet = 0;
 	sigset_t set;
 	sigemptyset(&set);
 	sigaddset(&set, SIGPIPE);
@@ -25,12 +55,7 @@ int main()
 	LOGOUT("Init_LogOut over");
 	iRet=InitHiSDKVideoAllChannel();
 	LOGOUT("InitHiSDKVideoAllChannel iRet=%d over",iRet);
-	//BOOL bRet=InitCfgMng(DEVICECONFIGDIR);
-	//LOGOUT("InitCfgMng over bRet=%d",bRet);
-	//iRet=InitNetwork(CMDBUFFER);
-	//LOGOUT("InitNetwork iRet=%d over",iRet);
-	//iRet=InitControlServer();
-	//LOGOUT("InitControlServer iRet=%d over",iRet);
+	InitAllConfig();
 	//iRet=initAliyunOssTask();
 	//LOGOUT("initAliyunOssTask iRet=%d over",iRet);
 	iRet=InitUdpSearch();
@@ -40,11 +65,10 @@ int main()
 		sleep(5);
 		//LOGOUT("client sleep");
 	}
+	RealseUdpSearch();
+	ReleaseAllConfig();
 	iRet=ReleaseHiSDKVideoAllChannel();
 	LOGOUT("InitHiSDKVideoAllChannel %d over",iRet);
-	//iRet=ReleaseControlServer();
-	//ReleaseNetwork();
-	//ReleaseCfgFile();
 	Release_LogOut();
 	return 0;
 }

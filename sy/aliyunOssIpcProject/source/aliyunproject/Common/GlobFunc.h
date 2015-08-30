@@ -7,18 +7,21 @@
 #  ifdef __cplusplus
 extern "C" {
 #  endif /* __cplusplus */
-	BOOL 	isDeviceAccess(const char *filePath);
+	INT32S 	isDeviceAccess(const char *filePath);
+	INT32S 	CreateConfigFile(char *v_szFilePath, char *v_szWriteBuf, int v_iLen);
+
+	INT32S  ReadConfigFile(char *v_szFilePath, char *v_szReadBuf, int v_iBufLen);
 	INT32U  getFreeMemory(void);
 	DWORD 	getTickCountMs();
 	void 	squeeze(char *s,int maxSize,int c);
 	DWORD	getFileSize(LPCTSTR path);
-	BOOL   	isFileSystemBigger(LPCTSTR sdDir,DWORD size);
-	BOOL 	creatDir(LPCTSTR pDir);
-	int 	split( char **szArray, char *v_szSplitStr, const char *v_szDdelim, int v_iArayNum);
+	INT32S  isFileSystemBigger(LPCTSTR sdDir,DWORD size);
+	INT32S	creatDir(LPCTSTR pDir);
+	INT32S 	split( char **szArray, char *v_szSplitStr, const char *v_szDdelim, int v_iArayNum);
 	INT32S 	writeFile(LPCTSTR filePath,LPCTSTR fileBuffer,DWORD size);
 	INT32S 	readFile(LPCTSTR filePath,LPCTSTR fileBuffer,DWORD bufferSize,DWORD *fileSize);
 	char * 	SY_base64Encode(const char *text);
-	int 	readMediaFile(const char *pszDir,char fileName[MAX_PATH]);
+	INT32S 	readMediaFile(const char *pszDir,char fileName[MAX_PATH]);
 #  ifdef __cplusplus
 }
 #  endif /* __cplusplus */

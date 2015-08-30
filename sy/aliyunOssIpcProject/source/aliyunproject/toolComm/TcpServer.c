@@ -1,22 +1,9 @@
 #include "TcpServer.h"
 
+
 // 配置文件路径
 char g_szFilePath[128] = {0};
 
-// 内核和应用程序下载的路径
-char g_szDownLoadPath[256] = {0};
-
-// 下载的文件信息
-stDownFileInfo g_stDwFileInfo;
-
-// 内核版本信息
-char g_szTcpKernelVer[40] = {0};
-
-// 主控ip地址集合和主控端口
-char g_szTcpMasterIps[200] = {0};
-int g_iTcpMasterPort = 8006;
-
-char g_szServerNO[32]={0,};
 
 typedef struct SocketStatus_
 {
@@ -38,8 +25,10 @@ InnerDataList *g_LogDataList = NULL;
 BOOL g_bUploadLogFile = FALSE;
 
 
+
 // 存放下载的临时包
 TcpRecvPacketBuf g_stRecvPacketBuf[CLIENTNUM];
+
 
 // 初始化接收缓存
 void TcpRecvBufInit(int v_iNum)
@@ -59,6 +48,7 @@ void TcpRecvBufRelease(int v_iNum)
 		g_stRecvPacketBuf[v_iNum].m_pRecvBuf = NULL;
 	}
 }
+
 
 // socket线程
 void *P_TcpServerSocketThread()
@@ -235,7 +225,7 @@ void *P_TcpServerRecvThread()
 								g_stRecvPacketBuf[i].m_iTotalLen += 4;
 								if(g_stRecvPacketBuf[i].m_iTotalLen == iRecvLen)
 								{
-									g_DataList->pushdata(g_DataList->_this, 1, iRecvLen, szRecvBuf, g_iConnectHost[i].m_iSocket, &dwPacketNum);
+									g_DataList->pushData(g_DataList->_this, 1, iRecvLen, szRecvBuf, g_iConnectHost[i].m_iSocket, &dwPacketNum);
 									g_stRecvPacketBuf[i].m_iTotalLen = 0;
 									break;
 								}
@@ -251,7 +241,7 @@ void *P_TcpServerRecvThread()
 
 							if(g_stRecvPacketBuf[i].m_iTotalLen == g_stRecvPacketBuf[i].m_iCurLen)
 							{
-								g_DataList->pushdata(g_DataList->_this, 1, g_stRecvPacketBuf[i].m_iTotalLen, g_stRecvPacketBuf[i].m_pRecvBuf, g_iConnectHost[i].m_iSocket, &dwPacketNum); 
+								g_DataList->pushData(g_DataList->_this, 1, g_stRecvPacketBuf[i].m_iTotalLen, g_stRecvPacketBuf[i].m_pRecvBuf, g_iConnectHost[i].m_iSocket, &dwPacketNum); 
 								g_stRecvPacketBuf[i].m_bFirstPacket = TRUE;
 								g_stRecvPacketBuf[i].m_iCurLen = 0;
 								g_stRecvPacketBuf[i].m_iTotalLen = 0;
@@ -291,7 +281,7 @@ void TcpSendCmdData(int v_iSocket, S_Data *v_stData)
 	SzySdkSendData(v_iSocket, (char*)&stSendXmlData, stSendXmlData.m_iXmlLen + 4);
 	//send(v_iSocket, (char*)&stSendXmlData, stSendXmlData.m_iXmlLen + 4, 0);
 }
-#if 0
+
 /************************************************************************
 **函数：SetDeviceOrProduceId
 **功能：设置设备编号或者产品型号函数
@@ -304,6 +294,7 @@ void TcpSendCmdData(int v_iSocket, S_Data *v_stData)
 **备注：
        1). devtool协议ID，设备编号：5005，产品型号：5006
 ************************************************************************/
+
 void SetDeviceOrProduceId(int v_iSocket, S_Data *v_stDeCodeData)
 {
 	if(-1 == v_iSocket || NULL == v_stDeCodeData)
@@ -336,25 +327,29 @@ void SetDeviceOrProduceId(int v_iSocket, S_Data *v_stDeCodeData)
 		{
 			sprintf(szPath, "%s/%s",g_szFilePath,PRODUCTFILENAME);
 		}
-
 		bRet = CreateConfigFile(szPath, v_stDeCodeData->params[0].szValue, strlen(v_stDeCodeData->params[0].szValue));
-
 		if(bRet)
 		{
-			SetDeviceMask(v_stDeCodeData->params[0].szValue, iSetType);
+			if(0==iSetType)
+			{
+				SetServerNo(g_szFilePath,v_stDeCodeData->params[0].szValue,sizeof(g_szServerNO));
+			}
+			else if(1==iSetType)
+			{
+				SetProductId(g_szFilePath,v_stDeCodeData->params[0].szValue,sizeof(g_szProductId));
+			}
 		}
 		memset(&stDataEnCode, 0, sizeof(stDataEnCode));
-
 		stDataEnCode.szCommandId = v_stDeCodeData->szCommandId;
 		sprintf(stDataEnCode.szCommandName, "%d",stDataEnCode.szCommandId);
 		strcpy(stDataEnCode.szType , CONNETTYPE);
 		SetXmlValue(&stDataEnCode, "result", bRet?"10000":"0");
-
 		TcpSendCmdData(v_iSocket, &stDataEnCode);
 		FreeXmlValue(&stDataEnCode);
 	}
 }
 
+#if 0
 
 // 密码校验
 void CheckPassword(int v_iSocket, S_Data *v_stDeCodeData)
@@ -1008,7 +1003,7 @@ void *P_TcpServerSendThread()
 		dwPushSym = 0;
 		dwPopLen = 0;
 		memset(&stXmlData, 0, sizeof(stXmlData));
-		if(!g_DataList->popdata(g_DataList->_this, &bytLyv, &dwPushSym, sizeof(stXmlData), &dwPopLen, (char*)&stXmlData))
+		if(!g_DataList->popData(g_DataList->_this, &bytLyv, &dwPushSym, sizeof(stXmlData), &dwPopLen, (char*)&stXmlData))
 		{
 			stDataDe.szCommandId = 0;
 			DeCode(stXmlData.szXmlDataBuf, &stDataDe);
@@ -1026,6 +1021,17 @@ void *P_TcpServerSendThread()
 			//LOGOUT("tcpServer socketid:%d commandId:%d ",dwPushSym,iCommandId);
 			switch(iCommandId)
 			{
+			case 5005:
+				{	
+					SetDeviceOrProduceId(dwPushSym, &stDataDe);
+				}
+				break;
+				
+			case 5006:
+				{	
+					SetDeviceOrProduceId(dwPushSym, &stDataDe);
+				}
+				break;
 			#if 0
 			case 5000:
 				{
@@ -1057,17 +1063,7 @@ void *P_TcpServerSendThread()
 				}
 				break;
 
-			case 5005:
-				{	
-					SetDeviceOrProduceId(dwPushSym, &stDataDe);
-				}
-				break;
-				
-			case 5006:
-				{	
-					SetDeviceOrProduceId(dwPushSym, &stDataDe);
-				}
-				break;
+
 
 			case 5010:
 				{
@@ -1135,14 +1131,8 @@ int InitTcpServer(const char v_szCfgFilePath)
 	g_bExitTcpServer = FALSE;
 
 	g_DataList = (InnerDataList*)ListConstruction();
-	g_DataList->initcfg(g_DataList->_this,2*1024*1024,1000000000);
+	g_DataList->initCfg(g_DataList->_this,2*1024*1024,1000000000);
 	
-
-	char szPath[256]={0,};
-	memset(g_szServerNO, 0, sizeof(g_szServerNO));
-	sprintf(szPath, "%s/%s",v_szCfgFilePath, SERVERNOFILENAME);
-	ReadConfigFile(szPath, g_szServerNO, sizeof(g_szServerNO));
-
 	int iRet;
 	pthread_t pThreadMng;
 	pthread_t pThreadSend;
@@ -1170,8 +1160,11 @@ int InitTcpServer(const char v_szCfgFilePath)
 	}
 	pthread_detach(pThreadSend);
 
+
+	
 	return 0;
 }
+
 
 // 释放devtool TCP服务器
 void ReleaseTcpServer()

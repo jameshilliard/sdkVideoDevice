@@ -1,7 +1,6 @@
 #ifndef _SZY_CONFIGDEF_H_
 #define _SZY_CONFIGDEF_H_
 #include 	"Typedef.h"
-#include 	"GlobVariable.h"
 
 #if !defined(_MSC_VER)
 #define PACKED_1 __attribute__( (packed, aligned(1)) )
@@ -32,7 +31,7 @@
 
 #define LOGSIZE					256*1024
 #define CMDBUFFER				256*1024
-#define DEVICECONFIGDIR			"/mnt/mtd/ipc"
+#define DEVICECONFIGDIR			"/mnt/mtd/ipc/sykj"
 #define	LOGDIR					"/mnt/mtd/ipc/tmpfs/syflash"
 #define TEMPDIR 				"/mnt/mtd/ipc/tmpfs/sytmp"
 
@@ -40,7 +39,7 @@
 #define DE_ROUTESERVER			"www.sy.com"
 
 #define	DE_DEVICEPRODUCT		"SYKJ"
-#define DE_DEVICEMODEL 			"MOTION"
+#define DE_DEVICEMODEL 			"MD1.0"
 #define DE_DEVICETYPE			"IPC"
 #define	DE_DEFAULTDEVICEMACADDR	"00-00-00-00-00-00"
 #define	DEVICECHANNELNUM		1
@@ -54,43 +53,31 @@
 
 
 // tagCapParamCfg摄像头信息默认参数
-#define DE_BITRATE			50					// 码率
-#define DE_FRAMERATE		8					// 帧率
-#define DE_HEIGHT			480					// 视频高
-#define DE_WIDTH			640					// 视频高
-#define DE_QPCONSTANT		24					// 视频质量
-#define DE_KEYFRAMERATE		128					// 关键帧间隔
-#define DE_OPENAUDIO		0					// 音频是否打开
-#define DE_ALARMSWITCH		1					// 布防/撤防
+#define DE_BITRATE				50					// 码率
+#define DE_FRAMERATE			8					// 帧率
+#define DE_HEIGHT				480					// 视频高
+#define DE_WIDTH				640					// 视频高
+#define DE_QPCONSTANT			24					// 视频质量
+#define DE_KEYFRAMERATE			128					// 关键帧间隔
+#define DE_OPENAUDIO			0					// 音频是否打开
+#define DE_ALARMSWITCH			1					// 布防/撤防
 
 
 #define DE_BEFORE_RECORD_MOTION_LASTTIME		5
 #define DE_BEFORE_RECORD_MOTION_TIMES			3
-
 #define DE_CONTINUES_RECORD_MOTION_LASTTIME		5
 #define DE_CONTINUES_RECORD_MOTION_TIMES		3
-
 #define	DE_END_RECORD_MOTION_TIME				3*60
-
 
 #define LCM_80(x) ((0==(x)%80) ? (x) : (80*(((x)+80)/80)))   //80的最小整数倍
 
-typedef struct PACKED_(8) tagDevInfoCfg_
-{
-	char	m_szDeviceId[80];		// 设备ID
-	char	m_szProductMode[80];	// 设备型号
-	char	m_szPassword[80];		// 设备密码
-	char    m_szDeviceName[80];	
-	char 	m_szReserver[80];
-}tagDevInfoCfg;
-
-typedef struct PACKED_(8) tagMasterServerCfg_
+typedef struct __attribute__((packed, aligned(8))) tagMasterServerCfg_
 {
 	int 	m_iMasterPort;		// 主控端口
 	char	m_szMasterIP[236];	// 主控IP
 }tagMasterServerCfg;
 
-typedef struct PACKED_(8) tagCapParamCfg_
+typedef struct __attribute__((packed, aligned(8))) tagCapParamCfg_
 {
 	WORD		m_wBitRate;			// 码率
 	BYTE		m_wFrameRate;		// 帧率
@@ -104,8 +91,15 @@ typedef struct PACKED_(8) tagCapParamCfg_
 	char		m_szReserve[20];	// 预留空间		
 }tagCapParamCfg;
 
+typedef struct __attribute__((packed, aligned(8))) tagDevInfoCfg_
+{
+	char	m_szPassword[80];		// 设备密码
+	char    m_szDeviceName[80];		
+	char 	m_szReserver[80];
+}tagDevInfoCfg;
+
 	
-typedef struct PACKED_(8) tagAliyunOssCfg_
+typedef struct __attribute__((packed, aligned(8))) tagAliyunOssCfg_
 {
 	char 		m_szBuctetName[80];
 	char 		m_szOssEndPoint[80];
@@ -115,7 +109,7 @@ typedef struct PACKED_(8) tagAliyunOssCfg_
 }tagAliyunOssCfg;
 
 
-typedef struct PACKED_(8) tagMotionCfg_
+typedef struct __attribute__((packed, aligned(8))) tagMotionCfg_
 {
 	INT32U		m_iBefRecLastTime;				
 	INT32U		m_iBefRecTimes;		
@@ -125,7 +119,7 @@ typedef struct PACKED_(8) tagMotionCfg_
 	char 		m_szReserver[60];
 }tagMotionCfg;
 
-typedef struct PACKED_(8) tagConfigCfg_
+typedef struct __attribute__((packed, aligned(8))) tagConfigCfg_
 {
 	char	m_szSpecCode[80];
 
@@ -160,7 +154,7 @@ typedef struct PACKED_(8) tagConfigCfg_
 	{
 		char		m_szReserved[LCM_80(sizeof(tagMotionCfg))];
 		tagMotionCfg 	m_objMotionCfg;
-	} m_unAliyunOssCfg;
+	} m_unMotionCfg;
 
 }tagConfigCfg;
 

@@ -14,25 +14,96 @@ INT32U getFreeMemory(void)
     return s_info.freeram;
 }
 
-BOOL isDeviceAccess(const char *filePath)
+/************************************************************************
+**函数：CreateConfigFile
+**功能：创建配置文件
+**参数：
+        [in] - v_szFilePath：配置文件的路径（包含配置文件名字）
+		       v_szWriteBuf：写入配置文件的数据缓存指针
+			   v_iLen：写入配置文件的数据长度
+**返回：void
+        
+**备注：
+       1). 目前只用来创建设备编号和产品型号配置文件
+************************************************************************/
+INT32S CreateConfigFile(char *v_szFilePath, char *v_szWriteBuf, int v_iLen)
 {
-    INT32S iRet = FALSE;
+	if((v_szFilePath == NULL)||(v_szWriteBuf == NULL))
+	{
+		LOGOUT("v_szFilePath is %d,v_szWriteBuf is %d",(int)(v_szFilePath==NULL),(int)(v_szWriteBuf==NULL));
+		return -1;
+	}
+
+	FILE *fp = NULL;
+	fp = fopen(v_szFilePath, "w+");
+	if(fp == NULL)
+	{
+		LOGOUT("create %s failed , fopen error" ,v_szFilePath);
+		return -2;
+	}
+	unsigned int len = fwrite(v_szWriteBuf, 1, v_iLen, fp);
+	if(len != v_iLen)
+	{
+		LOGOUT("create %s failed , fwrite len error", v_szFilePath);
+		fclose(fp);
+		return -3;
+	}
+	fclose(fp);
+	return 0;
+}
+
+/************************************************************************
+**函数：ReadConfigFile
+**功能：读取文件的内容
+**参数：
+[in] - v_szFilePath：配置文件的路径（包含配置文件名字）
+	   v_szReadBuf：存放读取配置文件的数据缓存指针
+	   v_iBufLen：存放读取配置文件的数据缓冲区大小
+**返回：void
+**备注：
+1). 目前只用来读取设备编号和产品型号
+************************************************************************/
+INT32S ReadConfigFile(char *v_szFilePath, char *v_szReadBuf, int v_iBufLen)
+{
+	if((v_szFilePath == NULL) || (v_szReadBuf == NULL))
+	{
+		LOGOUT("v_szFilePath is %d,v_szReadBuf is %d",(int)(v_szFilePath==NULL),(int)(v_szReadBuf==NULL));
+		return -1;
+	}
+	FILE *fp = NULL;
+	
+	fp = fopen(v_szFilePath, "r");
+	if(fp == NULL)
+	{
+		LOGOUT("readServerNo failed , fopen serverNo error");
+		return -2;
+	}
+	fread(v_szReadBuf, 1, v_iBufLen, fp);
+
+	LOGOUT("v_szReadBuf = %s", v_szReadBuf);
+	fclose(fp);
+	return 0;
+}
+
+INT32S isDeviceAccess(const char *filePath)
+{
+    INT32S iRet = -1;
 	if(NULL == filePath)
 	{
 		printf("filePath is NULL\n");
-		return FALSE;
+		return -1;
 	}
 	if(0 == strlen(filePath))
 	{
         printf("filePath size is 0\n");
-        return FALSE;
+        return -2;
 	}
 	iRet = access(filePath,F_OK);
 	
 	if(iRet < 0)
-		return FALSE;
+		return iRet;
 	else
-		return TRUE;
+		return 0;
 }
 
 
@@ -93,7 +164,7 @@ void squeeze(char *s,int maxSize,int c)
 	if(j!=(maxSize-1))
 		s[j]='\0';//这一条语句千万不能忘记，字符串的结束标记
 }
-BOOL isFileSystemBigger(LPCTSTR sdDir,DWORD size) 
+INT32S isFileSystemBigger(LPCTSTR sdDir,DWORD size) 
 {
 	struct statfs disk_statfs;
 	DWORD  totalspace = 0;
@@ -102,20 +173,20 @@ BOOL isFileSystemBigger(LPCTSTR sdDir,DWORD size)
 		totalspace = (((INT64S)disk_statfs.f_bsize * (INT64S)disk_statfs.f_blocks) /(INT64S)1024);
 	}else
 	{
-		return FALSE;
+		return -1;
 	}
 	if( totalspace < size)
 	{
-		return FALSE;
+		return -2;
 	}
-	return TRUE;
+	return 0;
 }
-int split( char **szArray, char *v_szSplitStr, const char *v_szDdelim, int v_iArayNum)
+INT32S split( char **szArray, char *v_szSplitStr, const char *v_szDdelim, int v_iArayNum)
 {
 	if((v_szSplitStr == NULL)||(szArray == NULL)||(v_szDdelim == NULL))
 	{
 	    LOGOUT("v_szSplitStr is %d,szArray is %d,v_szDdelim is %d",(int)(v_szSplitStr == NULL),(int)(szArray == NULL),(int)(v_szDdelim == NULL));
-		return 0;
+		return -1;
 	}
 	char *s = NULL; 
 	int iArrayCount = 0;
@@ -197,7 +268,7 @@ int SzySdkSendData(int v_iSocket, char *v_szSendBuf, int v_iSendLen)
 	return -1;
 }
 
-BOOL creatDir(LPCTSTR pDir)  
+INT32S creatDir(LPCTSTR pDir)  
 {  
     INT32S i = 0;  
     INT32S iRet;  
@@ -275,7 +346,7 @@ int readMediaFile(const char *pszDir,char fileName[MAX_PATH])
 		return -1;
 	if(strlen(pszDir)==0)
 		return -1;
-	if(isDeviceAccess(pszDir)==FALSE)
+	if(0==isDeviceAccess(pszDir))
 	{
 		return -1;
 	}

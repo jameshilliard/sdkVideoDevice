@@ -7,6 +7,8 @@
 #include "../Common/GlobFunc.h"
 #include "../Common/Typedef.h"
 #include "../mp4v2/joseph_g711a_h264_to_mp4.h"
+#include "../Common/Configdef.h"
+
 
 #if 0
 #include "../Common/InnerDataMng.h"
@@ -258,12 +260,12 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 			localTime+=CHINATIME;
 			getTimeNameString(localTime,timeString,128);
 
-			if(isDeviceAccess(SYSTEM_MEDIA_SAVEFILEPATH)==FALSE)
+			if(0==isDeviceAccess(SYSTEM_MEDIA_SAVEFILEPATH))
 			{
 				mkdir(SYSTEM_MEDIA_SAVEFILEPATH,0777);
 				LOGOUT("mkidr %s",SYSTEM_MEDIA_SAVEFILEPATH);
 			}
-			if(isDeviceAccess(SYSTEM_MEDIA_SENDFILEPATH)==FALSE)
+			if(0==isDeviceAccess(SYSTEM_MEDIA_SENDFILEPATH))
 			{
 				mkdir(SYSTEM_MEDIA_SENDFILEPATH,0777);
 				LOGOUT("mkidr %s",SYSTEM_MEDIA_SENDFILEPATH);

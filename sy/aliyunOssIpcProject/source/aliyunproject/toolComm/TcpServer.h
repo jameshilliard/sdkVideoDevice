@@ -1,26 +1,22 @@
 #ifndef _SY_TCPSERVER_H_
 #define _SY_TCPSERVER_H_
 
-#if 0
-#include "../GlobalShare/szyTypedef.h"
-#include "../GlobalShare/InnerDataMng.h"
+#include "../Common/Typedef.h"
+#include "../Common/InnerDataMng.h"
 #include "../mxml/mxmlparser.h"
-#include "../GlobalShare/ConfigMng.h"
-#include "../GlobalShare/GlobFunc.h"
-#include "../Con2Server/ConCtrl.h"
-#include "../Con2Server/ConMaster.h"
-#include "../GlobalShare/SDKconfig.h"
-#include "../szySDKdefine.h"
-#include "../idDevice/UserMng.h"
-#include "../idDevice/idDeviceClient.h"
+#include "../Common/ConfigMng.h"
+#include "../Common/GlobFunc.h"
+#include "../Common/DeviceConfig.h"
+#include "../Common/GlobVariable.h"
 
-#define BUFFLEN 64*1024
-#define BACKLOG 5
-#define CLIENTNUM 32
 
-#define GETFILELEN 192*1024 // 最大发送的文件数据长度 192*1024
-
+#define SERVER_PORT 		60025
+#define BUFFLEN 			64*1024
+#define BACKLOG 			5
+#define CLIENTNUM 			32
+#define GETFILELEN 			192*1024 // 最大发送的文件数据长度 192*1024
 #define UPLOADLOGTIMEOUT	30000
+#define TCPXMLDATALEN 		65*1024
 
 enum TCPSERVER_WORK_STA
 {
@@ -30,7 +26,6 @@ enum TCPSERVER_WORK_STA
 	T_TcpDisConn
 };
 
-#define TCPXMLDATALEN 65*1024
 typedef struct TcpXmlData_
 {
 	int m_iXmlLen;						// 数据长度（xml类型+xml数据内容长度+结束符长度）
@@ -66,7 +61,7 @@ typedef struct UploadLogInfo_
 #  ifdef __cplusplus
 extern "C" {
 #  endif /* __cplusplus */
-	int  InitTcpServer();
+	int InitTcpServer(const char v_szCfgFilePath);
 	void TcpFreeMemory();
 	void ReleaseTcpServer();
 	//void TcpSendCmdData(int v_iSocket, S_Data *v_stData);
@@ -74,6 +69,5 @@ extern "C" {
 }
 #  endif /* __cplusplus */
 
-#endif
 
 #endif

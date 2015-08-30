@@ -1,6 +1,8 @@
 #include "UdpSearch.h"
 #include "../hisdk/hi_param.h"
 
+
+
 BOOL bQuitUdpSearch = FALSE;
 BOOL bQuit = FALSE;
 
@@ -9,7 +11,7 @@ struct sockaddr_in g_updScanPcAddr;
 struct sockaddr_in LocalCastAddr;// 本地广播地址
 
 char szLastServerNo[64]={0};
-int  szLastServerPort[64]={0};
+char szLastServerPort[64]={0};
 char szLastServer[200]={0};
 char szLastHttpPort[64]={0};
 
@@ -30,7 +32,7 @@ void SendXmlDataInfo(S_Data sv_data)
 	char szPort[32]={0};
 	char szServerStatus[32]={0};
 	char szServerNo[64]={0};
-	int  szServerPort[64]={0};
+	char szServerPort[64]={0};
 	char szServer[200]={0};
 	char szHttpPort[64]={0};
 	
@@ -56,9 +58,9 @@ void SendXmlDataInfo(S_Data sv_data)
 		SetXmlValue(&stData, "mac", System_MACAddress);	
 		SetXmlValue(&stData, "ipmask", Network_Subnet);
 		//设备类型 设备厂商 设备型号 设备码
-		SetXmlValue(&stData, "devicetype",DEVICETYPE);
-		SetXmlValue(&stData, "deviceproduct",DEVICEPRODUCT);
-		SetXmlValue(&stData, "devicemode",DEVICEMODEL);
+		SetXmlValue(&stData, "devicetype",DE_DEVICETYPE);
+		SetXmlValue(&stData, "deviceproduct",DE_DEVICEPRODUCT);
+		SetXmlValue(&stData, "devicemode",DE_DEVICEMODEL);
 		
 		iRet=getStringParams(CONFIGPLATFORM,ServerNoString,szServerNo,sizeof(szServerNo));
 		if(iRet!=0)
@@ -171,38 +173,6 @@ void SendXmlDataInfo(S_Data sv_data)
 	
 }
 
-
-int GetResult(S_Data sv_data,char *reData,int size)
-{
-	if(reData==NULL)
-		return -1;
-	S_Data re_sData;
-	int i=0;
-	memset(&re_sData,0,sizeof(re_sData));
-	DeCode(reData,&re_sData);
-	if(sv_data.szCommandId==re_sData.szCommandId)
-	{
-		LOGOUT("center receive serverinfo");
-		if(strcmp(re_sData.szCommandName,"9999")==0)
-		{
-			for(i=0;i<re_sData.iParamCount;i++)
-			{
-				LOGOUT("center receive serverinfo");
-				if(strcmp(re_sData.params[i].szKey,"result")==0)
-				{
-					LOGOUT("center receive serverinfo");
-					if(strcmp(re_sData.params[i].szValue,"1")==0)
-						return 0;
-				}
-			}
-		}
-		else
-			return -1;
-	}
-	else
-		return -1;
-}
-	
 // 搜索线程
 void SearchServerThread()
 {
