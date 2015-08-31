@@ -27,7 +27,7 @@ CSRCS += $(wildcard ./mp4v2/*.c)
 CSRCS += $(wildcard ./oss/*.c)
 CSRCS += $(wildcard ./mxml/*.c)
 
-VPATH = ./Common:./LogOut:./hisdk:./UdpSearch:./mxml:./mp4v2:./oss
+VPATH = ./Common:./LogOut:./hisdk:./toolComm:./mxml:./mp4v2:./oss
 
 OBJDIR := ./objs
 DEPDIR := ./deps

@@ -51,6 +51,7 @@ BOOL InitCfgMng(const char *v_szFlashPath,tagConfigCfg *v_pstConfigCfg)
 	}
 	
 	fread((char*)v_pstConfigCfg, 1, sizeof(tagConfigCfg), _RdFile);
+	//printf("---%s-----\n",v_pstConfigCfg->m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP);
 	if(strncmp(CFGCHECKMSG, v_pstConfigCfg->m_szSpecCode, MIN(sizeof(CFGCHECKMSG) - 1 , sizeof(v_pstConfigCfg->m_szSpecCode) - 1)))
 	{
 		if(!InitConfigFile(v_pstConfigCfg))
@@ -93,10 +94,10 @@ BOOL InitConfigFile(tagConfigCfg *v_pstConfigCfg)
 
 	tagConfigCfg objConfigCfg;
 	memset(&objConfigCfg, 0, sizeof(objConfigCfg));
-	strcpy(objConfigCfg.m_szSpecCode, CFGCHECKMSG);
+	strncpy(objConfigCfg.m_szSpecCode, CFGCHECKMSG,sizeof(objConfigCfg.m_szSpecCode));
 
 	// tagMasterServerCfg主控参数默认值
-	strcpy(objConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP, DE_ROUTESERVER);
+	strncpy(objConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP, DE_ROUTESERVER,sizeof(objConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP));
 	objConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort = DE_ROUTESERVERPORT;
 
 	// tagCapParamCfg摄像头信息默认参数
@@ -113,10 +114,10 @@ BOOL InitConfigFile(tagConfigCfg *v_pstConfigCfg)
 	}
 
 	//aliyun 配置
-	strcpy(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szBuctetName, DE_ALBUCKETNAME);
-	strcpy(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szOssEndPoint, DE_ALENDPOINT);
-	strcpy(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeyId, DE_ALACCESSKEYID);
-	strcpy(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeySecret, DE_ALACCESSSECRET);
+	strncpy(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szBuctetName, DE_ALBUCKETNAME,sizeof(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szBuctetName));
+	strncpy(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szOssEndPoint, DE_ALENDPOINT,sizeof(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szOssEndPoint));
+	strncpy(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeyId, DE_ALACCESSKEYID,sizeof(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeyId));
+	strncpy(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeySecret, DE_ALACCESSSECRET,sizeof(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeySecret));
 
 	
 	objConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iBefRecLastTime = DE_BEFORE_RECORD_MOTION_LASTTIME;
@@ -124,6 +125,8 @@ BOOL InitConfigFile(tagConfigCfg *v_pstConfigCfg)
 	objConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iConRecLastTime = DE_CONTINUES_RECORD_MOTION_LASTTIME;
 	objConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iConRecTimes = DE_CONTINUES_RECORD_MOTION_LASTTIME;
 	objConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iEndRecTime = DE_END_RECORD_MOTION_TIME;
+
+	strncpy(objConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,DE_SECRET,sizeof(objConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword));
 	
 	fwrite((char*)&objConfigCfg, sizeof(objConfigCfg), 1, _RdFile);
 	if(NULL!=v_pstConfigCfg)

@@ -11,6 +11,7 @@ typedef struct S_Data
 {
 	int commandId;
 	CString commandName;
+	CString commandType;
 	map<CString,CString> params;
 	void CopyHead(S_Data *pData)
 	{

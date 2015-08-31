@@ -17,6 +17,7 @@ INT32S SetServerNo(const char *v_szFlashPath,char *v_szServerNo,INT32U length)
 	memset(szPath, 0, sizeof(szPath));
 	sprintf(szPath, "%s/%s",v_szFlashPath, SERVERNOFILENAME);
 	INT32S iRet=CreateConfigFile(szPath, v_szServerNo, length);
+	LOGOUT("set serverNo %s,iRet=%d",v_szServerNo,iRet);
 	return iRet;
 }
 
@@ -62,6 +63,40 @@ INT32S GetProductId(const char *v_szFlashPath,char *v_szProductId,INT32U length)
 	sprintf(szPath, "%s/%s",v_szFlashPath, PRODUCTFILENAME);
 	INT32S iRet=ReadConfigFile(szPath, v_szProductId, length);
 	return iRet;
+}
+
+INT32S SetServerIpAndPort(const char *v_szFlashPath,char *v_szServerIp,INT32U length,INT32U v_iPort)
+{
+	if(NULL==v_szFlashPath || 0==strlen(v_szFlashPath) || NULL==v_szServerIp)
+	{
+		LOGOUT("v_szFlashPath or v_szProductId is NULL or strlen = 0");
+		return -1;
+	}
+	int iRet=-1;
+	tagMasterServerCfg objSetMasterInfo = {0};
+	memset(&objSetMasterInfo,0,sizeof(tagMasterServerCfg));
+	strncpy(objSetMasterInfo.m_szMasterIP,v_szServerIp,sizeof(objSetMasterInfo.m_szMasterIP));
+	objSetMasterInfo.m_iMasterPort = v_iPort;
+	iRet = SetCfgFile(&objSetMasterInfo, offsetof(tagConfigCfg, m_unMasterServerCfg.m_objMasterServerCfg), sizeof(tagMasterServerCfg));
+	LOGOUT("set serverIP=%s,port=%d,iRet=%d",v_szServerIp,v_iPort,iRet);
+	return iRet;
+}
+
+INT32S SetSecret(const char *v_szFlashPath,char *v_szSecret,INT32U length)
+{
+	if(NULL==v_szFlashPath || 0==strlen(v_szSecret) || NULL==v_szSecret)
+	{
+		LOGOUT("v_szFlashPath or v_szProductId is NULL or strlen = 0");
+		return -1;
+	}
+	int iRet=-1;
+
+	tagDevInfoCfg objDevInfoCfg;
+	memset(&objDevInfoCfg,0,sizeof(objDevInfoCfg));
+	strncpy(objDevInfoCfg.m_szPassword,DE_SECRET,sizeof(objDevInfoCfg.m_szPassword));
+	iRet = SetCfgFile(&objDevInfoCfg, offsetof(tagConfigCfg, m_unDevInfoCfg.m_objDevInfoCfg), sizeof(tagDevInfoCfg));
+	LOGOUT("set secret=%s,iRet=%d",v_szSecret,iRet);
+	return iRet;	
 }
 
 INT32S InitDeviceConfig(const char *v_szFlashPath,tagConfigCfg *g_pstConfigCfg)

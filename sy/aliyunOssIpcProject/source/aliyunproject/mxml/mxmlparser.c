@@ -9,7 +9,6 @@
         [out] - szBuf：存放编码完后的数据内容的缓冲区
 **返回：编码完成后的数据长度
         
-**作者：沈海波, 2014-04-04
 **备注：
        1). 
 ************************************************************************/
@@ -117,7 +116,6 @@ int EnCode(char *szBuf, int iLen, S_Data *v_sData)
         [out] - v_sData：存放返回结果结构体指针
 **返回：void
         
-**作者：沈海波, 2014-04-04
 **备注：
        1). 
 ************************************************************************/
@@ -178,13 +176,13 @@ void DeCode(char *szBuf, S_Data *v_sData)
 	}
 	
 
-	params = mxmlFindElement(command, xml, "params",NULL,NULL,MXML_DESCEND);
-	if(NULL != params)
-	{
-		goto _DECODE_END;
-	}
+	//zss++params = mxmlFindElement(command, xml, "params",NULL,NULL,MXML_DESCEND);
+	//zss++if(NULL != params)
+	//zss++{
+	//zss++	goto _DECODE_END;
+	//zss++}
 	
-	param = mxmlFindElement(params, xml, "param",NULL,NULL,MXML_DESCEND);
+	param = mxmlFindElement(command, xml, "param",NULL,NULL,MXML_DESCEND);
 	if(NULL == param)
 	{	
 		goto _DECODE_END;
@@ -285,7 +283,6 @@ _DECODE_END:
         [in] - v_sData:xml存储数据结构
 			   v_szKey：xml的key
 			   v_szValue：xml的值
-**作者：沈海波, 2014-04-15
 **备注：
        1). 
 ************************************************************************/
@@ -311,7 +308,6 @@ void SetXmlValue(S_Data *v_sData, const char *v_szKey, const char *v_szValue)
 **功能：释放xml数据的value的空间
 **参数：
         [in] - v_sData:xml存储数据结构
-**作者：沈海波, 2014-04-15
 **备注：
        1). 
 ************************************************************************/

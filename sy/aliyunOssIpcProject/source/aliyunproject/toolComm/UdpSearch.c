@@ -47,33 +47,26 @@ static INT32S resolveCmd1000(S_Data *v_pstData,char *v_szDeviceIp, char *v_szDev
 	SetXmlValue(v_pstData, "deviceproduct",DE_DEVICEPRODUCT);
 	SetXmlValue(v_pstData, "devicemode",DE_DEVICEMODEL);
 	
-	iRet=getStringParams(CONFIGPLATFORM,ServerNoString,szServerNo,sizeof(szServerNo));
-	if(iRet!=0)
-		LOGOUT("getServerNo is error iRet=%d",iRet);
-	iRet=getStringParams(CONFIGPLATFORM,ServerString1,szServer,sizeof(szServer));
-	if(iRet!=0)
-		LOGOUT("get server1 string is error iRet=%d",iRet);
-	
-	if(0==strlen(g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword));
+	if(0!=strlen(g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword));
 	{
 		sprintf(szSecret,"%s",g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword);
 		LOGOUT("get secret:%s",szSecret);
 		SetXmlValue(v_pstData, "secret",szSecret);
 	}
-	if(0==strlen(g_szServerNO))
+	if(0!=strlen(g_szServerNO))
 	{
 		strcpy(szServerNo,g_szServerNO);
 		LOGOUT("get serverNo:%s",g_szServerNO);
 		SetXmlValue(v_pstData, "deviceno",szServerNo);
 	}
-	if(0==strlen(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP))
+	if(0!=strlen(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP))
 	{
 		sprintf(szServer,"%s",g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP);
 		LOGOUT("get server:%s",szServer);
 		SetXmlValue(v_pstData, "server",szServer);
 	}
 	sprintf(szServerPort,"%d",g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort);
-	LOGOUT("get port:%d",szServerPort);
+	LOGOUT("get port:%s",szServerPort);
 	SetXmlValue(v_pstData, "serverport",szServerPort);
 	iRet=getStringParams(NETFILE,HttpPort,szHttpPort,sizeof(szHttpPort));
 	if(iRet!=0)
@@ -91,15 +84,16 @@ static INT32S resolveCmd1002(S_Data *v_pSData,S_Data *v_pstData,char *v_szDevHwM
 	int i=0;
 	int isValidPacket=0;
 	char server[236]={0,};
-	char port[16]={0,};
-	LOGOUT("test %d",v_pSData->iParamCount);
+	char port[80]={0,};
+	char deviceId[80]={0,};
+	char secret[80]={0,};
+	INT32U iPort=0;
 	for(i=0;i<v_pSData->iParamCount;i++)
 	{
 		if(strcmp(v_pSData->params[i].szKey,"mac")==0)
 		{
 			if(strcmp(v_pSData->params[i].szValue,v_szDevHwMask)==0)
 			{
-				LOGOUT("test");
 				isValidPacket=1;
 			}
 		}
@@ -110,12 +104,35 @@ static INT32S resolveCmd1002(S_Data *v_pSData,S_Data *v_pstData,char *v_szDevHwM
 		if(strcmp(v_pSData->params[i].szKey,"port")==0)
 		{
 			strcpy(port,v_pSData->params[i].szValue);
+			iPort=atoi(port);
 		}
+		if(strcmp(v_pSData->params[i].szKey,"id")==0)
+		{
+			strcpy(deviceId,v_pSData->params[i].szValue);
+		}
+		if(strcmp(v_pSData->params[i].szKey,"secret")==0)
+		{
+			strcpy(secret,v_pSData->params[i].szValue);
+		}
+		
 	}
 	if(isValidPacket==1)
 	{
 		LOGOUT("test");
-		//setMasterAndPort(server,atoi(port));
+		strncpy(g_szServerNO,deviceId,sizeof(g_szServerNO));
+		SetServerNo(DEVICECONFIGDIR,g_szServerNO,strlen(g_szServerNO));
+		if(0!=strcmp(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,server) ||
+		   g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort!=iPort)
+		{
+			strncpy(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,server,sizeof(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP));
+			g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort=iPort;
+			SetServerIpAndPort(DEVICECONFIGDIR,server,sizeof(server),iPort);
+		}
+		if(0!=strcmp(g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,secret))
+		{
+			strncpy(g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,secret,sizeof(g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword));
+			SetSecret(DEVICECONFIGDIR,secret,sizeof(secret));
+		}
 		SetXmlValue(v_pstData, "mac", v_szDevHwMask); 
 		SetXmlValue(v_pstData, "result", "10000");
 		iRet=0;
@@ -136,18 +153,16 @@ static void resoloveCmd(S_Data *sv_data)
 	char Network_Subnet[32] = {0};		//子网掩码Mask
 	char Network_GateWay[32] = {0};		//默认网关或路由器地址
 	char szBcastAddr[32] = {0};			//广播地址
-	
 	int i = 0;
 	int isValidPacket=0;
-
 	int iRet=-1;
 	BOOL restart=FALSE;
 
 	GetDeviceNetInfo(Network_IPAddress, Network_Subnet,System_MACAddress, Network_GateWay,szBcastAddr);
-
 	memset(&stData, 0, sizeof(stData));
 	stData.szCommandId = sv_data->szCommandId;
 	strcpy(stData.szCommandName,sv_data->szCommandName);
+	strcpy(stData.szType,sv_data->szType);
 	if(strcmp(stData.szCommandName,"1000")==0)
 	{
 		iRet=resolveCmd1000(&stData,Network_IPAddress, Network_Subnet,System_MACAddress, Network_GateWay);
@@ -208,11 +223,11 @@ void SearchServerThread()
 	nRet = setsockopt(g_udpScnSocket,SOL_SOCKET,SO_BROADCAST,&iOn,sizeof(iOn));	
 	if ( nRet!=0 )
 	{
-		LOGOUT("setsockopt err=%d, %s\n",errno,strerror(errno));
+		LOGOUT("setsockopt err=%d, %s",errno,strerror(errno));
 	}
 	else
 	{
-		LOGOUT("setsockopt OK\n");
+		LOGOUT("setsockopt OK");
 	}
 	
 	BroadcastAddr.sin_family = AF_INET;
@@ -236,8 +251,7 @@ void SearchServerThread()
 			if (FD_ISSET(g_udpScnSocket,&fds))
 			{
 				memset(data, 0, 1500);
-				recvnum = recvfrom(g_udpScnSocket, data, 1500, 0,
-					(struct sockaddr *)&g_updScanPcAddr, &addrsize);
+				recvnum = recvfrom(g_udpScnSocket, data, 1500, 0,(struct sockaddr *)&g_updScanPcAddr, &addrsize);
 				//LOGOUT("receive %s",data);
 				if (recvnum < 2 || recvnum > 1500)
 				{
@@ -248,9 +262,6 @@ void SearchServerThread()
 				S_Data s_data;
 				DeCode(data,&s_data);
 				int commandName = atoi(s_data.szCommandName);
-				char szUserName[32] = {0};
-				char szPassWord[32] = {0};
-				char szDevType[32]  = {0};
 				LOGOUT("center reply %d msg",commandName);
 				if(commandName == 1000)
 				{	//浏览端发来的

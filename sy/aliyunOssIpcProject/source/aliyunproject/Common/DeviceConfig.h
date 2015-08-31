@@ -15,7 +15,9 @@ extern "C" {
 	INT32S GetServerNo(const char *v_szFlashPath,char *v_szServerNo,INT32U length);
 	INT32S GetProductId(const char *v_szFlashPath,char *v_szProductId,INT32U length);
 	INT32S SetProductId(const char *v_szFlashPath,char *v_szProductId,INT32U length);
-
+	INT32S SetServerIpAndPort(const char *v_szFlashPath,char *v_szServerIp,INT32U length,INT32U v_iPort);
+	INT32S SetSecret(const char *v_szFlashPath,char *v_szSecret,INT32U length);
+	
 	INT32S InitDeviceConfig(const char *v_szFlashPath,tagConfigCfg *g_pstConfigCfg);
 	void ReleaseDeviceConfig();
 #  ifdef __cplusplus

@@ -7,6 +7,10 @@
 #include "./Utility/xml/XMLMethod.h"
 #include "./Utility/httpClient/httpClient.h"
 
+
+// devtool的xml类型
+#define CONNETTYPE "Xml-PcTool"
+
 using namespace std;
 //显示设备信息列表序列号
 
@@ -65,6 +69,8 @@ typedef struct DeviceParams_
 		 m_secret="";
 	}
 }DeviceParams;
+
+
 
 // CipcToolDlg 对话框
 class CipcToolDlg : public CDialog

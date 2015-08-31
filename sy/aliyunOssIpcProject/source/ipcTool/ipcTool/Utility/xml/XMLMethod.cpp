@@ -37,9 +37,15 @@ void CXMLMethod::Encode(S_Data *sData,CString &xml)
 	TiXmlText *txtName = new TiXmlText(sData->commandName);
 	lmtName->LinkEndChild(txtName);
 
+	TiXmlElement *lmtType = new TiXmlElement("type");
+	lmtRoot->LinkEndChild(lmtType);
+	TiXmlText *txtType = new TiXmlText(sData->commandType);
+	lmtType->LinkEndChild(txtType);
+
 	TiXmlElement *lmtParamRoot = new TiXmlElement("params");
 	lmtRoot->LinkEndChild(lmtParamRoot);
 	map<CString,CString>::iterator it;
+
 	for (it = sData->params.begin(); it != sData->params.end(); it ++)
 	{
 		TiXmlElement *lmtTmp = new TiXmlElement("param");
@@ -89,6 +95,13 @@ BOOL CXMLMethod::Decode(char *xml,S_Data *sData)
 		{
 			const char *name = lmtName->GetText();
 			sData->commandName.Format("%s",name);
+		}
+
+		TiXmlElement *lmtType = lmtId->NextSiblingElement("ctype");
+		if (lmtType)
+		{
+			const char *type = lmtType->GetText();
+			sData->commandType.Format("%s",type);
 		}
 
 		TiXmlElement *lmtParamRoot = lmtRoot->FirstChildElement("params");

@@ -44,7 +44,7 @@
 #define	DE_DEFAULTDEVICEMACADDR	"00-00-00-00-00-00"
 #define	DEVICECHANNELNUM		1
 #define	DEVICECHANNELSTARTNUM	1
-
+#define DE_SECRET				"123456"
 
 #define	DE_ALBUCKETNAME			"zs-oss-test-go"	
 #define	DE_ALENDPOINT			"oss-cn-shenzhen.aliyuncs.com"
@@ -97,7 +97,6 @@ typedef struct __attribute__((packed, aligned(8))) tagDevInfoCfg_
 	char 	m_szReserver[80];
 }tagDevInfoCfg;
 
-	
 typedef struct __attribute__((packed, aligned(8))) tagAliyunOssCfg_
 {
 	char 		m_szBuctetName[80];

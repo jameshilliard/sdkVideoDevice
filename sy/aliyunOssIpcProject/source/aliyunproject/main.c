@@ -51,11 +51,11 @@ int main()
 	sigemptyset(&set);
 	sigaddset(&set, SIGPIPE);
 	sigprocmask(SIG_BLOCK, &set, NULL); 
+	InitAllConfig();
 	Init_LogOut(LOGSIZE,LOGDIR,TRUE,TEMPDIR);
 	LOGOUT("Init_LogOut over");
 	iRet=InitHiSDKVideoAllChannel();
 	LOGOUT("InitHiSDKVideoAllChannel iRet=%d over",iRet);
-	InitAllConfig();
 	//iRet=initAliyunOssTask();
 	//LOGOUT("initAliyunOssTask iRet=%d over",iRet);
 	iRet=InitUdpSearch();
@@ -66,10 +66,10 @@ int main()
 		//LOGOUT("client sleep");
 	}
 	RealseUdpSearch();
-	ReleaseAllConfig();
 	iRet=ReleaseHiSDKVideoAllChannel();
 	LOGOUT("InitHiSDKVideoAllChannel %d over",iRet);
 	Release_LogOut();
+	ReleaseAllConfig();
 	return 0;
 }
 

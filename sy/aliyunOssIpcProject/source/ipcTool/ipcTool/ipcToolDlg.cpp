@@ -449,18 +449,26 @@ void CipcToolDlg::OnBnClickedButtonModify()
 	GetDlgItem(IDC_EDIT_SERVER)->GetWindowText(serverIp);
 	GetDlgItem(IDC_EDIT_PORT)->GetWindowText(serverPort);
 
-	char scanrequestbuf[] = "<?xml version=\"1.0\" encoding=\"utf-8\" ?><devicecmd><cmdid>99</cmdid><command>1002</command><type>1</type><params><param><key>mac</key><value>%s</value></param><param><key>id</key><value>%s</value></param><param><key>secret</key><value>%s</value></param><param><key>server</key><value>%s</value></param><param><key>port</key><value>%s</value></param></params></devicecmd>";
-	char requestBuf[512]={0};
-	memset(requestBuf,0,sizeof(requestBuf));
-	sprintf(requestBuf,scanrequestbuf,mac.GetBuffer(),deviceId.GetBuffer(),secret.GetBuffer(),serverIp.GetBuffer(),serverPort.GetBuffer());
+	sData.commandId=100;
+	sData.commandName="1002";
+	sData.commandType=CONNETTYPE;
+	sData.params["mac"]=mac;
+	sData.params["server"]=serverIp;
+	sData.params["port"]=serverPort;
+	sData.params["secret"]=secret;
+	sData.params["id"]=deviceId;
 
+	CString xmlString="";
+
+	CXMLMethod::GetInstance()->Encode(&sData,xmlString);
 	for(int j = 0; j< m_iNetCardNum; j++)
 	{
 		if(m_UdpScanSocket[j] != NULL)
 		{
 			for(int k = 0;k< 2; k++)
 			{	
-				SearchDevice(j,requestBuf);// ËÑË÷SEARCHTM´Î
+				if(xmlString!="")
+					SearchDevice(j,xmlString.GetBuffer());// ËÑË÷SEARCHTM´Î
 			}
 		}
 	}
