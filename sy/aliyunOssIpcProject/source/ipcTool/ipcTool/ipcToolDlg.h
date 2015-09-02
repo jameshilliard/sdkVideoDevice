@@ -35,6 +35,7 @@ using namespace std;
 // ÍøÂç²ÎÊý
 #define PC_TOOL_PORT 			60011
 #define	SCAN_SERVER_PORT		60012
+#define	SCAN_TCP_PORT			60025
 
 
 typedef struct DeviceParams_
@@ -103,7 +104,7 @@ private:
 	void InitNetWorkSearch();
 	int  reloveDeviceParamsXml(S_Data &sData,CString &mac);
 	void InsertReocrd();
-	
+	int  GetFirstSelect(void);
 
 private:
 	CListCtrl		m_RecordListCtrl;
@@ -116,4 +117,5 @@ private:
 public:
 	afx_msg void OnBnClickedButtonSearch();
 	afx_msg void OnBnClickedButtonModify();
+	afx_msg void OnBnClickedButtonVideoset();
 };

@@ -5,6 +5,8 @@
 #include "ipcTool.h"
 #include "ipcToolDlg.h"
 
+#include "VideoParam.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -66,6 +68,7 @@ BEGIN_MESSAGE_MAP(CipcToolDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_SEARCH, &CipcToolDlg::OnBnClickedButtonSearch)
 	ON_NOTIFY(NM_CLICK, IDC_LIST_RECORD, &CipcToolDlg::OnNMClickListRecord)
 	ON_BN_CLICKED(IDC_BUTTON_MODIFY, &CipcToolDlg::OnBnClickedButtonModify)
+	ON_BN_CLICKED(IDC_BUTTON_VIDEOSET, &CipcToolDlg::OnBnClickedButtonVideoset)
 END_MESSAGE_MAP()
 
 
@@ -131,6 +134,28 @@ BOOL CipcToolDlg::OnInitDialog()
 	m_iNetCardNum = 0;
 	InitNetWorkSearch();
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
+}
+
+int CipcToolDlg::GetFirstSelect(void)
+{
+	int nItem;
+	int m_nitem=-1;
+	POSITION pos = m_RecordListCtrl.GetFirstSelectedItemPosition();
+	// 查看是否有设备被选中
+	if (pos == NULL)
+	{
+		AfxMessageBox("请在类表中单击选择要配置的设备");
+		return m_nitem;
+	}
+
+	m_nitem = m_RecordListCtrl.GetNextSelectedItem(pos);
+	while(pos)
+	{
+		nItem = m_RecordListCtrl.GetNextSelectedItem(pos);
+		m_RecordListCtrl.SetItemState(nItem, 0, 0xFFFFFFFF);
+	}
+
+	return m_nitem;
 }
 
 void CipcToolDlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -472,4 +497,22 @@ void CipcToolDlg::OnBnClickedButtonModify()
 			}
 		}
 	}
+}
+
+void CipcToolDlg::OnBnClickedButtonVideoset()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	// TODO: 在此添加控件通知处理程序代码
+	int nItem=GetFirstSelect();
+	if(-1==nItem)
+	{
+		return;
+	}
+	CString ip = m_RecordListCtrl.GetItemText(nItem,LIST_COL_IPADDRESS);
+	int port = SCAN_TCP_PORT;
+	CVideoParam *mCVideoParam=new CVideoParam();
+	//mCVideoParam->init();
+	mCVideoParam->DoModal();
+	delete(mCVideoParam);
+
 }

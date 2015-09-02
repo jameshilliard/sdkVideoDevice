@@ -318,6 +318,18 @@
 				</File>
 			</Filter>
 		</Filter>
+		<Filter
+			Name="´°¿ÚÀà"
+			>
+			<File
+				RelativePath=".\VideoParam.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\VideoParam.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"
 			>
