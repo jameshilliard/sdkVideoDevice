@@ -17,7 +17,12 @@ extern "C" {
 	INT32S SetProductId(const char *v_szFlashPath,char *v_szProductId,INT32U length);
 	INT32S SetServerIpAndPort(const char *v_szFlashPath,char *v_szServerIp,INT32U length,INT32U v_iPort);
 	INT32S SetSecret(const char *v_szFlashPath,char *v_szSecret,INT32U length);
+	INT32S SetAliyunOssCfg(const char *v_szFlashPath,tagAliyunOssCfg v_stAliyunOssCfg);
+	INT32S SetMotionCfg(const char *v_szFlashPath,tagMotionCfg v_stMotionCfg);
 	
+	INT32S SetCapParamCfg(const char *v_szFlashPath,tagCapParamCfg v_stCapParamCfg);
+	
+
 	INT32S InitDeviceConfig(const char *v_szFlashPath,tagConfigCfg *g_pstConfigCfg);
 	void ReleaseDeviceConfig();
 #  ifdef __cplusplus

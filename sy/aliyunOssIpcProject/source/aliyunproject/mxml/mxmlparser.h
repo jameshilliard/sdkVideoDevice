@@ -29,6 +29,7 @@ extern "C" {
 int  EnCode(char *szBuf, int iLen, S_Data *v_sData);
 void DeCode(char *szBuf, S_Data *v_sData);
 void SetXmlValue(S_Data *v_sData, const char *v_szKey, const char *v_szValue);
+void SetXmlIntValue(S_Data *v_sData, const char *v_szKey, int value);
 void FreeXmlValue(S_Data *v_sData);
 
 #  ifdef __cplusplus

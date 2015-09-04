@@ -2,6 +2,7 @@
 #define MUTIPART_H
 #include <stdio.h>
 
+
 #  ifdef __cplusplus
 extern "C" {
 #  endif /* __cplusplus */
@@ -10,6 +11,8 @@ extern "C" {
 	int 	test_oss_local_file(char *object_name,char *data, int size, int *upLoadSize);
 	int 	test_oss_local_from_buf(char *object_name,char *data, int dataSize, int filePos);
 	void	test_append_object_from_buffer_zmt();
+	void 	InitOSSConfig(const char *v_szBucketName,const char *v_szOssEndPoint,
+						  const char *v_szAccessKeyId,const char *v_szAccessKeySecret);
 #  ifdef __cplusplus
 }
 #  endif /* __cplusplus */

@@ -44,6 +44,7 @@ void ReleaseAllConfig()
 {
 	ReleaseDeviceConfig();
 }
+
 int main()
 {
 	int iRet = 0;
@@ -52,6 +53,10 @@ int main()
 	sigaddset(&set, SIGPIPE);
 	sigprocmask(SIG_BLOCK, &set, NULL); 
 	InitAllConfig();
+	InitOSSConfig(g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szBuctetName,
+				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szOssEndPoint,
+				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeyId,
+				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeySecret);
 	Init_LogOut(LOGSIZE,LOGDIR,TRUE,TEMPDIR);
 	LOGOUT("Init_LogOut over");
 	iRet=InitHiSDKVideoAllChannel();
@@ -60,16 +65,23 @@ int main()
 	//LOGOUT("initAliyunOssTask iRet=%d over",iRet);
 	iRet=InitUdpSearch();
 	LOGOUT("InitUdpSearch iRet=%d over",iRet);
+	iRet=InitTcpServer();
+	LOGOUT("InitTcpServer iRet=%d over",iRet);
 	while(g_main_start)
 	{
 		sleep(2);
 		//LOGOUT("client sleep");
 	}
+	ReleaseTcpServer();
+	LOGOUT("ReleaseTcpServer over");
 	RealseUdpSearch();
+	LOGOUT("RealseUdpSearch over");
 	iRet=ReleaseHiSDKVideoAllChannel();
 	LOGOUT("InitHiSDKVideoAllChannel %d over",iRet);
 	Release_LogOut();
+	LOGOUT("Release_LogOut over");
 	ReleaseAllConfig();
+	LOGOUT("ReleaseAllConfig over");
 	return 0;
 }
 

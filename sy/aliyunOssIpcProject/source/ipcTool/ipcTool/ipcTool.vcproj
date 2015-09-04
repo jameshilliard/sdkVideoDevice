@@ -264,20 +264,20 @@
 			<Filter
 				Name="xml"
 				>
-				<File
-					RelativePath=".\Utility\xml\XMLMethod.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\Utility\xml\XMLMethod.h"
-					>
-				</File>
 				<Filter
 					Name="tinyxml"
 					>
 					<File
 						RelativePath=".\Utility\xml\tinyxml\tinystr.cpp"
 						>
+						<FileConfiguration
+							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								UsePrecompiledHeader="0"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath=".\Utility\xml\tinyxml\tinystr.h"
@@ -286,6 +286,14 @@
 					<File
 						RelativePath=".\Utility\xml\tinyxml\tinyxml.cpp"
 						>
+						<FileConfiguration
+							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								UsePrecompiledHeader="0"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath=".\Utility\xml\tinyxml\tinyxml.h"
@@ -294,9 +302,41 @@
 					<File
 						RelativePath=".\Utility\xml\tinyxml\tinyxmlerror.cpp"
 						>
+						<FileConfiguration
+							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								UsePrecompiledHeader="0"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath=".\Utility\xml\tinyxml\tinyxmlparser.cpp"
+						>
+						<FileConfiguration
+							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								UsePrecompiledHeader="0"
+							/>
+						</FileConfiguration>
+					</File>
+					<File
+						RelativePath=".\Utility\xml\tinyxml\xmlparser.cpp"
+						>
+						<FileConfiguration
+							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								UsePrecompiledHeader="0"
+							/>
+						</FileConfiguration>
+					</File>
+					<File
+						RelativePath=".\Utility\xml\tinyxml\xmlparser.h"
 						>
 					</File>
 				</Filter>
@@ -313,6 +353,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\Utility\httpClient\SyTcpClient.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Utility\httpClient\SyTcpClient.h"
+					>
+				</File>
+				<File
 					RelativePath=".\Utility\httpClient\urlParser.hpp"
 					>
 				</File>
@@ -322,11 +370,27 @@
 			Name="´°¿ÚÀà"
 			>
 			<File
-				RelativePath=".\VideoParam.cpp"
+				RelativePath=".\Dialog\AlgorithmParamSet.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\VideoParam.h"
+				RelativePath=".\Dialog\AlgorithmParamSet.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Dialog\OSSConfigParamSet.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Dialog\OSSConfigParamSet.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Dialog\VideoParamSet.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Dialog\VideoParamSet.h"
 				>
 			</File>
 		</Filter>

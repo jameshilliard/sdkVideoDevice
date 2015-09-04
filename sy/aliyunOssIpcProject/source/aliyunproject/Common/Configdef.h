@@ -59,8 +59,8 @@
 #define DE_WIDTH				640					// 视频高
 #define DE_QPCONSTANT			24					// 视频质量
 #define DE_KEYFRAMERATE			128					// 关键帧间隔
-#define DE_OPENAUDIO			0					// 音频是否打开
-#define DE_ALARMSWITCH			1					// 布防/撤防
+#define DE_CODETYPE				0					// 关键帧间隔
+
 
 
 #define DE_BEFORE_RECORD_MOTION_LASTTIME		5
@@ -85,10 +85,8 @@ typedef struct __attribute__((packed, aligned(8))) tagCapParamCfg_
 	WORD		m_wWidth;			// 视频宽
 	BYTE		m_wQpConstant;		// 视频质量
 	WORD		m_wKeyFrameRate;	// 关键帧间隔
-	BOOL		m_bAdaptStream;		// 是否自适应码率
-	BOOL		m_bOpenAudio;		// 音频是否打开
-	BOOL		m_bAlarmSwitch;		// 布防/撤防
-	char		m_szReserve[20];	// 预留空间		
+	BYTE		m_CodeType;			
+	char		m_szReserve[22];	// 预留空间		
 }tagCapParamCfg;
 
 typedef struct __attribute__((packed, aligned(8))) tagDevInfoCfg_

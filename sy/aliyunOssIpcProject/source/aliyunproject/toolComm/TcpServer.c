@@ -1,4 +1,5 @@
 #include "TcpServer.h"
+#include "../hisdk/hi_sdk.h"
 
 
 // 配置文件路径
@@ -282,281 +283,225 @@ void TcpSendCmdData(int v_iSocket, S_Data *v_stData)
 	//send(v_iSocket, (char*)&stSendXmlData, stSendXmlData.m_iXmlLen + 4, 0);
 }
 
-/************************************************************************
-**函数：SetDeviceOrProduceId
-**功能：设置设备编号或者产品型号函数
-**参数：
-        [in] - v_stDeCodeData：xml信息结构体
-        [out] - v_stXmlData：返回应答结果
-**返回：void
-        
-**作者：沈海波, 2014-04-10
-**备注：
-       1). devtool协议ID，设备编号：5005，产品型号：5006
-************************************************************************/
-
-void SetDeviceOrProduceId(int v_iSocket, S_Data *v_stDeCodeData)
+// 获取算法参数
+void GetAlgorithmParam(int v_iSocket, S_Data *v_stDeCodeData)
 {
 	if(-1 == v_iSocket || NULL == v_stDeCodeData)
 	{
 		return ;
 	}
 	S_Data stDataEnCode;
-	char pType[32] = {0};
-	char pTypeProduceId[] = "newDeviceNumber";
-	int iSetType = 0;
-	if(v_stDeCodeData->szCommandId == 5005)
-	{
-		strcpy(pType, "newDeviceNumber");
-		iSetType = 0;
-	}
-	else
-	{
-		strcpy(pType, "productver");
-		iSetType = 1;
-	}
-	if(!strcmp(v_stDeCodeData->params[0].szKey, pType))	
-	{
-		BOOL bRet;
-		char szPath[256] = {0};
-		if(v_stDeCodeData->szCommandId == 5005)
-		{
-			sprintf(szPath, "%s/%s",g_szFilePath, SERVERNOFILENAME);
-		}
-		else
-		{
-			sprintf(szPath, "%s/%s",g_szFilePath,PRODUCTFILENAME);
-		}
-		bRet = CreateConfigFile(szPath, v_stDeCodeData->params[0].szValue, strlen(v_stDeCodeData->params[0].szValue));
-		if(bRet)
-		{
-			if(0==iSetType)
-			{
-				SetServerNo(g_szFilePath,v_stDeCodeData->params[0].szValue,sizeof(g_szServerNO));
-			}
-			else if(1==iSetType)
-			{
-				SetProductId(g_szFilePath,v_stDeCodeData->params[0].szValue,sizeof(g_szProductId));
-			}
-		}
-		memset(&stDataEnCode, 0, sizeof(stDataEnCode));
-		stDataEnCode.szCommandId = v_stDeCodeData->szCommandId;
-		sprintf(stDataEnCode.szCommandName, "%d",stDataEnCode.szCommandId);
-		strcpy(stDataEnCode.szType , CONNETTYPE);
-		SetXmlValue(&stDataEnCode, "result", bRet?"10000":"0");
-		TcpSendCmdData(v_iSocket, &stDataEnCode);
-		FreeXmlValue(&stDataEnCode);
-	}
-}
-
-#if 0
-
-// 密码校验
-void CheckPassword(int v_iSocket, S_Data *v_stDeCodeData)
-{
-	if(-1 == v_iSocket || NULL == v_stDeCodeData)
-	{
-		return ;
-	}
-	S_Data stDataEnCode;
-	BOOL bRet = TRUE;
-	if(!strcmp(v_stDeCodeData->params[0].szKey, "passwd"))	
-	{
-		char szPath[256] = {0};
-		sprintf(szPath, "%s/%s",g_szFilePath, PASSWORDFILE);
-		char szLocalPasswd[100] = {0};
-		GetPassword(szPath, szLocalPasswd);
-				
-		memset(&stDataEnCode, 0, sizeof(stDataEnCode));
-		stDataEnCode.szCommandId = v_stDeCodeData->szCommandId;
-		sprintf(stDataEnCode.szCommandName, "%d",stDataEnCode.szCommandId);
-		strcpy(stDataEnCode.szType , CONNETTYPE);
-
-		if(!strncmp(v_stDeCodeData->params[0].szValue, szLocalPasswd, MIN(MD5LEN+strlen(PASSWDMD5FLAG), strlen(szLocalPasswd))))
-		{
-			bRet = TRUE;
-		}
-		else
-		{
-			bRet = FALSE;
-		}
-		
-		SetXmlValue(&stDataEnCode, "result", bRet?"OK":"NO");
-
-		TcpSendCmdData(v_iSocket, &stDataEnCode);
-		FreeXmlValue(&stDataEnCode);
-	}
-}
-
-// 修改密码
-void ModifyPassword(int v_iSocket, S_Data *v_stDeCodeData)
-{
-	if(-1 == v_iSocket || NULL == v_stDeCodeData)
-	{
-		return ;
-	}
-
-	S_Data stDataEnCode;
-	int i= 0;
-	BOOL bRet = TRUE; 
-	char szPath[256] = {0};
-	sprintf(szPath, "%s/%s",g_szFilePath, PASSWORDFILE);
-
-	for (i = 0; i<v_stDeCodeData->iParamCount; i++)
-	{
-		if(!strcmp(v_stDeCodeData->params[i].szKey, "oldpasswd"))	
-		{
-			char szLocalPasswd[100] = {0};
-			GetPassword(szPath, szLocalPasswd);
-			if(strncmp(v_stDeCodeData->params[i].szValue, szLocalPasswd, 
-				MIN(MD5LEN+strlen(PASSWDMD5FLAG), strlen(szLocalPasswd))))
-			{
-				bRet = FALSE;
-			}
-			break;
-		}
-	}
-
-	if(bRet)
-	{
-		for (i = 0; i<v_stDeCodeData->iParamCount; i++)
-		{
-			if(!strcmp(v_stDeCodeData->params[i].szKey, "newpasswd"))
-			{
-				FILE *fp;
-				fp = fopen(szPath, "w+");
-				if(fp == NULL)
-				{
-					LOGOUT("create %s failed , fopen error" ,szPath);
-					bRet = FALSE;
-				}
-
-				int v_iLen = MD5LEN + strlen(PASSWDMD5FLAG);
-				unsigned int len = fwrite(v_stDeCodeData->params[i].szValue, 1, v_iLen, fp);
-				if(len != v_iLen )
-				{
-					LOGOUT("create %s failed , fwrite len error", szPath);
-					bRet = FALSE;
-				}
-				if(fp != NULL)
-				{
-					fclose(fp);
-				}	
-			}
-		}
-	}
-	
 	memset(&stDataEnCode, 0, sizeof(stDataEnCode));
 	stDataEnCode.szCommandId = v_stDeCodeData->szCommandId;
-	sprintf(stDataEnCode.szCommandName, "%d",stDataEnCode.szCommandId);
+	strncpy(stDataEnCode.szCommandName,v_stDeCodeData->szCommandName,sizeof(stDataEnCode.szCommandName));
 	strcpy(stDataEnCode.szType , CONNETTYPE);
-	SetXmlValue(&stDataEnCode, "result", bRet?"OK":"NO");
-
+	SetXmlIntValue(&stDataEnCode, "BefRecLastTime", g_stConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iBefRecLastTime);
+	SetXmlIntValue(&stDataEnCode, "BefRecTimes", g_stConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iBefRecTimes);
+	SetXmlIntValue(&stDataEnCode, "ConRecLastTime", g_stConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iConRecLastTime);
+	SetXmlIntValue(&stDataEnCode, "ConRecTimes", g_stConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iConRecTimes);
+	SetXmlIntValue(&stDataEnCode, "EndRecTime", g_stConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iEndRecTime);
+	SetXmlValue(&stDataEnCode, "result","10000");
 	TcpSendCmdData(v_iSocket, &stDataEnCode);
 	FreeXmlValue(&stDataEnCode);
 }
 
-// 获取网络参数
-void GetNetParam(int v_iSocket, S_Data *v_stDeCodeData)
+void SetAlgorithmParam(int v_iSocket, S_Data *v_pSData)
+{
+	if(-1 == v_iSocket || NULL == v_pSData)
+	{
+		return ;
+	}
+	S_Data stDataEnCode;
+	memset(&stDataEnCode, 0, sizeof(stDataEnCode));
+	stDataEnCode.szCommandId = v_pSData->szCommandId;
+	strncpy(stDataEnCode.szCommandName,v_pSData->szCommandName,sizeof(stDataEnCode.szCommandName));
+	strcpy(stDataEnCode.szType , CONNETTYPE);
+	int i=0;
+	tagMotionCfg objMotionCfg;
+	memset(&objMotionCfg,0,sizeof(tagMotionCfg));
+	for(i=0;i<v_pSData->iParamCount;i++)
+	{
+		if(strcmp(v_pSData->params[i].szKey,"BefRecLastTime")==0)
+		{
+			objMotionCfg.m_iBefRecLastTime=atoi(v_pSData->params[i].szValue);
+		}
+		if(strcmp(v_pSData->params[i].szKey,"BefRecTimes")==0)
+		{
+			objMotionCfg.m_iBefRecTimes=atoi(v_pSData->params[i].szValue);
+		}
+		if(strcmp(v_pSData->params[i].szKey,"ConRecLastTime")==0)
+		{
+			objMotionCfg.m_iConRecLastTime=atoi(v_pSData->params[i].szValue);
+		}
+		if(strcmp(v_pSData->params[i].szKey,"ConRecTimes")==0)
+		{
+			objMotionCfg.m_iConRecTimes=atoi(v_pSData->params[i].szValue);
+		}
+		if(strcmp(v_pSData->params[i].szKey,"EndRecTime")==0)
+		{
+			objMotionCfg.m_iEndRecTime=atoi(v_pSData->params[i].szValue);
+		}
+	}
+	if(0!=memcmp(&objMotionCfg,&g_stConfigCfg.m_unMotionCfg.m_objMotionCfg,sizeof(objMotionCfg)))
+	{
+		SetMotionCfg(DEVICECONFIGDIR,objMotionCfg);
+		memcpy(&g_stConfigCfg.m_unMotionCfg.m_objMotionCfg,&objMotionCfg,sizeof(objMotionCfg));
+	}
+	SetXmlValue(&stDataEnCode, "result","10000");
+	TcpSendCmdData(v_iSocket, &stDataEnCode);
+	FreeXmlValue(&stDataEnCode);
+}
+
+// 获取算法参数
+
+void GetOSSConfigmParam(int v_iSocket, S_Data *v_stDeCodeData)
 {
 	if(-1 == v_iSocket || NULL == v_stDeCodeData)
 	{
 		return ;
 	}
 	S_Data stDataEnCode;
-	char szPort[20] = {0};
-
 	memset(&stDataEnCode, 0, sizeof(stDataEnCode));
 	stDataEnCode.szCommandId = v_stDeCodeData->szCommandId;
-	sprintf(stDataEnCode.szCommandName, "%d",stDataEnCode.szCommandId);
+	strncpy(stDataEnCode.szCommandName,v_stDeCodeData->szCommandName,sizeof(stDataEnCode.szCommandName));
 	strcpy(stDataEnCode.szType , CONNETTYPE);
-
-	tagMasterServerCfg objGetMasterInfo;	
-	GetCfgFile(&objGetMasterInfo, sizeof(tagMasterServerCfg), offsetof(tagConfigCfg, m_unMasterServerCfg.m_objMasterServerCfg), sizeof(tagMasterServerCfg));
-	
-	SetXmlValue(&stDataEnCode, "MasterIp", objGetMasterInfo.m_szMasterIP);
-	if(!strcmp(objGetMasterInfo.m_szMasterIP, DE_MASTERIP))
-	{
-		SetXmlValue(&stDataEnCode, "AllMsterIp", g_szTcpMasterIps);
-		sprintf(szPort, "%d", g_iTcpMasterPort);
-	}
-	else
-	{
-		sprintf(szPort, "%d", objGetMasterInfo.m_iMasterPort);
-	}
-
-	SetXmlValue(&stDataEnCode, "MasterPort", szPort);
-
+	SetXmlValue(&stDataEnCode, "BuctetName", g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szBuctetName);
+	SetXmlValue(&stDataEnCode, "OssEndPoint", g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szOssEndPoint);
+	SetXmlValue(&stDataEnCode, "AccessKeyId", g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeyId);
+	SetXmlValue(&stDataEnCode, "AccessKeySecret", g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeySecret);
+	SetXmlValue(&stDataEnCode, "result","10000");
 	TcpSendCmdData(v_iSocket, &stDataEnCode);
 	FreeXmlValue(&stDataEnCode);
 }
 
-// 设置网络参数
-void SetNetParam(int v_iSocket, S_Data *v_stDeCodeData)
+
+void SetOSSConfigmParam(int v_iSocket, S_Data *v_pSData)
+{
+	if(-1 == v_iSocket || NULL == v_pSData)
+	{
+		return ;
+	}
+	S_Data stDataEnCode;
+	memset(&stDataEnCode, 0, sizeof(stDataEnCode));
+	stDataEnCode.szCommandId = v_pSData->szCommandId;
+	strncpy(stDataEnCode.szCommandName,v_pSData->szCommandName,sizeof(stDataEnCode.szCommandName));
+	strcpy(stDataEnCode.szType , CONNETTYPE);
+	int i=0;
+	tagAliyunOssCfg objAliyunOssCfg;
+	memset(&objAliyunOssCfg,0,sizeof(tagAliyunOssCfg));
+	for(i=0;i<v_pSData->iParamCount;i++)
+	{
+		if(strcmp(v_pSData->params[i].szKey,"BuctetName")==0)
+		{
+			strncpy(objAliyunOssCfg.m_szBuctetName,v_pSData->params[i].szValue,sizeof(objAliyunOssCfg.m_szBuctetName));
+		}
+		if(strcmp(v_pSData->params[i].szKey,"OssEndPoint")==0)
+		{
+			strncpy(objAliyunOssCfg.m_szOssEndPoint,v_pSData->params[i].szValue,sizeof(objAliyunOssCfg.m_szOssEndPoint));
+		}
+		if(strcmp(v_pSData->params[i].szKey,"AccessKeyId")==0)
+		{
+			strncpy(objAliyunOssCfg.m_szAccessKeyId,v_pSData->params[i].szValue,sizeof(objAliyunOssCfg.m_szAccessKeyId));
+		}
+		if(strcmp(v_pSData->params[i].szKey,"AccessKeySecret")==0)
+		{
+			strncpy(objAliyunOssCfg.m_szAccessKeySecret,v_pSData->params[i].szValue,sizeof(objAliyunOssCfg.m_szAccessKeySecret));
+		}
+	}
+	if(0!=memcmp(&objAliyunOssCfg,&g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg,sizeof(objAliyunOssCfg)))
+	{
+		SetAliyunOssCfg(DEVICECONFIGDIR,objAliyunOssCfg);
+		memcpy(&g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg,&objAliyunOssCfg,sizeof(objAliyunOssCfg));
+	}
+	SetXmlValue(&stDataEnCode, "result","10000");
+	TcpSendCmdData(v_iSocket, &stDataEnCode);
+	FreeXmlValue(&stDataEnCode);
+}
+
+void GetVideoParam(int v_iSocket, S_Data *v_stDeCodeData)
 {
 	if(-1 == v_iSocket || NULL == v_stDeCodeData)
 	{
 		return ;
 	}
 	S_Data stDataEnCode;
-	int i = 0;
-	int iRet = 0;
-	BOOL bChangeParm = FALSE;
-	tagMasterServerCfg objSetMasterInfo = {0};	
-	GetCfgFile(&objSetMasterInfo, sizeof(tagMasterServerCfg), offsetof(tagConfigCfg, m_unMasterServerCfg.m_objMasterServerCfg), sizeof(tagMasterServerCfg));
-	for(i = 0; i< v_stDeCodeData->iParamCount;i++)
-	{
-		if(!strcmp(v_stDeCodeData->params[i].szKey, "MasterIp"))	
-		{
-			if(strcmp(objSetMasterInfo.m_szMasterIP, v_stDeCodeData->params[i].szValue))
-			{
-				bChangeParm = TRUE;
-				memset(objSetMasterInfo.m_szMasterIP, 0, sizeof(objSetMasterInfo.m_szMasterIP));
-				strcpy(objSetMasterInfo.m_szMasterIP, v_stDeCodeData->params[i].szValue);
-			}
-		}
-
-		if(!strcmp(v_stDeCodeData->params[i].szKey, "MasterPort"))	
-		{
-			int iPort;
-			iPort = atoi(v_stDeCodeData->params[i].szValue);
-			if(iPort != objSetMasterInfo.m_iMasterPort)
-			{
-				bChangeParm = TRUE;
-				objSetMasterInfo.m_iMasterPort = iPort;
-			}
-		}
-	}
-
-	if(bChangeParm)
-	{
-		iRet = SetCfgFile(&objSetMasterInfo, offsetof(tagConfigCfg, m_unMasterServerCfg.m_objMasterServerCfg), sizeof(tagMasterServerCfg));
-		ModifyMasterSerInfo(objSetMasterInfo.m_szMasterIP, objSetMasterInfo.m_iMasterPort);
-	
-		if(!strcmp(objSetMasterInfo.m_szMasterIP, DE_MASTERIP))
-		{
-			GetMasterIps(g_szTcpMasterIps);
-		}
-		else
-		{
-			GetMasterIps(objSetMasterInfo.m_szMasterIP);
-		}
-	}
-
 	memset(&stDataEnCode, 0, sizeof(stDataEnCode));
 	stDataEnCode.szCommandId = v_stDeCodeData->szCommandId;
-	sprintf(stDataEnCode.szCommandName, "%d",stDataEnCode.szCommandId);
+	strncpy(stDataEnCode.szCommandName,v_stDeCodeData->szCommandName,sizeof(stDataEnCode.szCommandName));
 	strcpy(stDataEnCode.szType , CONNETTYPE);
-	strcpy(stDataEnCode.params[stDataEnCode.iParamCount].szKey, "result");
-	
-	SetXmlValue(&stDataEnCode, "result", iRet?"0":"10000");
-
+	HI_S_Video_Ext sVideo;
+	char buffer[80]={0};
+	int iRet=GetVideoStream(&sVideo);
+	memset(buffer,0,sizeof(buffer));
+	sprintf(buffer,"%dX%d",sVideo.u32Width,sVideo.u32Height);
+	SetXmlValue(&stDataEnCode, "Resolution",buffer);
+	SetXmlIntValue(&stDataEnCode, "Frame",sVideo.u32Frame);
+	SetXmlIntValue(&stDataEnCode, "Quality",sVideo.u32ImgQuality);
+	SetXmlIntValue(&stDataEnCode, "CodeType",sVideo.blCbr);
+	SetXmlIntValue(&stDataEnCode, "Code",sVideo.u32Bitrate);
+	SetXmlIntValue(&stDataEnCode, "KeyFrame",sVideo.u32Iframe);
+	SetXmlValue(&stDataEnCode, "result","10000");
 	TcpSendCmdData(v_iSocket, &stDataEnCode);
 	FreeXmlValue(&stDataEnCode);
 }
+
+void SetVideoParam(int v_iSocket, S_Data *v_pSData)
+{
+	if(-1 == v_iSocket || NULL == v_pSData)
+	{
+		return ;
+	}
+	S_Data stDataEnCode;
+	memset(&stDataEnCode, 0, sizeof(stDataEnCode));
+	stDataEnCode.szCommandId = v_pSData->szCommandId;
+	strncpy(stDataEnCode.szCommandName,v_pSData->szCommandName,sizeof(stDataEnCode.szCommandName));
+	strcpy(stDataEnCode.szType , CONNETTYPE);
+	HI_S_Video_Ext sVideo;
+	char buffer[80]={0};
+	int i=0;
+	tagCapParamCfg objCapParamCfg;
+	memset(&objCapParamCfg,0,sizeof(tagCapParamCfg));
+	
+	for(i=0;i<v_pSData->iParamCount;i++)
+	{
+		if(strcmp(v_pSData->params[i].szKey,"Resolution")==0)
+		{
+			sscanf(v_pSData->params[i].szKey,"%dX%d",&objCapParamCfg.m_wWidth,&objCapParamCfg.m_wHeight);
+		}
+		if(strcmp(v_pSData->params[i].szKey,"Frame")==0)
+		{
+			objCapParamCfg.m_wFrameRate=atoi(v_pSData->params[i].szValue);
+		}
+		if(strcmp(v_pSData->params[i].szKey,"Quality")==0)
+		{
+			objCapParamCfg.m_wQpConstant=atoi(v_pSData->params[i].szValue);
+		}
+		if(strcmp(v_pSData->params[i].szKey,"CodeType")==0)
+		{
+			objCapParamCfg.m_CodeType=atoi(v_pSData->params[i].szValue);
+		}
+		if(strcmp(v_pSData->params[i].szKey,"KeyFrame")==0)
+		{
+			objCapParamCfg.m_wKeyFrameRate=atoi(v_pSData->params[i].szValue);
+		}
+		if(strcmp(v_pSData->params[i].szKey,"KeyFrame")==0)
+		{
+			objCapParamCfg.m_wBitRate=atoi(v_pSData->params[i].szValue);
+		}
+	}
+	if(0!=memcmp(&objCapParamCfg,&g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg,sizeof(objCapParamCfg)))
+	{
+		SetCapParamCfg(DEVICECONFIGDIR,objCapParamCfg);
+		memcpy(&g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg,&objCapParamCfg,sizeof(objCapParamCfg));
+	}
+	SetXmlValue(&stDataEnCode, "result","10000");
+	TcpSendCmdData(v_iSocket, &stDataEnCode);
+	FreeXmlValue(&stDataEnCode);
+}
+
 
 // 重启系统
-void SZYRebootSystem(int v_iSocket, S_Data *v_stDeCodeData)
+void RebootSystem(int v_iSocket, S_Data *v_stDeCodeData)
 {
 	if(-1 == v_iSocket || NULL == v_stDeCodeData)
 	{
@@ -574,415 +519,10 @@ void SZYRebootSystem(int v_iSocket, S_Data *v_stDeCodeData)
 
 	TcpSendCmdData(v_iSocket, &stDataEnCode);
 	FreeXmlValue(&stDataEnCode);
-
-	if(SetSZYSdkRet_OK == g_pSystemRebootFun())
-	{
-		SZYIPCSdk_Release();
-	}
+	system("reboot");
 }
 
 
-// 设置网络参数
-void SzySetIpInfo(int  v_iSocket, S_Data *v_stDeCodeData)
-{
-	if(-1 == v_iSocket || NULL == v_stDeCodeData)
-	{
-		return ;
-	}
-
-	int iIsAutoIp = 0;
-	char szIpAddr[16] = {0};
-	char szSubNetWork[16] = {0};
-	char szGateWay[16] = {0};
-	char szMainDns[16] = {0};
-	char szMacAddr[32] = {0};
-	int iRet = 0;
-
-	int i = 0;
-	for(i = 0; i< v_stDeCodeData->iParamCount; i++)
-	{
-		if(!strcmp(v_stDeCodeData->params[i].szKey, "ipAddr"))	
-		{
-			strcpy(szIpAddr, v_stDeCodeData->params[i].szValue);
-		}
-		if(!strcmp(v_stDeCodeData->params[i].szKey, "netmask"))	
-		{
-			strcpy(szSubNetWork, v_stDeCodeData->params[i].szValue);
-		}
-		if(!strcmp(v_stDeCodeData->params[i].szKey, "gateway"))	
-		{
-			strcpy(szGateWay, v_stDeCodeData->params[i].szValue);
-		}
-		if(!strcmp(v_stDeCodeData->params[i].szKey, "macAddr"))	
-		{
-			strcpy(szMacAddr, v_stDeCodeData->params[i].szValue);
-		}
-		if(!strcmp(v_stDeCodeData->params[i].szKey, "mainDns"))	
-		{
-			strcpy(szMainDns, v_stDeCodeData->params[i].szValue);
-		}
-		if(!strcmp(v_stDeCodeData->params[i].szKey, "isAutoIp"))	
-		{
-			iIsAutoIp = atoi(v_stDeCodeData->params[i].szValue);
-		}
-	}
-
-	if(g_pGetNetWorkFun != NULL)
-	{
-		int iIsGetAutoIp = 0;
-		char szGetIpAddr[16] = {0};
-		char szGetSubNetWork[16] = {0};
-		char szGetGateWay[16] = {0};
-		char szGetMainDns[16] = {0};
-		char szGetMacAddr[32] = {0};
-
-		if(SetSZYSdkRet_OK == g_pGetNetWorkFun(&iIsGetAutoIp,szGetIpAddr,szGetSubNetWork,szGetGateWay,szGetMacAddr,szGetMainDns))
-		{
-			BOOL bModifyParm = FALSE;
-			if(iIsAutoIp != iIsGetAutoIp)
-			{
-				bModifyParm = TRUE;
-			}
-			if((strlen(szIpAddr) != 0) && strcmp(szIpAddr,szGetIpAddr))
-			{
-				bModifyParm = TRUE;
-			}
-			if((strlen(szSubNetWork) != 0) && strcmp(szSubNetWork,szGetSubNetWork))
-			{
-				bModifyParm = TRUE;
-			}
-			if((strlen(szGateWay) != 0) && strcmp(szGateWay,szGetGateWay))
-			{
-				bModifyParm = TRUE;
-			}
-			if((strlen(szMacAddr) != 0) && strcmp(szMacAddr,szGetMacAddr))
-			{
-				bModifyParm = TRUE;
-			}
-			if((strlen(szMainDns) != 0) && strcmp(szMainDns,szGetMainDns))
-			{
-				bModifyParm = TRUE;
-			}
-
-			if((g_pSetNetWorkFun != NULL) && bModifyParm)
-			{
-				if(SetSZYSdkRet_OK == g_pSetNetWorkFun(iIsAutoIp,szIpAddr,szSubNetWork,szGateWay,szMacAddr,szMainDns))
-				{
-					iRet = 1;
-				}
-			}
-		}
-	}
-
-	LOGOUT("szIpAddr:%s,iIsAutoIp=%d,iRet=%d",szIpAddr,iIsAutoIp,iRet);
-	S_Data stDataEnCode;
-	memset(&stDataEnCode, 0, sizeof(stDataEnCode));
-	stDataEnCode.szCommandId = v_stDeCodeData->szCommandId;
-	sprintf(stDataEnCode.szCommandName, "%d",stDataEnCode.szCommandId);
-	strcpy(stDataEnCode.szType , CONNETTYPE);
-
-	SetXmlValue(&stDataEnCode, "result", iRet?"10000":"0");
-
-	TcpSendCmdData(v_iSocket, &stDataEnCode);
-	FreeXmlValue(&stDataEnCode);
-}
-
-// 获取网络参数
-void SzyGetIpInfo(int v_iSocket, S_Data *v_stDeCodeData)
-{
-	if(-1 == v_iSocket || NULL == v_stDeCodeData)
-	{
-		return ;
-	}
-	S_Data stDataEnCode;
-	char szTemp[16] = {0};
-
-	int iIsAutoIp = 0;
-	char szIpAddr[16] = {0};
-	char szSubNetWork[16] = {0};
-	char szGateWay[16] = {0};
-	char szMainDns[16] = {0};
-	char szMacAddr[32] = {0};
-	int iRet = 0;
-
-	if(g_pGetNetWorkFun != NULL)
-	{
-		if(SetSZYSdkRet_OK == g_pGetNetWorkFun(&iIsAutoIp
-			,szIpAddr
-			,szSubNetWork
-			,szGateWay
-			,szMacAddr
-			,szMainDns))
-		{
-			iRet = 1;
-		}
-	}
-
-	memset(&stDataEnCode, 0, sizeof(stDataEnCode));
-	stDataEnCode.szCommandId = v_stDeCodeData->szCommandId;
-	sprintf(stDataEnCode.szCommandName, "%d",stDataEnCode.szCommandId);
-	strcpy(stDataEnCode.szType , CONNETTYPE);
-
-	if(1 == iRet)
-	{
-		sprintf(szTemp, "%d", iIsAutoIp);
-		SetXmlValue(&stDataEnCode, "isAutoIp", szTemp);
-		SetXmlValue(&stDataEnCode, "ipAddr", szIpAddr);
-		SetXmlValue(&stDataEnCode, "netmask", szSubNetWork);
-		SetXmlValue(&stDataEnCode, "gateway", szGateWay);
-		SetXmlValue(&stDataEnCode, "macAddr", szMacAddr);
-		SetXmlValue(&stDataEnCode, "mainDns", szMainDns);
-		SetXmlValue(&stDataEnCode, "result", "10000");
-	}
-	else
-
-	{
-		SetXmlValue(&stDataEnCode, "result", "0");
-	}
-	
-	TcpSendCmdData(v_iSocket, &stDataEnCode);
-	FreeXmlValue(&stDataEnCode);
-}
-
-// 设置码流类型
-void SzySetVideoParam(int  v_iSocket, S_Data *v_stDeCodeData)
-{
-	if(-1 == v_iSocket || NULL == v_stDeCodeData)
-	{
-		return ;
-	}
-
-	int iChannel = 0;
-	int iStreamType = 0;
-	int iStreamCtrlType = 0;
-	BOOL bParamError = FALSE;
-	unsigned int iWith = 0;
-	unsigned int iHeight = 0;
-	unsigned int iStream = 0;
-	unsigned int iFrate = 0;
-	unsigned int iQuality = 0;
-	unsigned int iKeyFrame = 0;
-
-	int i = 0;
-	for(i = 0; i< v_stDeCodeData->iParamCount; i++)
-	{
-
-		if(!strcmp(v_stDeCodeData->params[i].szKey, "channel"))	
-		{
-			iChannel = atoi(v_stDeCodeData->params[i].szValue);
-		}
-		if(!strcmp(v_stDeCodeData->params[i].szKey, "streamType"))	
-		{
-			iStreamType = atoi(v_stDeCodeData->params[i].szValue);
-			if( iStreamType != 0  && iStreamType != 1 )
-			{
-				bParamError = TRUE;
-				break;
-			}
-		}
-		if(!strcmp(v_stDeCodeData->params[i].szKey, "streamCtrlType"))	
-		{
-			iStreamCtrlType = atoi(v_stDeCodeData->params[i].szValue);
-			if( iStreamCtrlType != 0  && iStreamCtrlType != 1 )
-			{
-				bParamError = TRUE;
-				break;
-			}
-		}
-
-		if(!strcmp(v_stDeCodeData->params[i].szKey, "resolution"))	
-		{
-			char *szResolution[2];
-			split(szResolution, v_stDeCodeData->params[i].szValue, "X", 2);
-			iWith = atoi(szResolution[0]);
-			iHeight = atoi(szResolution[1]);
-			if((iWith == 0) || (iHeight == 0))
-			{
-				bParamError = TRUE;
-			}
-		}
-
-		if(!strcmp(v_stDeCodeData->params[i].szKey, "stream"))	
-		{
-			iStream = atoi(v_stDeCodeData->params[i].szValue);
-			if( iStream < 50 || iStream > 2000 )
-			{
-				bParamError = TRUE;
-				break;
-			}
-		}
-		if(!strcmp(v_stDeCodeData->params[i].szKey, "frate"))	
-		{
-			iFrate = atoi(v_stDeCodeData->params[i].szValue);
-			if( iFrate < 1 || iFrate > 30 )
-			{
-				bParamError = TRUE;
-				break;
-			}
-		}
-		if(!strcmp(v_stDeCodeData->params[i].szKey, "quality"))	
-		{
-			iQuality = atoi(v_stDeCodeData->params[i].szValue);
-			if( iQuality < 22 || iQuality > 36 )
-			{
-				bParamError = TRUE;
-				break;
-			}
-		}
-		if(!strcmp(v_stDeCodeData->params[i].szKey, "keyFrame"))	
-		{
-			iKeyFrame = atoi(v_stDeCodeData->params[i].szValue);
-			if( iKeyFrame < 25 || iKeyFrame > 128 )
-			{
-				bParamError = TRUE;
-				break;
-			}
-		}
-		
-	}
-
-	S_Data stDataEnCode;
-	memset(&stDataEnCode, 0, sizeof(stDataEnCode));
-	stDataEnCode.szCommandId = v_stDeCodeData->szCommandId;
-	sprintf(stDataEnCode.szCommandName, "%d",stDataEnCode.szCommandId);
-	strcpy(stDataEnCode.szType , CONNETTYPE);
-
-	if(bParamError)
-	{
-		SetXmlValue(&stDataEnCode, "result", "0");
-		LOGOUT("****set  cameraid error*****");
-	}
-	else
-	{
-		SetXmlValue(&stDataEnCode, "result", "10000");
-		LOGOUT("****set  cameraid success*****");
-	}
-
-	TcpSendCmdData(v_iSocket, &stDataEnCode);
-	FreeXmlValue(&stDataEnCode);
-	
-	if(!bParamError)
-	{
-		int iGetStreamType = 0;
-		int iGetStreamCtrlType = 0;
-
-		unsigned int uGetBiteRate = 0;
-		unsigned int uGetiQpConstant = 0;
-		unsigned int uGetiFrameRate = 0;
-		unsigned int uGetiKeyFrameRate = 0;
-		unsigned int uGetiWith = 0;
-		unsigned int uGetiHeight = 0;
-
-		if(g_pGetLocalVideoParamFun != NULL)
-		{
-			g_pGetLocalVideoParamFun(iChannel, &iGetStreamType, &iGetStreamCtrlType, &(uGetBiteRate), 
-				&(uGetiFrameRate), &(uGetiQpConstant), &(uGetiKeyFrameRate),&(uGetiWith), &(uGetiHeight));
-		}
-		if((iGetStreamType != iStreamType) && (iGetStreamCtrlType != iStreamCtrlType) 
-			&&(uGetBiteRate != iStream) && (uGetiFrameRate != iFrate) && (iKeyFrame != uGetiKeyFrameRate)
-			&&(iWith != uGetiWith) && (uGetiHeight != iHeight))
-		{
-			if(g_pSetLocalVideoParamFun != NULL)
-			{
-				g_pSetLocalVideoParamFun(iChannel, iStreamType, iStreamCtrlType,iStream,
-					iFrate,iQuality,iKeyFrame,iWith,iHeight);
-			}
-		}	
-	}
-	
-}
-
-// 获取视频参数
-void SzyGetVideoParam(int v_iSocket, S_Data *v_stDeCodeData)
-{
-	if(-1 == v_iSocket || NULL == v_stDeCodeData)
-	{
-		return ;
-	}
-	S_Data stDataEnCode;
-	char szTemp[16] = {0};
-
-	int iChannel = 0;
-	int i = 0;
-	for(i = 0; i< v_stDeCodeData->iParamCount; i++)
-	{
-
-		if(!strcmp(v_stDeCodeData->params[i].szKey, "channel"))	
-		{
-			iChannel = atoi(v_stDeCodeData->params[i].szValue);
-		}
-	}
-
-	int iStreamType = 0;
-	int iStreamCtrlType = 0;
-
-	unsigned int uBiteRate = 0;
-	unsigned int uiQpConstant = 0;
-	unsigned int uiFrameRate = 0;
-	unsigned int uiKeyFrameRate = 0;
-	unsigned int uiWith = 0;
-	unsigned int uiHeight = 0;
-	int iRet = 0;
-
-	if(g_pGetLocalVideoParamFun != NULL)
-	{
-		if(SetSZYSdkRet_OK == g_pGetLocalVideoParamFun(iChannel, &iStreamType, &iStreamCtrlType, &(uBiteRate), &(uiFrameRate), &(uiQpConstant), &(uiKeyFrameRate),&(uiWith), &(uiHeight)))
-		{
-			iRet = 1;
-		}
-	}
-	
-	memset(&stDataEnCode, 0, sizeof(stDataEnCode));
-	stDataEnCode.szCommandId = v_stDeCodeData->szCommandId;
-	sprintf(stDataEnCode.szCommandName, "%d",stDataEnCode.szCommandId);
-	strcpy(stDataEnCode.szType , CONNETTYPE);
-
-	if(1 == iRet)
-	{
-		memset(szTemp, 0, sizeof(szTemp));
-		sprintf(szTemp, "%d", iChannel);
-		SetXmlValue(&stDataEnCode, "channel", szTemp);
-
-		memset(szTemp, 0, sizeof(szTemp));
-		sprintf(szTemp, "%d", iStreamType);
-		SetXmlValue(&stDataEnCode, "streamType", szTemp);
-
-		memset(szTemp, 0, sizeof(szTemp));
-		sprintf(szTemp, "%d", iStreamCtrlType);
-		SetXmlValue(&stDataEnCode, "streamCtrlType", szTemp);
-
-		memset(szTemp, 0, sizeof(szTemp));
-		sprintf(szTemp,"%dX%d", uiWith, uiHeight);
-		SetXmlValue(&stDataEnCode, "resolution", szTemp);
-
-		memset(szTemp, 0, sizeof(szTemp));
-		sprintf(szTemp, "%d", uBiteRate);
-		SetXmlValue(&stDataEnCode, "stream", szTemp);
-
-		memset(szTemp, 0, sizeof(szTemp));
-		sprintf(szTemp, "%d", uiFrameRate);
-		SetXmlValue(&stDataEnCode, "frate", szTemp);
-
-		memset(szTemp, 0, sizeof(szTemp));
-		sprintf(szTemp, "%d", uiQpConstant);
-		SetXmlValue(&stDataEnCode, "quality", szTemp);
-
-		memset(szTemp, 0, sizeof(szTemp));
-		sprintf(szTemp, "%d", uiKeyFrameRate);
-		SetXmlValue(&stDataEnCode, "keyFrame", szTemp);
-
-		SetXmlValue(&stDataEnCode, "result", "10000");
-	}
-	else
-
-	{
-		SetXmlValue(&stDataEnCode, "result", "0");
-	}
-
-	TcpSendCmdData(v_iSocket, &stDataEnCode);
-	FreeXmlValue(&stDataEnCode);
-}
-#endif
 // 处理业务和发送线程
 void *P_TcpServerSendThread()
 {
@@ -1018,89 +558,45 @@ void *P_TcpServerSendThread()
 				FreeXmlValue(&stDataDe);
 				continue;
 			}
-			//LOGOUT("tcpServer socketid:%d commandId:%d ",dwPushSym,iCommandId);
+			LOGOUT("tcpServer socketid:%d commandId:%d ",dwPushSym,iCommandId);
 			switch(iCommandId)
 			{
-			case 5005:
+			case 4000:
 				{	
-					SetDeviceOrProduceId(dwPushSym, &stDataDe);
+					GetAlgorithmParam(dwPushSym, &stDataDe);
 				}
 				break;
 				
-			case 5006:
+			case 4001:
 				{	
-					SetDeviceOrProduceId(dwPushSym, &stDataDe);
+					SetAlgorithmParam(dwPushSym, &stDataDe);
 				}
 				break;
-			#if 0
-			case 5000:
-				{
-					GetNetParam(dwPushSym, &stDataDe);
+			case 4002:
+				{	
+					GetOSSConfigmParam(dwPushSym, &stDataDe);
 				}
 				break;
-
-			case 5001:
-				{
-					SetNetParam(dwPushSym, &stDataDe);
+			case 4003:
+				{	
+					SetOSSConfigmParam(dwPushSym, &stDataDe);
+				}
+				break; 
+			case 4004:
+				{	
+					GetVideoParam(dwPushSym, &stDataDe);
 				}
 				break;
-
-			case 5002:
-				{
-					ModifyDevMaskMessage(dwPushSym, &stDataDe);
+			case 4005:
+				{	
+					SetVideoParam(dwPushSym, &stDataDe);
 				}
-				break;
-
-			case 5003:
-				{
-					CheckPassword(dwPushSym, &stDataDe);
+				break; 
+			case 4040:
+				{	
+					RebootSystem(dwPushSym, &stDataDe);
 				}
-				break;
-
-			case 5004:
-				{
-					ModifyPassword(dwPushSym, &stDataDe);
-				}
-				break;
-
-
-
-			case 5010:
-				{
-					SZYRebootSystem(dwPushSym, &stDataDe);
-				}
-				break;
-
-			case 5013:
-				{
-					SzySetIpInfo(dwPushSym, &stDataDe);
-				}
-				break;
-
-			case 5014:
-				{
-					SzyGetIpInfo(dwPushSym, &stDataDe);
-				}
-				break;
-
-			case 5015:
-				{
-					SzySetVideoParam(dwPushSym, &stDataDe);
-				}
-				break;
-
-			case 5016:
-				{
-					SzyGetVideoParam(dwPushSym, &stDataDe);
-				}
-				break;
-		
-			case 5026:
-				{
-					SZYRebootSystem(dwPushSym, &stDataDe);
-				}
-				break;
-			#endif
+				break; 
 			default:
 				break;
 			}
@@ -1126,7 +622,7 @@ void *P_TcpServerSendThread()
 
 
 // 初始化devtool TCP服务器
-int InitTcpServer(const char v_szCfgFilePath)
+int InitTcpServer()
 {
 	g_bExitTcpServer = FALSE;
 

@@ -5,7 +5,10 @@
 #include "ipcTool.h"
 #include "ipcToolDlg.h"
 
-#include "VideoParam.h"
+#include "./Dialog/VideoParamSet.h"
+#include "./Dialog/AlgorithmParamSet.h"
+#include "./Dialog/OSSConfigParamSet.h"
+#include "./Utility/httpClient/SyTcpClient.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -69,6 +72,8 @@ BEGIN_MESSAGE_MAP(CipcToolDlg, CDialog)
 	ON_NOTIFY(NM_CLICK, IDC_LIST_RECORD, &CipcToolDlg::OnNMClickListRecord)
 	ON_BN_CLICKED(IDC_BUTTON_MODIFY, &CipcToolDlg::OnBnClickedButtonModify)
 	ON_BN_CLICKED(IDC_BUTTON_VIDEOSET, &CipcToolDlg::OnBnClickedButtonVideoset)
+	ON_BN_CLICKED(IDC_BUTTON_ALGORITHMSET, &CipcToolDlg::OnBnClickedButtonAlgorithmset)
+	ON_BN_CLICKED(IDC_BUTTON_OSSSET, &CipcToolDlg::OnBnClickedButtonOssset)
 END_MESSAGE_MAP()
 
 
@@ -269,14 +274,14 @@ void CipcToolDlg::InitNetWorkSearch()
 	m_ZuboScanAddr.sin_addr.S_un.S_addr = inet_addr(MULTICAST_IP);
 	m_ZuboScanAddr.sin_port = htons(SCAN_SERVER_PORT);
 }
-int CipcToolDlg::reloveDeviceParamsXml(S_Data &sData,CString &mac)
+int CipcToolDlg::reloveDeviceParamsXml(S_Data &sData,std::string &mac)
 {
 	mac="";
 	DeviceParams deviceParams;
-	CString result="";
+	std::string result="";
 	if(sData.commandName=="1000")
 	{
-		map<CString,CString>::iterator it;
+		map<string,string>::iterator it;
 		for (it = sData.params.begin(); it != sData.params.end(); it ++)
 		{
 			if(it->first=="mac")
@@ -313,7 +318,7 @@ int CipcToolDlg::reloveDeviceParamsXml(S_Data &sData,CString &mac)
 	}
 	else if(sData.commandName=="1002")
 	{
-		map<CString,CString>::iterator it;
+		map<string,string>::iterator it;
 		for (it = sData.params.begin(); it != sData.params.end(); it ++)
 		{
 			if(it->first=="mac")
@@ -327,7 +332,7 @@ int CipcToolDlg::reloveDeviceParamsXml(S_Data &sData,CString &mac)
 		return -1;
 }
 
-void CipcToolDlg::SearchDevice(int v_iNum,char *scanrequestbuf)
+void CipcToolDlg::SearchDevice(int v_iNum,const char *scanrequestbuf)
 {
 	fd_set m_fds;
 	struct timeval tv;
@@ -335,7 +340,7 @@ void CipcToolDlg::SearchDevice(int v_iNum,char *scanrequestbuf)
 	int recvnum = 0;
 	int	addrlen = sizeof(sockaddr);
 	sockaddr_in fromaddr;
-	CString strMac = "";
+	std::string strMac = "";
 
 	FD_ZERO(&m_fds);
 	FD_SET(m_UdpScanSocket[v_iNum],&m_fds);
@@ -362,8 +367,8 @@ void CipcToolDlg::SearchDevice(int v_iNum,char *scanrequestbuf)
 					continue;
 				}
 				S_Data sData;
-				CString mac;
-				CXMLMethod::GetInstance()->Decode((char *)data,&sData);
+				std::string mac;
+				xmlparser::Decode((char *)data,&sData);
 				reloveDeviceParamsXml(sData,mac);
 				//得判断收到的是不是正确的数据
 			}
@@ -378,32 +383,35 @@ void CipcToolDlg::SearchDevice(int v_iNum,char *scanrequestbuf)
 void CipcToolDlg::InsertReocrd()
 {
 	int i=0;
-	CString recordNo="";
-	CString sindex="";
-	map<CString,DeviceParams>::iterator it;
+	std::string recordNo="";
+	std::string sindex="";
+	char buffer[100]="";
+	map<std::string,DeviceParams>::iterator it;
 	m_RecordListCtrl.DeleteAllItems();
 	for (it = m_deviceParams.begin(); it != m_deviceParams.end(); it ++)
 	{
-		sindex.Format("%d",(i+1));		 
-		m_RecordListCtrl.InsertItem(i,sindex);
-		recordNo.Format("%d",(i+1));
-		CString mac=it->first;
+		memset(buffer,0,sizeof(buffer));
+		sprintf_s(buffer,"%d",(i+1));
+		sindex=buffer;		 
+		m_RecordListCtrl.InsertItem(i,sindex.c_str());
+		recordNo=sindex;
+		std::string mac=it->first;
 		DeviceParams deviceParams=it->second;
 
-		m_RecordListCtrl.SetItemText(i,LIST_COL_NO,recordNo);
-		m_RecordListCtrl.SetItemText(i,LIST_COL_DEVICEID,deviceParams.m_deviceId);
-		m_RecordListCtrl.SetItemText(i,LIST_COL_VERSION,deviceParams.m_version);
-		m_RecordListCtrl.SetItemText(i,LIST_COL_PRODUCT,deviceParams.m_product);
-		m_RecordListCtrl.SetItemText(i,LIST_COL_DEVICETYPE,deviceParams.m_deviceType);
-		m_RecordListCtrl.SetItemText(i,LIST_COL_DEVICETMODE,deviceParams.m_deviceMode);
-		m_RecordListCtrl.SetItemText(i,LIST_COL_SUBNETMASK,deviceParams.m_subNetMask);
-		m_RecordListCtrl.SetItemText(i,LIST_COL_IPADDRESS,deviceParams.m_ipAddress);
-		m_RecordListCtrl.SetItemText(i,LIST_COL_GATEWAY,deviceParams.m_gateway);
-		m_RecordListCtrl.SetItemText(i,LIST_COL_SERVER,deviceParams.m_server);
-		m_RecordListCtrl.SetItemText(i,LIST_COL_PORT,deviceParams.m_port);
-		m_RecordListCtrl.SetItemText(i,LIST_COL_HTTPPORT,deviceParams.m_httpPort);
-		m_RecordListCtrl.SetItemText(i,LIST_COL_SECRET,deviceParams.m_secret);
-		m_RecordListCtrl.SetItemText(i,LIST_COL_MACADDRESS,it->first);
+		m_RecordListCtrl.SetItemText(i,LIST_COL_NO,recordNo.c_str());
+		m_RecordListCtrl.SetItemText(i,LIST_COL_DEVICEID,deviceParams.m_deviceId.c_str());
+		m_RecordListCtrl.SetItemText(i,LIST_COL_VERSION,deviceParams.m_version.c_str());
+		m_RecordListCtrl.SetItemText(i,LIST_COL_PRODUCT,deviceParams.m_product.c_str());
+		m_RecordListCtrl.SetItemText(i,LIST_COL_DEVICETYPE,deviceParams.m_deviceType.c_str());
+		m_RecordListCtrl.SetItemText(i,LIST_COL_DEVICETMODE,deviceParams.m_deviceMode.c_str());
+		m_RecordListCtrl.SetItemText(i,LIST_COL_SUBNETMASK,deviceParams.m_subNetMask.c_str());
+		m_RecordListCtrl.SetItemText(i,LIST_COL_IPADDRESS,deviceParams.m_ipAddress.c_str());
+		m_RecordListCtrl.SetItemText(i,LIST_COL_GATEWAY,deviceParams.m_gateway.c_str());
+		m_RecordListCtrl.SetItemText(i,LIST_COL_SERVER,deviceParams.m_server.c_str());
+		m_RecordListCtrl.SetItemText(i,LIST_COL_PORT,deviceParams.m_port.c_str());
+		m_RecordListCtrl.SetItemText(i,LIST_COL_HTTPPORT,deviceParams.m_httpPort.c_str());
+		m_RecordListCtrl.SetItemText(i,LIST_COL_SECRET,deviceParams.m_secret.c_str());
+		m_RecordListCtrl.SetItemText(i,LIST_COL_MACADDRESS,it->first.c_str());
 		if(deviceParams.m_serverStatus=="0")
 			m_RecordListCtrl.SetItemText(i,LIST_COL_SERVERSTATUS,"服务器连接不正常");
 		else if(deviceParams.m_serverStatus=="1")
@@ -476,16 +484,16 @@ void CipcToolDlg::OnBnClickedButtonModify()
 
 	sData.commandId=100;
 	sData.commandName="1002";
-	sData.commandType=CONNETTYPE;
-	sData.params["mac"]=mac;
-	sData.params["server"]=serverIp;
-	sData.params["port"]=serverPort;
-	sData.params["secret"]=secret;
-	sData.params["id"]=deviceId;
+	sData.type=CONNETTYPE;
+	sData.params["mac"]=mac.GetBuffer();
+	sData.params["server"]=serverIp.GetBuffer();
+	sData.params["port"]=serverPort.GetBuffer();
+	sData.params["secret"]=secret.GetBuffer();
+	sData.params["id"]=deviceId.GetBuffer();
 
-	CString xmlString="";
+	std::string xmlString="";
 
-	CXMLMethod::GetInstance()->Encode(&sData,xmlString);
+	xmlparser::Encode(&sData,xmlString);
 	for(int j = 0; j< m_iNetCardNum; j++)
 	{
 		if(m_UdpScanSocket[j] != NULL)
@@ -493,7 +501,7 @@ void CipcToolDlg::OnBnClickedButtonModify()
 			for(int k = 0;k< 2; k++)
 			{	
 				if(xmlString!="")
-					SearchDevice(j,xmlString.GetBuffer());// 搜索SEARCHTM次
+					SearchDevice(j,xmlString.c_str());// 搜索SEARCHTM次
 			}
 		}
 	}
@@ -502,6 +510,21 @@ void CipcToolDlg::OnBnClickedButtonModify()
 void CipcToolDlg::OnBnClickedButtonVideoset()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	int nItem=GetFirstSelect();
+	if(-1==nItem)
+	{
+		return;
+	}
+	CString ip = m_RecordListCtrl.GetItemText(nItem,LIST_COL_IPADDRESS);
+	int port =  SERVER_PORT;
+	CVideoParamSet *mVideoParamSet=new CVideoParamSet();
+	mVideoParamSet->init(ip,port);
+	mVideoParamSet->DoModal();
+	delete(mVideoParamSet);
+}
+
+void CipcToolDlg::OnBnClickedButtonAlgorithmset()
+{
 	// TODO: 在此添加控件通知处理程序代码
 	int nItem=GetFirstSelect();
 	if(-1==nItem)
@@ -509,10 +532,26 @@ void CipcToolDlg::OnBnClickedButtonVideoset()
 		return;
 	}
 	CString ip = m_RecordListCtrl.GetItemText(nItem,LIST_COL_IPADDRESS);
-	int port = SCAN_TCP_PORT;
-	CVideoParam *mCVideoParam=new CVideoParam();
-	//mCVideoParam->init();
-	mCVideoParam->DoModal();
-	delete(mCVideoParam);
+	int port =  SERVER_PORT;
+	CAlgorithmParamSet *mAlgorithmParamSet=new CAlgorithmParamSet();
+	mAlgorithmParamSet->init(ip,port);
+	mAlgorithmParamSet->DoModal();
+	delete(mAlgorithmParamSet);
+}
 
+void CipcToolDlg::OnBnClickedButtonOssset()
+{
+	
+	// TODO: 在此添加控件通知处理程序代码
+	int nItem=GetFirstSelect();
+	if(-1==nItem)
+	{
+		return;
+	}
+	CString ip = m_RecordListCtrl.GetItemText(nItem,LIST_COL_IPADDRESS);
+	int port =  SERVER_PORT;
+	COSSConfigParamSet *mOSSConfigParamSet=new COSSConfigParamSet();
+	mOSSConfigParamSet->init(ip,port);
+	mOSSConfigParamSet->DoModal();
+	delete(mOSSConfigParamSet);
 }

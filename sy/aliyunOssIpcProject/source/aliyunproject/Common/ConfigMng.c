@@ -109,8 +109,7 @@ BOOL InitConfigFile(tagConfigCfg *v_pstConfigCfg)
 		objConfigCfg.m_unCapParamCfg.m_objCapParamCfg[i].m_wWidth = DE_WIDTH;
 		objConfigCfg.m_unCapParamCfg.m_objCapParamCfg[i].m_wQpConstant = DE_QPCONSTANT;
 		objConfigCfg.m_unCapParamCfg.m_objCapParamCfg[i].m_wKeyFrameRate = DE_KEYFRAMERATE;
-		objConfigCfg.m_unCapParamCfg.m_objCapParamCfg[i].m_bOpenAudio = DE_OPENAUDIO;
-		objConfigCfg.m_unCapParamCfg.m_objCapParamCfg[i].m_bAlarmSwitch = DE_ALARMSWITCH;
+		objConfigCfg.m_unCapParamCfg.m_objCapParamCfg[i].m_CodeType= DE_CODETYPE;
 	}
 
 	//aliyun ≈‰÷√

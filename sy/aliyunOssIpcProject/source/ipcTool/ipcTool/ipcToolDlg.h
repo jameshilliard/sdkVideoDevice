@@ -4,12 +4,11 @@
 #include <iostream>
 #include <CString>
 #include <Map>
-#include "./Utility/xml/XMLMethod.h"
+#include "./Utility/xml/tinyxml/xmlparser.h"
 #include "./Utility/httpClient/httpClient.h"
 
 
-// devtool的xml类型
-#define CONNETTYPE "Xml-PcTool"
+
 
 using namespace std;
 //显示设备信息列表序列号
@@ -35,24 +34,23 @@ using namespace std;
 // 网络参数
 #define PC_TOOL_PORT 			60011
 #define	SCAN_SERVER_PORT		60012
-#define	SCAN_TCP_PORT			60025
 
 
 typedef struct DeviceParams_
 {
-	CString m_deviceId;
-	CString m_version;
-	CString m_product;
-	CString m_deviceType;
-	CString m_deviceMode;
-	CString m_ipAddress;
-	CString m_subNetMask;
-	CString m_gateway;
-	CString m_server;
-	CString m_port;
-	CString m_serverStatus;
-	CString m_httpPort;
-	CString m_secret;
+	std::string m_deviceId;
+	std::string m_version;
+	std::string m_product;
+	std::string m_deviceType;
+	std::string m_deviceMode;
+	std::string m_ipAddress;
+	std::string m_subNetMask;
+	std::string m_gateway;
+	std::string m_server;
+	std::string m_port;
+	std::string m_serverStatus;
+	std::string m_httpPort;
+	std::string m_secret;
 	DeviceParams_()
 	{
 		m_deviceId="";
@@ -100,9 +98,9 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 private:
-	void SearchDevice(int v_iNum,char *scanrequestbuf);
+	void SearchDevice(int v_iNum,const char *scanrequestbuf);
 	void InitNetWorkSearch();
-	int  reloveDeviceParamsXml(S_Data &sData,CString &mac);
+	int  reloveDeviceParamsXml(S_Data &sData,std::string &mac);
 	void InsertReocrd();
 	int  GetFirstSelect(void);
 
@@ -111,11 +109,13 @@ private:
 	SOCKET			m_UdpScanSocket[10];
 	sockaddr_in		m_ServerScanAddr;
 	sockaddr_in		m_ZuboScanAddr;
-	map<CString,DeviceParams> m_deviceParams;  //macAddress
+	map<std::string,DeviceParams> m_deviceParams;  //macAddress
 	int				m_iNetCardNum;
 
 public:
 	afx_msg void OnBnClickedButtonSearch();
 	afx_msg void OnBnClickedButtonModify();
 	afx_msg void OnBnClickedButtonVideoset();
+	afx_msg void OnBnClickedButtonAlgorithmset();
+	afx_msg void OnBnClickedButtonOssset();
 };

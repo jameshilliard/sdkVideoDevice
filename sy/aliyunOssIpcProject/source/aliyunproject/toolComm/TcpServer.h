@@ -61,7 +61,7 @@ typedef struct UploadLogInfo_
 #  ifdef __cplusplus
 extern "C" {
 #  endif /* __cplusplus */
-	int InitTcpServer(const char v_szCfgFilePath);
+	int InitTcpServer();
 	void TcpFreeMemory();
 	void ReleaseTcpServer();
 	//void TcpSendCmdData(int v_iSocket, S_Data *v_stData);

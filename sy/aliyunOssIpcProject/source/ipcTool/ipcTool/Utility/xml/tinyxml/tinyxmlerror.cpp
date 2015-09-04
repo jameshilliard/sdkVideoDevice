@@ -1,7 +1,7 @@
 /*
 www.sourceforge.net/projects/tinyxml
 Original code (2.0 and earlier )copyright (c) 2000-2006 Lee Thomason (www.grinninglizard.com)
-
+ 
 This software is provided 'as-is', without any express or implied 
 warranty. In no event will the authors be held liable for any 
 damages arising from the use of this software.
@@ -21,7 +21,6 @@ must not be misrepresented as being the original software.
 3. This notice may not be removed or altered from any source
 distribution.
 */
-#include "stdafx.h"
 #include "tinyxml.h"
 
 // The goal of the seperate error file is to make the first

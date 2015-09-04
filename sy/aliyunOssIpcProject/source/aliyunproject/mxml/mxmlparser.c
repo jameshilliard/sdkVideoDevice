@@ -302,6 +302,24 @@ void SetXmlValue(S_Data *v_sData, const char *v_szKey, const char *v_szValue)
 	strcpy(v_sData->params[v_sData->iParamCount++].szValue, (iValueLen == 0)?"":v_szValue);
 }
 
+void SetXmlIntValue(S_Data *v_sData, const char *v_szKey, int value)
+{
+	if((NULL == v_sData)||(NULL == v_szKey))
+	{
+		return ;
+	}
+	char v_szValue[32]={0};
+	memset(v_szValue,0,sizeof(v_szValue));
+	sprintf(v_szValue,"%d",value);
+
+	int iValueLen = strlen(v_szValue);
+	//printf("v_szKey = %s,iValueLen = %d\n", v_szKey, iValueLen);
+	strcpy(v_sData->params[v_sData->iParamCount].szKey, v_szKey);
+	
+	v_sData->params[v_sData->iParamCount].szValue = (char *)malloc(iValueLen + 10);
+	memset(v_sData->params[v_sData->iParamCount].szValue, 0, iValueLen + 10);
+	strcpy(v_sData->params[v_sData->iParamCount++].szValue, (iValueLen == 0)?"":v_szValue);
+}
 
 /************************************************************************
 **º¯Êý£ºFreeXmlValue

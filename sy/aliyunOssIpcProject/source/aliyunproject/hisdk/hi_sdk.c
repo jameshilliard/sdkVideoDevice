@@ -754,6 +754,26 @@ int setVideoParam(HI_U32 *u32Handle,HI_S_Video_Ext sVideo,HI_U32 u32Steam)
 	return 0;
 }
 
+int GetVideoStream(HI_S_Video_Ext *sVideo)
+{	
+	HI_S32 s32Ret = HI_SUCCESS;
+	int iRet=-1;
+	int *u32Handle=&u32HandleHight;
+	if(*u32Handle==0)
+	{
+		LOGOUT("GetVideoStream is failure handle:%u",*u32Handle);
+		return -1;
+	}
+	s32Ret=HI_NET_DEV_GetConfig(*u32Handle,HI_NET_DEV_CMD_VIDEO_PARAM_EXT,sVideo,sizeof(HI_S_Video_Ext));
+	if (s32Ret != HI_SUCCESS)
+	{
+		LOGOUT("HI_NET_DEV_GetConfig is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);
+		return -3;
+	}  
+	return 0;
+
+}
+
 int startVideoStream(HI_S_Video_Ext sVideo)
 {
 	HI_S32 s32Ret = HI_SUCCESS;

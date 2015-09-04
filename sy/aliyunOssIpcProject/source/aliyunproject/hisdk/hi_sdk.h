@@ -54,6 +54,7 @@ extern "C" {
 	int ReleaseHiSDKVideoAllChannel();
 	//int ReleaseHiSDKServer(HI_U32 *u32Handle);
 	int startVideoStream(HI_S_Video_Ext sVideo);
+	int GetVideoStream(HI_S_Video_Ext *sVideo);
 	int MakeKeyFrame();
 	//int stopVideoStream(HI_U32 *u32Handle);
 	//int setVideoParam(HI_U32 *u32Handle,HI_S_Video_Ext sVideo);

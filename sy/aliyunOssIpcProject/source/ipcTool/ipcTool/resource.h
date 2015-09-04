@@ -7,7 +7,9 @@
 #define IDS_ABOUTBOX                    101
 #define IDD_IPCTOOL_DIALOG              102
 #define IDR_MAINFRAME                   128
-#define IDD_VIDEOSET_DIALOG             129
+#define IDD_DIALOG_ALGORITHMSET         130
+#define IDD_DIALOG_VIDEOSET             131
+#define IDD_DIALOG_OSSCONFIG            132
 #define IDC_BUTTON_SEARCH               1000
 #define IDC_LIST_RECORD                 1001
 #define IDC_BUTTON_RESTART              1002
@@ -24,7 +26,9 @@
 #define IDC_EDIT_PORT                   1012
 #define IDC_BUTTON_MODIFY               1013
 #define IDC_EDIT_USER                   1014
+#define IDC_BUTTON_ALGORITHMSET         1014
 #define IDC_EDIT_PASSWORD               1015
+#define IDC_BUTTON_OSSSET               1015
 #define IDC_COMBO_LANGUAGE              1017
 #define IDC_EDIT_USER2                  1019
 #define IDC_EDIT_HTTPPROT               1019
@@ -33,16 +37,26 @@
 #define IDC_COMBO_CODE                  1023
 #define IDC_COMBO_CODETYPE              1024
 #define IDC_COMBO_QUALITY               1025
-#define IDC_BUTTON_VIDEOSETOK           1026
-#define IDC_BUTTON_VIDEOSET_CANCEL      1027
+#define IDCANCEL                        1028
+#define IDC_EDIT_ConRecTimes            1029
+#define IDC_EDIT_BucketName             1030
+#define IDC_EDIT_ConRecLastTime         1031
+#define IDC_EDIT_BefRecTimes            1032
+#define IDC_EDIT_BefRecLastTime         1033
+#define IDC_EDIT_OSSEndPoint            1033
+#define IDC_EDIT_EndRecTime             1034
+#define IDC_EDIT_AccessKeyId            1034
+#define IDC_EDIT_AccessKeySecret        1035
+#define IDC_EDIT_KEYFRAME               1036
+#define IDC_EDIT_CODE                   1037
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        130
+#define _APS_NEXT_RESOURCE_VALUE        133
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1028
-#define _APS_NEXT_SYMED_VALUE           101
+#define _APS_NEXT_CONTROL_VALUE         1037
+#define _APS_NEXT_SYMED_VALUE           104
 #endif
 #endif

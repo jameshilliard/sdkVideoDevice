@@ -82,6 +82,45 @@ INT32S SetServerIpAndPort(const char *v_szFlashPath,char *v_szServerIp,INT32U le
 	return iRet;
 }
 
+INT32S SetMotionCfg(const char *v_szFlashPath,tagMotionCfg v_stMotionCfg)
+{
+	if(NULL==v_szFlashPath || 0==strlen(v_szFlashPath))
+	{
+		LOGOUT("v_szFlashPath or v_szProductId is NULL or strlen = 0");
+		return -1;
+	}
+	int iRet=-1;
+	iRet = SetCfgFile(&v_stMotionCfg, offsetof(tagConfigCfg, m_unMotionCfg.m_objMotionCfg), sizeof(tagMotionCfg));
+	LOGOUT("SetAliyunOssCfg iRet=%d",iRet);
+	return iRet;
+}
+
+INT32S SetAliyunOssCfg(const char *v_szFlashPath,tagAliyunOssCfg v_stAliyunOssCfg)
+{
+	if(NULL==v_szFlashPath || 0==strlen(v_szFlashPath))
+	{
+		LOGOUT("v_szFlashPath or v_szProductId is NULL or strlen = 0");
+		return -1;
+	}
+	int iRet=-1;
+	iRet = SetCfgFile(&v_stAliyunOssCfg, offsetof(tagConfigCfg, m_unAliyunOssCfg.m_objAliyunOssCfg), sizeof(tagAliyunOssCfg));
+	LOGOUT("SetAliyunOssCfg iRet=%d",iRet);
+	return iRet;
+}
+INT32S SetCapParamCfg(const char *v_szFlashPath,tagCapParamCfg v_stCapParamCfg)
+{
+	if(NULL==v_szFlashPath || 0==strlen(v_szFlashPath))
+	{
+		LOGOUT("v_szFlashPath or v_szProductId is NULL or strlen = 0");
+		return -1;
+	}
+	int iRet=-1;
+	iRet = SetCfgFile(&v_stCapParamCfg, offsetof(tagConfigCfg, m_unCapParamCfg.m_objCapParamCfg), sizeof(tagCapParamCfg));
+	LOGOUT("SetAliyunOssCfg iRet=%d",iRet);
+	return iRet;
+}
+
+
 INT32S SetSecret(const char *v_szFlashPath,char *v_szSecret,INT32U length)
 {
 	if(NULL==v_szFlashPath || 0==strlen(v_szSecret) || NULL==v_szSecret)

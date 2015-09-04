@@ -3,6 +3,11 @@
 #include "test_oss_multipart.h"
 #include "oss_api.h"
 
+static char bucket_name[80]={0};// =  "zs-oss-test-go";
+static char oss_endpoint[80]={0};// = "oss-cn-shenzhen.aliyuncs.com";
+static char access_key_id[80]={0};// = "YCcIdLNNUAkA4d2K";
+static char access_key_secret[80]={0};// = "jwVtojgl6hsxyj7oj86lz0X3T73x5v";
+
 
 void create_bucket_name()
 {
@@ -118,15 +123,11 @@ int test_oss_local_from_buf(char *object_name,char *data, int dataSize, int file
 	aos_table_t *resp_headers;
 	aos_string_t bucket;
 	aos_string_t object;
-	char *bucket_name =  "zs-oss-test-go";
 	aos_list_t buffer;
 	aos_buf_t *content;
 
 	aos_pool_create(&p, NULL);
 	// init_ oss_request_options
-	char oss_endpoint[] = "oss-cn-shenzhen.aliyuncs.com";
-	char access_key_id[] = "YCcIdLNNUAkA4d2K";
-	char access_key_secret[] = "jwVtojgl6hsxyj7oj86lz0X3T73x5v";
 	int oss_port = 80;
 	
 	oss_request_options = oss_request_options_create(p);
@@ -179,6 +180,13 @@ int upLoadFile(char *filePath,char *fileName)
 		return -1;	
 	}
 	
+	if(0==strlen(bucket_name) || 0==strlen(oss_endpoint) ||
+	   0==strlen(access_key_id) || 0==strlen(access_key_secret))
+	{
+		LOGOUT("oss config  is error\n");
+		return -1;	
+	}
+	
 	char *object_name = fileName;
 	char *data=malloc(64*1024);
 	if(data==NULL)
@@ -227,5 +235,17 @@ int upLoadFile(char *filePath,char *fileName)
 	free(data);
 	return upResult;
 }
-
+void 	InitOSSConfig(const char *v_szBucketName,const char *v_szOssEndPoint,
+					  const char *v_szAccessKeyId,const char *v_szAccessKeySecret)
+{
+	memset(bucket_name,0,sizeof(bucket_name));
+	strncpy(bucket_name,v_szBucketName,sizeof(bucket_name));
+	memset(oss_endpoint,0,sizeof(oss_endpoint));
+	strncpy(oss_endpoint,v_szOssEndPoint,sizeof(oss_endpoint));
+	memset(access_key_id,0,sizeof(access_key_id));
+	strncpy(access_key_id,v_szAccessKeyId,sizeof(access_key_id));
+	memset(access_key_secret,0,sizeof(access_key_secret));
+	strncpy(access_key_secret,v_szAccessKeySecret,sizeof(access_key_secret));
+	
+}
 
