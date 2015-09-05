@@ -617,11 +617,23 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 		endTime=motionData.m_u32MotionEndTime*1000;
 		if(nowTime>endTime)
 			u32RecordCmd=RECORDSTOP;
+		INT32U mem=getFreeMemory();
+		if(mem<3*1024*1024)
+		{	
+			system("echo 3 >/proc/sys/vm/drop_caches");
+			LOGOUT("echo 3 >/proc/sys/vm/drop_caches");
+			INT32U mem=getFreeMemory();
+			if(mem>3*1024*1024)
+				break;
+			u32RecordCmd=RECORDSTOP;
+			LOGOUT("getFreeMemory()=%d stop record",mem);
+		}
 	}
 		break;	
 	default:
 		break;
 	}
+	
 	return HI_SUCCESS;
 }
 
@@ -708,7 +720,7 @@ int InitHiSDKServer(HI_U32 *u32Handle,HI_U32 u32Stream)
 		*u32Handle = 0;
 		return -3;
 	}
-	if(u32Stream==0)
+	if(u32Stream==1)
 	{
 		LOGOUT("HI_NET_DEV_SetDataCallBack is stream");
 		s32Ret=HI_NET_DEV_SetDataCallBack(*u32Handle, OnDataCallback, &a);
@@ -1041,9 +1053,17 @@ int InitHiSDKVideoAllChannel()
 	iRet=InitHiSDKServer(&u32HandleHight,1);
 	if(iRet!=0)
 		LOGOUT("InitHiSDKServer Hight is faliure,iRet=%d",iRet);
-
-	INT32U mem=getFreeMemory();
-	LOGOUT("getFreeMemory()=%d",mem);
+	HI_S_Video_Ext sVideo;
+	iRet=GetMasterVideoStream(&sVideo);
+	sVideo.u32Bitrate=g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg[0].m_wBitRate;
+	sVideo.u32Frame=g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg[0].m_wFrameRate;
+	sVideo.u32Height=g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg[0].m_wHeight;
+	sVideo.u32Width=g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg[0].m_wWidth;
+	sVideo.u32ImgQuality=g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg[0].m_wQpConstant;
+	sVideo.u32Iframe=g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg[0].m_wKeyFrameRate;
+	sVideo.blCbr=g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg[0].m_CodeType;
+	SetMasterVideoStream(&sVideo);
+	
 	#if 0
 	iRet=InitHiSDKServer(&u32HandleMid,1);
 	if(iRet!=0)

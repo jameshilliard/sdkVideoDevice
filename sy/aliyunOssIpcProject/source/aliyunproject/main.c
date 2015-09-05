@@ -61,7 +61,7 @@ int main()
 				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeySecret);
 	Init_LogOut(LOGSIZE,LOGDIR,TRUE,TEMPDIR);	
 	LOGOUT("Init_LogOut over");
-	InitConServer();
+	//InitConServer();
 	iRet=InitHiSDKVideoAllChannel();
 	LOGOUT("InitHiSDKVideoAllChannel iRet=%d over",iRet);
 	iRet=initAliyunOssTask();

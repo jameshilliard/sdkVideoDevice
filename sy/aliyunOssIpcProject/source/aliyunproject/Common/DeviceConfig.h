@@ -22,7 +22,7 @@ extern "C" {
 	
 	INT32S SetCapParamCfg(const char *v_szFlashPath,tagCapParamCfg v_stCapParamCfg);
 	
-
+	INT32S ResetDeviceConfig(const char *v_szFlashPath);
 	INT32S InitDeviceConfig(const char *v_szFlashPath,tagConfigCfg *g_pstConfigCfg);
 	void ReleaseDeviceConfig();
 #  ifdef __cplusplus

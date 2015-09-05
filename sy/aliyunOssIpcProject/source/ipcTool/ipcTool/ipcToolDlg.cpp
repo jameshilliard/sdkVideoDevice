@@ -40,6 +40,7 @@ CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
 void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
+	
 }
 
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)
@@ -61,6 +62,7 @@ void CipcToolDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX,IDC_LIST_RECORD,m_RecordListCtrl);
+	DDX_Control(pDX,IDC_COMBO_RESET,m_cbReset);
 }
 
 BEGIN_MESSAGE_MAP(CipcToolDlg, CDialog)
@@ -439,6 +441,7 @@ void CipcToolDlg::OnBnClickedButtonSearch()
 	}
 	InsertReocrd();
 	UpdateData(FALSE);
+	AfxMessageBox("搜索完成……");
 	// TODO: 在此添加控件通知处理程序代码
 }
 
@@ -462,6 +465,9 @@ void CipcToolDlg::OnNMClickListRecord(NMHDR *pNMHDR, LRESULT *pResult)
 	GetDlgItem(IDC_IPADDRESS_IP)->SetWindowText(m_RecordListCtrl.GetItemText(nItem,LIST_COL_IPADDRESS));
 	GetDlgItem(IDC_IPADDRESS_MASK)->SetWindowText(m_RecordListCtrl.GetItemText(nItem,LIST_COL_SUBNETMASK));
 	GetDlgItem(IDC_IPADDRESS_GW)->SetWindowText(m_RecordListCtrl.GetItemText(nItem,LIST_COL_GATEWAY));
+	m_cbReset.AddString("否");
+	m_cbReset.AddString("是");
+
 	UpdateData(FALSE);
 	*pResult = 0;
 }
@@ -490,6 +496,9 @@ void CipcToolDlg::OnBnClickedButtonModify()
 	sData.params["port"]=serverPort.GetBuffer();
 	sData.params["secret"]=secret.GetBuffer();
 	sData.params["id"]=deviceId.GetBuffer();
+	CString mReset;
+	m_cbReset.GetWindowText(mReset);
+	sData.params["reset"]=(mReset=="是"?"1":"0");
 
 	std::string xmlString="";
 

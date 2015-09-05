@@ -109,6 +109,7 @@ private:
 	SOCKET			m_UdpScanSocket[10];
 	sockaddr_in		m_ServerScanAddr;
 	sockaddr_in		m_ZuboScanAddr;
+	CComboBox	    m_cbReset;
 	map<std::string,DeviceParams> m_deviceParams;  //macAddress
 	int				m_iNetCardNum;
 

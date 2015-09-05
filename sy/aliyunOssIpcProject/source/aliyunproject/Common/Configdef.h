@@ -56,13 +56,13 @@
 
 
 // tagCapParamCfg摄像头信息默认参数
-#define DE_BITRATE				50					// 码率
-#define DE_FRAMERATE			8					// 帧率
-#define DE_HEIGHT				480					// 视频高
-#define DE_WIDTH				640					// 视频高
-#define DE_QPCONSTANT			24					// 视频质量
-#define DE_KEYFRAMERATE			128					// 关键帧间隔
-#define DE_CODETYPE				0					// 关键帧间隔
+#define DE_BITRATE				1000					// 码率
+#define DE_FRAMERATE			12					// 帧率
+#define DE_HEIGHT				720					// 视频高
+#define DE_WIDTH				1280					// 视频高
+#define DE_QPCONSTANT			1					// 视频质量
+#define DE_KEYFRAMERATE			50					// 关键帧间隔
+#define DE_CODETYPE				0					//
 
 
 

@@ -268,7 +268,12 @@ _GETCFGEND:
 	return iRet;
 }
 
-
+int  ResetCfgFile(const char *v_szFlashPath)
+{
+	printf("remove g_szCfgFilePath %s---\n",g_szCfgFilePath);
+	unlink(g_szCfgFilePath);
+	return 0;
+}
 
 // 释放参数配置相关参数
 void ReleaseCfgFile()

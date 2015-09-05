@@ -114,7 +114,16 @@ static INT32S resolveCmd1002(S_Data *v_pSData,S_Data *v_pstData,char *v_szDevHwM
 		{
 			strcpy(secret,v_pSData->params[i].szValue);
 		}
-		
+		if(strcmp(v_pSData->params[i].szKey,"reset")==0)
+		{
+			int iRet=atoi(v_pSData->params[i].szValue);
+			if(iRet==1)
+			{
+				ResetDeviceConfig(DEVICECONFIGDIR);
+				g_main_start=FALSE;
+				return 0;
+			}
+		}
 	}
 	if(isValidPacket==1)
 	{

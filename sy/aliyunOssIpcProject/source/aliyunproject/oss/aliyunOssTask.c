@@ -42,7 +42,7 @@ void * aliyunOssTask(void* param)
 		memset(fileName,0,sizeof(fileName));
 		memset(filePath,0,sizeof(filePath));
 		memset(aliyunFilePath,0,sizeof(aliyunFilePath));
-		iRet=readMediaFile(SYSTEM_MEDIA_SENDFILEPATH,fileName);
+		//iRet=readMediaFile(SYSTEM_MEDIA_SENDFILEPATH,fileName);
 		if(iRet==1 || iRet==2)
 		{
 			iRet=getFilePath(g_szServerNO,aliyunFilePath,fileName);

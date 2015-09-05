@@ -10,7 +10,7 @@ INT32U getFreeMemory(void)
     struct sysinfo s_info;
     int error;
     error = sysinfo(&s_info);
-    printf("getFullMemory %lu kb\n",s_info.freeram);
+    //printf("getFullMemory %lu kb\n",s_info.freeram);
     return s_info.freeram;
 }
 

@@ -163,6 +163,11 @@ INT32S InitDeviceConfig(const char *v_szFlashPath,tagConfigCfg *g_pstConfigCfg)
 	return -iRet;
 }
 
+INT32S ResetDeviceConfig(const char *v_szFlashPath)
+{
+	return ResetCfgFile(v_szFlashPath);
+}
+
 void ReleaseDeviceConfig()
 {
 	ReleaseCfgFile();	
