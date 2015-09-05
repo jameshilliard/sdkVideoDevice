@@ -124,7 +124,9 @@ BOOL InitConfigFile(tagConfigCfg *v_pstConfigCfg)
 	objConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iConRecLastTime = DE_CONTINUES_RECORD_MOTION_LASTTIME;
 	objConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iConRecTimes = DE_CONTINUES_RECORD_MOTION_LASTTIME;
 	objConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iEndRecTime = DE_END_RECORD_MOTION_TIME;
+	objConfigCfg.m_unMotionCfg.m_objMotionCfg.m_bEnable = DE_ENABLE;
 
+	
 	strncpy(objConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,DE_SECRET,sizeof(objConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword));
 	
 	fwrite((char*)&objConfigCfg, sizeof(objConfigCfg), 1, _RdFile);

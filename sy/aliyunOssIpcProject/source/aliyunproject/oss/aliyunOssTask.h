@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include "test_oss_multipart.h"
+#include "../Common/GlobVariable.h"
 
 
 

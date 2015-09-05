@@ -62,14 +62,19 @@ void COSSConfigParamSet::OnBnClickedOk()
 	map<CString,CString> mapofparam;
 	map<CString,CString> mapofResult;
 
-	mapofResult["BuctetName"]=m_szBuctetName;				
-	mapofResult["OssEndPoint"]=m_szOssEndPoint;		
-	mapofResult["AccessKeyId"]=m_szAccessKeyId;
-	mapofResult["AccessKeySecret"]=m_szAccessKeySecret;
+	mapofparam["BuctetName"]=m_szBuctetName;				
+	mapofparam["OssEndPoint"]=m_szOssEndPoint;		
+	mapofparam["AccessKeyId"]=m_szAccessKeyId;
+	mapofparam["AccessKeySecret"]=m_szAccessKeySecret;
 
 	bool bRet=m_objTcpClient.TcpPost(mapofparam, mapofResult, 4003);
 	if(bRet)
 	{
+		AfxMessageBox("更新成功");
 
+	}
+	else
+	{
+		AfxMessageBox("更新失败");
 	}
 }

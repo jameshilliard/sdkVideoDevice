@@ -277,6 +277,7 @@ void TcpSendCmdData(int v_iSocket, S_Data *v_stData)
 	TcpXmlData stSendXmlData;
 
 	stSendXmlData.m_iXmlLen = EnCode(stSendXmlData.szXmlDataBuf, sizeof(stSendXmlData.szXmlDataBuf), v_stData);
+	printf("encode:%s",stSendXmlData.szXmlDataBuf);
 	stSendXmlData.m_iXmlLen += 2;// 数据长度（xml类型+xml数据内容长度+结束符长度）
 	stSendXmlData.m_bytXmlType = 0;
 	SzySdkSendData(v_iSocket, (char*)&stSendXmlData, stSendXmlData.m_iXmlLen + 4);
@@ -300,6 +301,8 @@ void GetAlgorithmParam(int v_iSocket, S_Data *v_stDeCodeData)
 	SetXmlIntValue(&stDataEnCode, "ConRecLastTime", g_stConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iConRecLastTime);
 	SetXmlIntValue(&stDataEnCode, "ConRecTimes", g_stConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iConRecTimes);
 	SetXmlIntValue(&stDataEnCode, "EndRecTime", g_stConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iEndRecTime);
+	SetXmlIntValue(&stDataEnCode, "Enable", g_stConfigCfg.m_unMotionCfg.m_objMotionCfg.m_bEnable);
+	
 	SetXmlValue(&stDataEnCode, "result","10000");
 	TcpSendCmdData(v_iSocket, &stDataEnCode);
 	FreeXmlValue(&stDataEnCode);
@@ -340,6 +343,10 @@ void SetAlgorithmParam(int v_iSocket, S_Data *v_pSData)
 		if(strcmp(v_pSData->params[i].szKey,"EndRecTime")==0)
 		{
 			objMotionCfg.m_iEndRecTime=atoi(v_pSData->params[i].szValue);
+		}
+		if(strcmp(v_pSData->params[i].szKey,"Enable")==0)
+		{
+			objMotionCfg.m_bEnable =atoi(v_pSData->params[i].szValue);
 		}
 	}
 	if(0!=memcmp(&objMotionCfg,&g_stConfigCfg.m_unMotionCfg.m_objMotionCfg,sizeof(objMotionCfg)))
@@ -431,7 +438,7 @@ void GetVideoParam(int v_iSocket, S_Data *v_stDeCodeData)
 	strcpy(stDataEnCode.szType , CONNETTYPE);
 	HI_S_Video_Ext sVideo;
 	char buffer[80]={0};
-	int iRet=GetVideoStream(&sVideo);
+	int iRet=GetMasterVideoStream(&sVideo);
 	memset(buffer,0,sizeof(buffer));
 	sprintf(buffer,"%dX%d",sVideo.u32Width,sVideo.u32Height);
 	SetXmlValue(&stDataEnCode, "Resolution",buffer);
@@ -458,6 +465,8 @@ void SetVideoParam(int v_iSocket, S_Data *v_pSData)
 	strcpy(stDataEnCode.szType , CONNETTYPE);
 	HI_S_Video_Ext sVideo;
 	char buffer[80]={0};
+	char wBuffer[80]={0};
+	char hBuffer[80]={0};
 	int i=0;
 	tagCapParamCfg objCapParamCfg;
 	memset(&objCapParamCfg,0,sizeof(tagCapParamCfg));
@@ -466,7 +475,11 @@ void SetVideoParam(int v_iSocket, S_Data *v_pSData)
 	{
 		if(strcmp(v_pSData->params[i].szKey,"Resolution")==0)
 		{
-			sscanf(v_pSData->params[i].szKey,"%dX%d",&objCapParamCfg.m_wWidth,&objCapParamCfg.m_wHeight);
+		
+			sscanf(v_pSData->params[i].szValue,"%[0-9]X%[0-9]",wBuffer,hBuffer);
+			objCapParamCfg.m_wWidth=atoi(wBuffer);
+			objCapParamCfg.m_wHeight=atoi(hBuffer);
+			printf("width=%d,height=%d---\n",objCapParamCfg.m_wWidth,objCapParamCfg.m_wHeight);
 		}
 		if(strcmp(v_pSData->params[i].szKey,"Frame")==0)
 		{
@@ -484,14 +497,24 @@ void SetVideoParam(int v_iSocket, S_Data *v_pSData)
 		{
 			objCapParamCfg.m_wKeyFrameRate=atoi(v_pSData->params[i].szValue);
 		}
-		if(strcmp(v_pSData->params[i].szKey,"KeyFrame")==0)
+		if(strcmp(v_pSData->params[i].szKey,"Code")==0)
 		{
 			objCapParamCfg.m_wBitRate=atoi(v_pSData->params[i].szValue);
 		}
 	}
-	if(0!=memcmp(&objCapParamCfg,&g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg,sizeof(objCapParamCfg)))
+	//if(0!=memcmp(&objCapParamCfg,&g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg,sizeof(objCapParamCfg)))
 	{
+		HI_S_Video_Ext sVideo;
+		int iRet=GetMasterVideoStream(&sVideo);
+		sVideo.u32Bitrate=objCapParamCfg.m_wBitRate;
+		sVideo.u32Frame=objCapParamCfg.m_wFrameRate;
+		sVideo.u32Height=objCapParamCfg.m_wHeight;
+		sVideo.u32Width=objCapParamCfg.m_wWidth;
+		sVideo.u32ImgQuality=objCapParamCfg.m_wQpConstant;
+		sVideo.u32Iframe=objCapParamCfg.m_wKeyFrameRate;
+		sVideo.blCbr=objCapParamCfg.m_CodeType;
 		SetCapParamCfg(DEVICECONFIGDIR,objCapParamCfg);
+		SetMasterVideoStream(&sVideo);
 		memcpy(&g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg,&objCapParamCfg,sizeof(objCapParamCfg));
 	}
 	SetXmlValue(&stDataEnCode, "result","10000");

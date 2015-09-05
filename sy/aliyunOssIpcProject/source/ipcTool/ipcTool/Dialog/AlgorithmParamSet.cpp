@@ -23,7 +23,7 @@ CAlgorithmParamSet::~CAlgorithmParamSet()
 void CAlgorithmParamSet::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
-
+	DDX_Control(pDX, IDC_COMBO_ENBALE,m_cbEnbale);
 	DDX_Text(pDX, IDC_EDIT_BefRecLastTime,m_csBefRecLastTime);
 	DDX_Text(pDX, IDC_EDIT_BefRecTimes,m_csBefRecTimes);
 	DDX_Text(pDX, IDC_EDIT_ConRecLastTime,m_csConRecLastTime);
@@ -44,6 +44,8 @@ BOOL CAlgorithmParamSet::OnInitDialog()
 	// TODO:  在此添加额外的初始化
 	map<CString,CString> mapofparam;
 	map<CString,CString> mapofResult;
+	m_cbEnbale.AddString("是");
+	m_cbEnbale.AddString("否");
 	bool bRet=m_objTcpClient.TcpPost(mapofparam, mapofResult, 4000);
 	if(bRet)
 	{
@@ -52,6 +54,8 @@ BOOL CAlgorithmParamSet::OnInitDialog()
 		m_csConRecLastTime=mapofResult["ConRecLastTime"];
 		m_csConRecTimes=mapofResult["ConRecTimes"];
 		m_csEndRecTime=mapofResult["EndRecTime"];
+		int iRet=m_cbEnbale.SelectString(0,(mapofResult["Enable"]=="0")?"否":"是");
+
 	}
 	UpdateData(FALSE);
 	return TRUE;  // return TRUE unless you set the focus to a control
@@ -65,15 +69,23 @@ void CAlgorithmParamSet::OnBnClickedOk()
 	// TODO:  在此添加额外的初始化
 	map<CString,CString> mapofparam;
 	map<CString,CString> mapofResult;
+	CString enbale="";
 
 	mapofparam["BefRecLastTime"]=m_csBefRecLastTime;				
 	mapofparam["BefRecTimes"]=m_csBefRecTimes;		
 	mapofparam["ConRecLastTime"]=m_csConRecLastTime;
 	mapofparam["ConRecTimes"]=m_csConRecTimes;
 	mapofparam["EndRecTime"]=m_csEndRecTime;
+	m_cbEnbale.GetWindowText(enbale);
+	mapofparam["Enable"]=(enbale=="是"?"1":"0");
 	bool bRet=m_objTcpClient.TcpPost(mapofparam, mapofResult, 4001);
 	if(bRet)
 	{
+		AfxMessageBox("更新成功");
 
+	}
+	else
+	{
+		AfxMessageBox("更新失败");
 	}
 }

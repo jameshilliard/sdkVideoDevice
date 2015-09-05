@@ -26,6 +26,7 @@ public:
 	virtual BOOL OnInitDialog();
 	afx_msg void OnBnClickedOk();
 	CSyTcpClient m_objTcpClient;
+	CComboBox	 m_cbEnbale;
 	CString		m_csBefRecLastTime;				
 	CString		m_csBefRecTimes;		
 	CString		m_csConRecLastTime;		

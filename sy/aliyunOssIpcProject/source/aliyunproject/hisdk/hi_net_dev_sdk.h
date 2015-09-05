@@ -276,6 +276,7 @@ typedef struct HI_Video_Ext
 	HI_U32 u32Height;
 } HI_S_Video_Ext;
 
+
 /* Í¼ÏñÇåÎú¶È */
 #define HI_NET_DEV_RESOLUTION_VGA		0
 #define HI_NET_DEV_RESOLUTION_QVGA		1
@@ -290,6 +291,9 @@ typedef struct HI_Video_Ext
 #define HI_NET_DEV_RESOLUTION_960H		10
 #define HI_NET_DEV_RESOLUTION_Q960H		11
 #define HI_NET_DEV_RESOLUTION_QQ960H	12
+#define HI_NET_DEV_RESOLUTION_1080P 	13 
+#define HI_NET_DEV_RESOLUTION_960P 		14
+
 //#define HI_NET_DEV_RESOLUTION_1080P		7
 typedef struct HI_Resolution
 {

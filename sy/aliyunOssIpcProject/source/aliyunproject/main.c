@@ -12,6 +12,8 @@
 #include "Common/GlobVariable.h"
 #include "hisdk/hi_sdk.h"
 #include "toolComm/UdpSearch.h"
+#include "controlServer/ConServer.h"
+
 
 
 BOOL g_main_start=TRUE;
@@ -57,12 +59,13 @@ int main()
 				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szOssEndPoint,
 				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeyId,
 				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeySecret);
-	Init_LogOut(LOGSIZE,LOGDIR,TRUE,TEMPDIR);
+	Init_LogOut(LOGSIZE,LOGDIR,TRUE,TEMPDIR);	
 	LOGOUT("Init_LogOut over");
+	InitConServer();
 	iRet=InitHiSDKVideoAllChannel();
 	LOGOUT("InitHiSDKVideoAllChannel iRet=%d over",iRet);
-	//iRet=initAliyunOssTask();
-	//LOGOUT("initAliyunOssTask iRet=%d over",iRet);
+	iRet=initAliyunOssTask();
+	LOGOUT("initAliyunOssTask iRet=%d over",iRet);
 	iRet=InitUdpSearch();
 	LOGOUT("InitUdpSearch iRet=%d over",iRet);
 	iRet=InitTcpServer();

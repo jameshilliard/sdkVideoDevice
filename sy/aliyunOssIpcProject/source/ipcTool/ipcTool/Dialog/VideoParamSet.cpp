@@ -43,8 +43,9 @@ END_MESSAGE_MAP()
 BOOL CVideoParamSet::OnInitDialog()
 {
 	CDialog::OnInitDialog();
-	m_cbCodeType.AddString("0");
-	m_cbCodeType.AddString("1");
+	/* 码流模式、HI_TRUE为固定码流，HI_FALSE为可变码流 */
+	m_cbCodeType.AddString("可变码流");
+	m_cbCodeType.AddString("固定码流");
 	int i=1;
 	char buffer[16]={0};
 	for(i=1;i<26;i++)
@@ -54,8 +55,10 @@ BOOL CVideoParamSet::OnInitDialog()
 		m_cbFrame.AddString(buffer);
 	}
 	m_cbResolution.AddString("1280X960");
-	m_cbResolution.AddString("1024X720");
-	
+	m_cbResolution.AddString("1280X720");
+	//m_cbResolution.AddString("640X480");
+	//m_cbResolution.AddString("640X352");
+
 	for(i=1;i<7;i++)
 	{
 		memset(buffer,0,sizeof(buffer));
@@ -71,7 +74,7 @@ BOOL CVideoParamSet::OnInitDialog()
 	{
 		int iRet=m_cbResolution.SelectString(0,mapofResult["Resolution"]);
 		iRet=m_cbQuality.SelectString(0,mapofResult["Quality"]);
-		iRet=m_cbCodeType.SelectString(0,mapofResult["CodeType"]);
+		iRet=m_cbCodeType.SelectString(0,((mapofResult["CodeType"]=="0")?"可变码流":"固定码流"));
 		iRet=m_cbFrame.SelectString(0,mapofResult["Frame"]);
 		m_csCode=mapofResult["Code"];
 		m_csKeyFrame=mapofResult["KeyFrame"];
@@ -84,20 +87,27 @@ BOOL CVideoParamSet::OnInitDialog()
 void CVideoParamSet::OnBnClickedOk()
 {
 	UpdateData(TRUE);
+	CString codeType;
 	// TODO:  在此添加额外的初始化
 	map<CString,CString> mapofparam;
 	map<CString,CString> mapofResult;
+	/* 码流模式、HI_TRUE为固定码流，HI_FALSE为可变码流 */
+	m_cbResolution.GetWindowText(mapofparam["Resolution"]);
+	m_cbQuality.GetWindowText(mapofparam["Quality"]);
+	m_cbCodeType.GetWindowText(codeType);
+	mapofparam["CodeType"]=(codeType=="固定码流"?"1":"0");
+	m_cbFrame.GetWindowText(mapofparam["Frame"]);
+	mapofparam["Code"]=m_csCode;
+	mapofparam["KeyFrame"]=m_csKeyFrame;
 
-	int iRet=m_cbResolution.SelectString(0,mapofResult["Resolution"]);
-	iRet=m_cbQuality.SelectString(0,mapofResult["Quality"]);
-	iRet=m_cbCodeType.SelectString(0,mapofResult["CodeType"]);
-	iRet=m_cbFrame.SelectString(0,mapofResult["Frame"]);
-	mapofResult["Code"]=m_csCode;
-	mapofResult["KeyFrame"]=m_csKeyFrame;
-
-	bool bRet=m_objTcpClient.TcpPost(mapofparam, mapofResult, 4003);
+	bool bRet=m_objTcpClient.TcpPost(mapofparam, mapofResult, 4005);
 	if(bRet)
 	{
+		AfxMessageBox("更新成功");
 
+	}
+	else
+	{
+		AfxMessageBox("更新失败");
 	}
 }

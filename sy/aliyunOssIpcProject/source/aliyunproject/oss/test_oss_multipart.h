@@ -6,7 +6,7 @@
 #  ifdef __cplusplus
 extern "C" {
 #  endif /* __cplusplus */
-	int 	getFilePath(char *fullName, char *fileName);
+	int 	getFilePath(char *ipcId,char *fullName, char *fileName);
 	int		upLoadFile(char *filePath,char *fileName);
 	int 	test_oss_local_file(char *object_name,char *data, int size, int *upLoadSize);
 	int 	test_oss_local_from_buf(char *object_name,char *data, int dataSize, int filePos);

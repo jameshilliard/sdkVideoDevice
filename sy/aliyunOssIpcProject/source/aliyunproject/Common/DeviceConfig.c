@@ -116,6 +116,7 @@ INT32S SetCapParamCfg(const char *v_szFlashPath,tagCapParamCfg v_stCapParamCfg)
 	}
 	int iRet=-1;
 	iRet = SetCfgFile(&v_stCapParamCfg, offsetof(tagConfigCfg, m_unCapParamCfg.m_objCapParamCfg), sizeof(tagCapParamCfg));
+	
 	LOGOUT("SetAliyunOssCfg iRet=%d",iRet);
 	return iRet;
 }

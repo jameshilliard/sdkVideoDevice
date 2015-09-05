@@ -10,6 +10,8 @@
 #include "hi_net_dev_errors.h"
 #include "hi_param.h"
 #include "../Common/Typedef.h"
+#include "../Common/GlobVariable.h"
+
 
 #define		DEVICEWIDTHBIG						1280
 #define		DEVICEHIGHHBIG						960
@@ -42,6 +44,7 @@ typedef struct
 	DWORD  m_u32MotionStartTime;
 	DWORD  m_u32MotionLastSecond;
 	DWORD  m_u32MotionTimesIsValid;
+	Motion_Data m_stMotionData;
 } HI_Motion_Data;
 
 #  ifdef __cplusplus
@@ -54,7 +57,8 @@ extern "C" {
 	int ReleaseHiSDKVideoAllChannel();
 	//int ReleaseHiSDKServer(HI_U32 *u32Handle);
 	int startVideoStream(HI_S_Video_Ext sVideo);
-	int GetVideoStream(HI_S_Video_Ext *sVideo);
+	int GetMasterVideoStream(HI_S_Video_Ext *sVideo);
+	int SetMasterVideoStream(HI_S_Video_Ext *sVideo);
 	int MakeKeyFrame();
 	//int stopVideoStream(HI_U32 *u32Handle);
 	//int setVideoParam(HI_U32 *u32Handle,HI_S_Video_Ext sVideo);

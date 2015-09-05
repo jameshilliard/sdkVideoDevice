@@ -455,6 +455,10 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
                                 HI_VOID* pUserData    /* ÓÃ»§Êý¾Ý*/
                                 )
 {
+	if(g_stConfigCfg.m_unMotionCfg.m_objMotionCfg.m_bEnable==0)
+		return;
+	if(strlen(g_szServerNO)==0)
+		return;
 	//printf("time=%d,u32Handle=%d,u32DataType=%d,pu8Buffer=%s,u32Length=%d,pUserData=%s\n",
 	//	    getTickCountMs(),u32Handle,u32DataType,pu8Buffer,u32Length,pUserData);
 	//printf("u32RecordCmd=%d\n",u32RecordCmd);
@@ -464,6 +468,7 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 	{
 		if(motionData.m_u32MotionStatus==0 && u32DataType==0)
 		{
+			memset(&motionData,0,sizeof(motionData));
 			printf("motionData.m_u32MotionStatus=0\n");
 			motionData.m_u32MotionStartTime=getTickCountMs();
 			motionData.m_u32MotionFirstTime=motionData.m_u32MotionStartTime;
@@ -493,6 +498,27 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 				{
 					if(u32DataType==0)
 						motionData.m_u32MotionCountPerSecond[second]++;
+				}
+				if(u32DataType==0)
+				{
+					HI_S_ALARM_MD *pMd=(HI_S_ALARM_MD *)pUserData;
+					switch(pMd->u32Area)
+					{
+						case 1:
+							motionData.m_stMotionData.videoMotionTotal_Dist1++;
+							break;
+						case 2:
+							motionData.m_stMotionData.videoMotionTotal_Dist2++;
+							break;
+						case 3:
+							motionData.m_stMotionData.videoMotionTotal_Dist3++;
+							break;
+						case 4:
+							motionData.m_stMotionData.videoMotionTotal_Dist4++;
+							break;	
+						default:
+							break;
+					}
 				}
 			}
 			else
@@ -530,6 +556,27 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 			//	printf("continue:nowTime=%d endTime=%d\n",nowTime,endTime);
 			if(nowTime<=endTime)
 			{
+				if(u32DataType==0)
+				{
+					HI_S_ALARM_MD *pMd=(HI_S_ALARM_MD *)pUserData;
+					switch(pMd->u32Area)
+					{
+						case 1:
+							motionData.m_stMotionData.videoMotionTotal_Dist1++;
+							break;
+						case 2:
+							motionData.m_stMotionData.videoMotionTotal_Dist2++;
+							break;
+						case 3:
+							motionData.m_stMotionData.videoMotionTotal_Dist3++;
+							break;
+						case 4:
+							motionData.m_stMotionData.videoMotionTotal_Dist4++;
+							break;	
+						default:
+							break;
+					}
+				}
 				HI_U32 second=nowTime/1000;
 				if(second>=0 && second<=motionData.m_u32MotionLastSecond)
 				{
@@ -754,7 +801,7 @@ int setVideoParam(HI_U32 *u32Handle,HI_S_Video_Ext sVideo,HI_U32 u32Steam)
 	return 0;
 }
 
-int GetVideoStream(HI_S_Video_Ext *sVideo)
+int SetMasterVideoStream(HI_S_Video_Ext *sVideo)
 {	
 	HI_S32 s32Ret = HI_SUCCESS;
 	int iRet=-1;
@@ -764,6 +811,74 @@ int GetVideoStream(HI_S_Video_Ext *sVideo)
 		LOGOUT("GetVideoStream is failure handle:%u",*u32Handle);
 		return -1;
 	}
+	LOGOUT("width=%d,heigth=%d",sVideo->u32Width,sVideo->u32Height);
+	s32Ret=HI_NET_DEV_SetConfig(*u32Handle,HI_NET_DEV_CMD_VIDEO_PARAM_EXT,sVideo,sizeof(HI_S_Video_Ext));
+	if (s32Ret != HI_SUCCESS)
+	{
+		LOGOUT("HI_NET_DEV_SetConfig is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);
+		return -3;
+	} 
+#if 0
+	HI_NET_DEV_RESOLUTION_VGA 0 VGA£º640x480
+	HI_NET_DEV_RESOLUTION_QVGA 1 QVGA£º320x240
+	HI_NET_DEV_RESOLUTION_QQVGA 2 QQVGA£º160x120£¬160x112
+	HI_NET_DEV_RESOLUTION_D1 3 D1£º704x576£¬704x480
+	HI_NET_DEV_RESOLUTION_CIF 4 CIF£º352x288£¬352x240
+	HI_NET_DEV_RESOLUTION_QCIF 5 QCIF£º176x144£¬176x120£¬176x112
+	HI_NET_DEV_RESOLUTION_720P 6 720P£º1280x720
+	HI_NET_DEV_RESOLUTION_Q720 7 Q720£º640x352
+	HI_NET_DEV_RESOLUTION_ QQ72 8 QQ720£º320x176
+	HI_NET_DEV_RESOLUTION_ UXGA 9 UXGA£º1600x1200
+	HI_NET_DEV_RESOLUTION_ 960H 10 960H£º960x576
+	HI_NET_DEV_RESOLUTION_ Q960H 11 Q960H£º480x288
+	HI_NET_DEV_RESOLUTION_ QQ960H 12 QQ960H£º240x144
+	HI_NET_DEV_RESOLUTION_ 1080P 13 1080P£º1920x1080
+	HI_NET_DEV_RESOLUTION_ 960P 14 960P£º1280x960
+#endif
+	HI_S_Resolution sResolution;
+	sResolution.blFlag=HI_TRUE;
+	sResolution.u32Channel = HI_NET_DEV_CHANNEL_1;
+	switch(sVideo->u32Height)
+	{
+		case 960:
+			sResolution.u32Resolution=HI_NET_DEV_RESOLUTION_960P;
+			break;
+		case 720:
+			sResolution.u32Resolution=HI_NET_DEV_RESOLUTION_720P;
+			break;
+		//case 480:
+		//	sResolution.u32Resolution=HI_NET_DEV_RESOLUTION_VGA;
+		//	break;
+		//case 352:
+		//	sResolution.u32Resolution=HI_NET_DEV_RESOLUTION_Q720;
+		//	break;
+		default:
+			sResolution.u32Resolution=HI_NET_DEV_RESOLUTION_720P;
+			break;
+	}
+	LOGOUT("sResolution.u32Resolution=%d",sResolution.u32Resolution);
+	s32Ret=	HI_NET_DEV_SetConfig(*u32Handle,HI_NET_DEV_CMD_RESOLUTION,&sResolution,sizeof(HI_S_Resolution));
+	if (s32Ret != HI_SUCCESS)
+	{
+		LOGOUT("HI_NET_DEV_SetConfig is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);
+		return -4;
+	}
+	return 0;
+
+}
+
+int GetMasterVideoStream(HI_S_Video_Ext *sVideo)
+{	
+	HI_S32 s32Ret = HI_SUCCESS;
+	int iRet=-1;
+	int *u32Handle=&u32HandleHight;
+	if(*u32Handle==0)
+	{
+		LOGOUT("GetVideoStream is failure handle:%u",*u32Handle);
+		return -1;
+	}
+	sVideo->u32Stream=HI_FALSE;
+	sVideo->u32Channel=HI_NET_DEV_CHANNEL_1;
 	s32Ret=HI_NET_DEV_GetConfig(*u32Handle,HI_NET_DEV_CMD_VIDEO_PARAM_EXT,sVideo,sizeof(HI_S_Video_Ext));
 	if (s32Ret != HI_SUCCESS)
 	{
@@ -923,7 +1038,7 @@ int InitHiSDKVideoAllChannel()
 	HI_NET_DEV_Init();
 	memset(&curVideoParam,0,sizeof(curVideoParam));
 	int iRet=-1;
-	iRet=InitHiSDKServer(&u32HandleHight,0);
+	iRet=InitHiSDKServer(&u32HandleHight,1);
 	if(iRet!=0)
 		LOGOUT("InitHiSDKServer Hight is faliure,iRet=%d",iRet);
 

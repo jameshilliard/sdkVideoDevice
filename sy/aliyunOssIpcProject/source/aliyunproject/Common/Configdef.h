@@ -35,8 +35,11 @@
 #define	LOGDIR					"/mnt/mtd/ipc/tmpfs/syflash"
 #define TEMPDIR 				"/mnt/mtd/ipc/tmpfs/sytmp"
 
-#define	DE_ROUTESERVERPORT		5002
-#define DE_ROUTESERVER			"www.sy.com"
+#define	DE_ROUTESERVERPORT		80
+#define DE_ROUTESERVER			"cgtx.100memory.com"
+
+//char sendBuf[] = "id=LB1GB29HYM3M8HJ7111C&pwd=123456";
+//char strUrl[] = "http://cgtx.100memory.com/ipccmd.php?act=login";
 
 #define	DE_DEVICEPRODUCT		"SYKJ"
 #define DE_DEVICEMODEL 			"MD1.0"
@@ -68,6 +71,7 @@
 #define DE_CONTINUES_RECORD_MOTION_LASTTIME		5
 #define DE_CONTINUES_RECORD_MOTION_TIMES		3
 #define	DE_END_RECORD_MOTION_TIME				3*60
+#define	DE_ENABLE								1
 
 #define LCM_80(x) ((0==(x)%80) ? (x) : (80*(((x)+80)/80)))   //80的最小整数倍
 
@@ -111,8 +115,9 @@ typedef struct __attribute__((packed, aligned(8))) tagMotionCfg_
 	INT32U		m_iBefRecTimes;		
 	INT32U		m_iConRecLastTime;		
 	INT32U		m_iConRecTimes;	
-	INT32U		m_iEndRecTime;	
-	char 		m_szReserver[60];
+	INT32U		m_iEndRecTime;
+	char		m_bEnable;
+	char 		m_szReserver[59];
 }tagMotionCfg;
 
 typedef struct __attribute__((packed, aligned(8))) tagConfigCfg_

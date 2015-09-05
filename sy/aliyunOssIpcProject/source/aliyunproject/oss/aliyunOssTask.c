@@ -3,7 +3,7 @@
 #include "../LogOut/LogOut.h"
 
 
-int getFilePath(char *fullName, char *fileName)
+int getFilePath(char *ipcId,char *fullName, char *fileName)
 {
 	if(fullName==NULL || fileName==NULL)
 		return -1;
@@ -13,7 +13,7 @@ int getFilePath(char *fullName, char *fileName)
 	ptr=strstr(fileName,".mp4");
 	if(ptr!=NULL)
 	{
-		sprintf(fullName, "Videos/Ipcid/%04d%02d%02d/%s",ptm->tm_year+1900,ptm->tm_mon+1,ptm->tm_mday,fileName);	
+		sprintf(fullName, "Videos/%s/%04d%02d%02d/%s",(strlen(ipcId)==0)?"test":ipcId,ptm->tm_year+1900,ptm->tm_mon+1,ptm->tm_mday,fileName);	
 		return 0;
 	}
 	else
@@ -21,7 +21,7 @@ int getFilePath(char *fullName, char *fileName)
 		ptr=strstr(fileName,".jpg");
 		if(ptr!=NULL)
 		{
-			sprintf(fullName, "Photos/Ipcid/%04d%02d%02d/%s",ptm->tm_year+1900,ptm->tm_mon+1,ptm->tm_mday,fileName);
+			sprintf(fullName, "Photos/%s/%04d%02d%02d/%s",(strlen(ipcId)==0)?"test":ipcId,ptm->tm_year+1900,ptm->tm_mon+1,ptm->tm_mday,fileName);
 			return 0;
 		}
 			
@@ -45,7 +45,7 @@ void * aliyunOssTask(void* param)
 		iRet=readMediaFile(SYSTEM_MEDIA_SENDFILEPATH,fileName);
 		if(iRet==1 || iRet==2)
 		{
-			iRet=getFilePath(aliyunFilePath,fileName);
+			iRet=getFilePath(g_szServerNO,aliyunFilePath,fileName);
 			if(iRet==0)
 			{
 				sprintf(filePath,"%s/%s",SYSTEM_MEDIA_SENDFILEPATH,fileName);

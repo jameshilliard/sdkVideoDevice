@@ -49,6 +49,8 @@
 #define IDC_EDIT_AccessKeySecret        1035
 #define IDC_EDIT_KEYFRAME               1036
 #define IDC_EDIT_CODE                   1037
+#define IDC_COMBO1                      1037
+#define IDC_COMBO_ENBALE                1037
 
 // Next default values for new objects
 // 
@@ -56,7 +58,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        133
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1037
+#define _APS_NEXT_CONTROL_VALUE         1038
 #define _APS_NEXT_SYMED_VALUE           104
 #endif
 #endif
