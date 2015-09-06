@@ -59,6 +59,8 @@ typedef struct recordData_
 extern "C" {
 #  endif /* __cplusplus */
 	int InitConServer();
+	int loginCtrl(const char *server,const char *v_szId,const char *v_szPwd,LOGINRETURNINFO *returnInfo);
+	int exitCtrl(const char *server,const char *v_szId,const char *v_szPwd);
 	int dataRecord(const char *server,const char *v_szId, char *videoPath, 
 			   long long creatTimeInMilSecond, int videoFileSize,char *jpgFilePath, 
 			   int videoTimeLength,Motion_Data mMotionData);

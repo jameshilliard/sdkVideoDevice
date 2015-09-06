@@ -10,6 +10,8 @@
 #include <iconv.h>
 #include <error.h>
 #include "ConServer.h"
+#include "../hisdk/hi_sdk.h"
+
 
 size_t write_data(void* buffer,size_t size,size_t nmemb,void *stream)  
 {  
@@ -122,7 +124,6 @@ int getLoginInfo(const char *strResponse, LOGINRETURNINFO *returnInfo)
 	cJSON * pSub = cJSON_GetObjectItem(pJson, "result");
 	if(NULL == pSub)
 	{
-	   
 	   LOGOUT("result null");
 	   return -3;
 	}
@@ -190,11 +191,11 @@ int getLoginInfo(const char *strResponse, LOGINRETURNINFO *returnInfo)
 	pSub = cJSON_GetObjectItem(pJson, "resolutionRatio");
 	if(NULL == pSub)
 	{
+		returnInfo->resolutionRatio=-1;
 		 LOGOUT("resolutionRatio null");
 	}
 	else
 	{
-		//sprintf(returnInfo->accesskeySecret, "%s", pSub->valuestring)
 		returnInfo->resolutionRatio = pSub->valueint;
 		LOGOUT("resolutionRatio : %d", pSub->valueint);
 	}
@@ -202,6 +203,7 @@ int getLoginInfo(const char *strResponse, LOGINRETURNINFO *returnInfo)
 	pSub = cJSON_GetObjectItem(pJson, "codeStream");
 	if(NULL == pSub)
 	{
+		 returnInfo->codeStream=-1;
 		 LOGOUT("codeStream null");
 	}
 	else
@@ -213,7 +215,8 @@ int getLoginInfo(const char *strResponse, LOGINRETURNINFO *returnInfo)
 	pSub = cJSON_GetObjectItem(pJson, "frameRate");
 	if(NULL == pSub)
 	{
-		 LOGOUT("frameRate null");
+		returnInfo->frameRate=-1;
+		LOGOUT("frameRate null");
 	}
 	else
 	{
@@ -224,7 +227,7 @@ int getLoginInfo(const char *strResponse, LOGINRETURNINFO *returnInfo)
 	pSub = cJSON_GetObjectItem(pJson, "streamType");
 	if(NULL == pSub)
 	{
-		
+		 returnInfo->streamType=-1;
 		 LOGOUT("streamType null");
 	}
 	else
@@ -236,6 +239,7 @@ int getLoginInfo(const char *strResponse, LOGINRETURNINFO *returnInfo)
 	pSub = cJSON_GetObjectItem(pJson, "mainFrameGap");
 	if(NULL == pSub)
 	{
+		returnInfo->mainFrameGap=-1;
 		LOGOUT("mainFrameGap null");
 	}
 	else
@@ -247,11 +251,12 @@ int getLoginInfo(const char *strResponse, LOGINRETURNINFO *returnInfo)
 	pSub = cJSON_GetObjectItem(pJson, "isRequireToReboot");
 	if(NULL == pSub)
 	{
+		returnInfo->isRequireToReboot=-1;
 		LOGOUT("isRequireToReboot null");
 	}
 	else
 	{
-		returnInfo->mainFrameGap = pSub->valueint;
+		returnInfo->isRequireToReboot = pSub->valueint;
 		LOGOUT("isRequireToReboot : %d", pSub->valueint);
 	}
 	cJSON_Delete(pJson);
@@ -285,6 +290,7 @@ int loginCtrl(const char *server,const char *v_szId,const char *v_szPwd,LOGINRET
 		LOGOUT("--------Post_head,return error---");
 		return -3;
 	}
+	memset(returnInfo,0,sizeof(LOGINRETURNINFO));
 	iRet=getLoginInfo(strResponse, returnInfo);
 	if(iRet==0)
 	{
@@ -298,6 +304,49 @@ int loginCtrl(const char *server,const char *v_szId,const char *v_szPwd,LOGINRET
 				strncpy(g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeyId,returnInfo->accessKeyId,sizeof(g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeyId));
 				strncpy(g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeySecret,returnInfo->accesskeySecret,sizeof(g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeySecret));
 				SetAliyunOssCfg(DEVICECONFIGDIR,g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg);
+			}
+			tagCapParamCfg objCapParamCfg;
+			memset(&objCapParamCfg,0,sizeof(tagCapParamCfg));
+			if(returnInfo->codeStream!=-1 && returnInfo->frameRate!=-1 && returnInfo->streamType!=-1
+				&& returnInfo->mainFrameGap!=-1 && returnInfo->resolutionRatio!=-1)
+			{
+				
+				if(returnInfo->resolutionRatio==2)
+				{
+					objCapParamCfg.m_wWidth=1280;
+					objCapParamCfg.m_wHeight=960;	
+				}
+				else
+				{
+					objCapParamCfg.m_wWidth=1280;
+					objCapParamCfg.m_wHeight=720;	
+				}
+				objCapParamCfg.m_wFrameRate=returnInfo->frameRate;
+				objCapParamCfg.m_wKeyFrameRate=returnInfo->mainFrameGap;
+				objCapParamCfg.m_wBitRate=returnInfo->codeStream;
+				objCapParamCfg.m_CodeType=returnInfo->streamType;
+				objCapParamCfg.m_wQpConstant=g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg[0].m_wQpConstant;
+				HI_S_Video_Ext sVideo;
+				int iRet=GetMasterVideoStream(&sVideo);
+				sVideo.u32Bitrate=objCapParamCfg.m_wBitRate;
+				sVideo.u32Frame=objCapParamCfg.m_wFrameRate;
+				sVideo.u32Height=objCapParamCfg.m_wHeight;
+				sVideo.u32Width=objCapParamCfg.m_wWidth;
+				sVideo.u32ImgQuality=objCapParamCfg.m_wQpConstant;
+				sVideo.u32Iframe=objCapParamCfg.m_wKeyFrameRate;
+				sVideo.blCbr=objCapParamCfg.m_CodeType;
+				SetCapParamCfg(DEVICECONFIGDIR,objCapParamCfg);
+				SetMasterVideoStream(&sVideo);
+				memcpy(&g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg,&objCapParamCfg,sizeof(objCapParamCfg));
+			}
+
+			if(returnInfo->isRequireToReboot!=-1)
+			{
+				if(returnInfo->isRequireToReboot==1)
+				{
+					LOGOUT("reboot ipc");
+					system("reboot");
+				}
 			}
 		}
 	}

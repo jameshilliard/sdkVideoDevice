@@ -47,7 +47,7 @@ watch_oss_bin()
 	ps | grep  aliyunOss.bin | grep -v  grep >> /dev/null
 	if [ $? -eq 1 ]; then
 		tar zxvf /mnt/mtd/ipc/lib.tar.gz  -C /mnt/mtd/ipc/tmpfs/
-		/mnt/mtd/ipc/aliyunOss.bin & 
+		/mnt/mtd/ipc/sykj/aliyunOss.bin & 
 		ps | grep  aliyunOss.bin | grep -v  grep >> /dev/null
 		if [ $? -eq 1 ]; then
 			rm_libs

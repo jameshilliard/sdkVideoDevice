@@ -56,6 +56,7 @@ void * aliyunOssTask(void* param)
 			loginCtrl(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,//g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort,
 					  g_szServerNO,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,
 					  &returnInfo);
+			oldTime=newTime;
 		}
 		memset(fileName,0,sizeof(fileName));
 		memset(filePath,0,sizeof(filePath));
@@ -116,6 +117,7 @@ void * aliyunOssTask(void* param)
 	}
 	exitCtrl(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,//g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort,
 			 g_szServerNO,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword);//ÍË³ö
+	
 }
 
 int initAliyunOssTask()

@@ -428,7 +428,7 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 				if(u32DataType==0)
 				{
 					HI_S_ALARM_MD *pMd=(HI_S_ALARM_MD *)pu8Buffer;
-					printf("pMd->u32Area is %d---\n",pMd->u32Area);
+					//printf("pMd->u32Area is %d---\n",pMd->u32Area);
 					switch(pMd->u32Area)
 					{
 						case 1:
@@ -482,7 +482,7 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 				if(u32DataType==0)
 				{
 					HI_S_ALARM_MD *pMd=(HI_S_ALARM_MD *)pu8Buffer;
-					printf("pMd->u32Area is %d---\n",pMd->u32Area);
+					//printf("pMd->u32Area is %d---\n",pMd->u32Area);
 					switch(pMd->u32Area)
 					{
 						case 1:
