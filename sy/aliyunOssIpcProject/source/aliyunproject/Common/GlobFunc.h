@@ -22,7 +22,7 @@ extern "C" {
 	INT32S 	readFile(LPCTSTR filePath,LPCTSTR fileBuffer,DWORD bufferSize,DWORD *fileSize);
 	char * 	SY_base64Encode(const char *text);
 	INT32S 	readMediaFile(const char *pszDir,char fileName[MAX_PATH]);
-	INT32S  readDirFileNum(const char *pszDir);
+	INT32S  rmDirFile(const char *pszDir);
 #  ifdef __cplusplus
 }
 #  endif /* __cplusplus */

@@ -340,7 +340,7 @@ INT32S writeFile(LPCTSTR filePath,LPCTSTR fileBuffer,DWORD size)
 	return iRet;
 }
 
-INT32S readDirFileNum(const char *pszDir)
+INT32S rmDirFile(const char *pszDir)
 {
 	if(pszDir==NULL)
 		return -1;
@@ -353,12 +353,16 @@ INT32S readDirFileNum(const char *pszDir)
 	DIR    *dir;
     struct dirent *ptr;
 	unsigned int count=0;
-	
     dir = opendir(pszDir); ///open the dir
     int iRet=0;
+	char filePath[256]={0};
     while((ptr = readdir(dir)) != NULL) ///read the list of this dir
     {
 		iRet++;
+		memset(filePath,0,sizeof(filePath));
+		sprintf(filePath,"%s/%s",pszDir,ptr->d_name);
+		unlink(filePath);
+		LOGOUT("unlink %s",filePath);
     }
     closedir(dir);
     return iRet;

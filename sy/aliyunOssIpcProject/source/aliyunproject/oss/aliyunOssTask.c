@@ -7,13 +7,14 @@ int getFilePath(char *videoPath,char *jpgPath,char *ipcId,char *fullName, char *
 {
 	if(fullName==NULL || fileName==NULL)
 		return -1;
-	time_t m_tNowSeconds = time (NULL);
-	struct tm *ptm = localtime(&m_tNowSeconds);
 	char *ptr=NULL;
+	char day[10]={0};
+	memset(day,0,sizeof(day));
+	memcpy(day,fileName,8);
 	ptr=strstr(fileName,".mp4");
 	if(ptr!=NULL)
 	{
-		sprintf(fullName, "%s/%s/%04d%02d%02d/%s",videoPath,(strlen(ipcId)==0)?"test":ipcId,ptm->tm_year+1900,ptm->tm_mon+1,ptm->tm_mday,fileName);	
+		sprintf(fullName, "%s/%s/%s/%s",videoPath,(strlen(ipcId)==0)?"test":ipcId,day,fileName);	
 		return 0;
 	}
 	else
@@ -21,12 +22,12 @@ int getFilePath(char *videoPath,char *jpgPath,char *ipcId,char *fullName, char *
 		ptr=strstr(fileName,".jpg");
 		if(ptr!=NULL)
 		{
-			sprintf(fullName, "%s/%s/%04d%02d%02d/%s",jpgPath,(strlen(ipcId)==0)?"test":ipcId,ptm->tm_year+1900,ptm->tm_mon+1,ptm->tm_mday,fileName);
+			sprintf(fullName, "%s/%s/%s/%s",jpgPath,(strlen(ipcId)==0)?"test":ipcId,day,fileName);
 			return 0;
 		}
 			
 	}
-	printf("file is no mp4 or jpg");
+	printf("file %s is no mp4 or jpg",fileName);
 	return -2;
 }
 
@@ -39,8 +40,23 @@ void * aliyunOssTask(void* param)
 	DWORD fileSize=0;
 	RecordData mRecordData;
 	int iRet=-1;
+	LOGINRETURNINFO returnInfo;
+	loginCtrl(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,//g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort,
+		      g_szServerNO,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,
+		      &returnInfo);
+	time_t oldTime;
+	time_t newTime;
+	time((time_t *)&oldTime);
+	newTime=oldTime;
 	while(1)
 	{
+		time((time_t *)&newTime);
+		if((newTime-oldTime)>12*60*60)
+		{
+			loginCtrl(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,//g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort,
+					  g_szServerNO,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,
+					  &returnInfo);
+		}
 		memset(fileName,0,sizeof(fileName));
 		memset(filePath,0,sizeof(filePath));
 		memset(aliyunFilePath,0,sizeof(aliyunFilePath));
@@ -59,12 +75,12 @@ void * aliyunOssTask(void* param)
 					if(iRet==0)
 					{
 						unlink(filePath);
-						LOGOUT("upLoadFile %s success and unlink",filePath);
+						LOGOUT("upLoadFile %s %s success and unlink",filePath,aliyunFilePath);
 					}
 					else if(iRet==409)//file was exist
 					{
 						unlink(filePath);
-						LOGOUT("filePath %s was exist and unlink",filePath);						
+						LOGOUT("filePath %s %s was exist and unlink",filePath,aliyunFilePath);						
 					}
 						
 				}
@@ -73,8 +89,9 @@ void * aliyunOssTask(void* param)
 		}
 		else if(iRet==3)
 		{
+			sprintf(filePath,"%s/%s",SYSTEM_MEDIA_SENDFILEPATH,fileName);
 			memset(&mRecordData,0,sizeof(mRecordData));
-			iRet=readFile(fileName,(LPCTSTR)(&mRecordData),sizeof(mRecordData),&fileSize);
+			iRet=readFile(filePath,(LPCTSTR)(&mRecordData),sizeof(mRecordData),&fileSize);
 			if(iRet==0)
 			{
 			   iRet=dataRecord(mRecordData.m_server,mRecordData.m_id,mRecordData.m_videoPath,
@@ -89,15 +106,16 @@ void * aliyunOssTask(void* param)
 			else
 			{
 				unlink(filePath);
-				LOGOUT("filePath %s was error and unlink",filePath);	
+				LOGOUT("filePath %s was error and unlink iRet=%d",filePath,iRet);	
 			}
 		}
 		else
 		{
-
 			sleep(2);
 		}
 	}
+	exitCtrl(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,//g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort,
+			 g_szServerNO,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword);//ÍË³ö
 }
 
 int initAliyunOssTask()

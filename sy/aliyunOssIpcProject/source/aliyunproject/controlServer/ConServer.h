@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include "../Common/Typedef.h"
 #include "../Common/GlobVariable.h"
+#include "../Common/DeviceConfig.h"
+
 
 
 #define  HTTPVESION 	"HTTP/1.1"

@@ -286,6 +286,21 @@ int loginCtrl(const char *server,const char *v_szId,const char *v_szPwd,LOGINRET
 		return -3;
 	}
 	iRet=getLoginInfo(strResponse, returnInfo);
+	if(iRet==0)
+	{
+		if(returnInfo->result==1)
+		{
+			if(strlen(returnInfo->accessKeyId)!=0 && strlen(returnInfo->accesskeySecret)!=0
+			   && strlen(returnInfo->OSSbucketName)!=0 && strlen(returnInfo->OSSEndpoint)!=0)
+			{
+				strncpy(g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szBuctetName,returnInfo->OSSbucketName,sizeof(g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szBuctetName));
+				strncpy(g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szOssEndPoint,returnInfo->OSSEndpoint,sizeof(g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szOssEndPoint));
+				strncpy(g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeyId,returnInfo->accessKeyId,sizeof(g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeyId));
+				strncpy(g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeySecret,returnInfo->accesskeySecret,sizeof(g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeySecret));
+				SetAliyunOssCfg(DEVICECONFIGDIR,g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg);
+			}
+		}
+	}
 	return iRet;
 }
 

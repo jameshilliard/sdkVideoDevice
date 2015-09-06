@@ -99,36 +99,21 @@ HI_S32 takePicture(HI_U32 u32Handle,char fileName[256])
 	s32Ret = HI_NET_DEV_SnapJpeg(u32Handle,(HI_U8*)sData, 1024*1024, &nSize);
 	if(s32Ret==HI_SUCCESS)
 	{
-		int i=0;
-		int flag=0;
-		for(i=0;i<100;i++)
+		FILE *fp = fopen(fileName, "wb+");
+		if(fp==NULL)
 		{
-			if(sData[i]==0x0d)
-			{
-				if(sData[i+1]==0x0a && sData[i+2]==0x0d && sData[i+3]==0x0a)
-				{
-					flag=1;
-					break;
-				}
-			}
+			LOGOUT("fail open %s,take picture error is %s",fileName,strerror(errno));
 		}
-		if(flag==1)
+		else
 		{
-			FILE *fp = fopen(fileName, "wb+");
-			if(fp==NULL)
-			{
-				printf("errno=%d\n",errno);
-				//message=strerror(errno);
-				//printf("Mesg:%s\n",message);
-				LOGOUT("fail open %s,take picture error is %s",fileName,strerror(errno));
-			}
-			else
-			{
-				printf("write phote %s is %d\n",fileName,nSize);
-				fwrite((const char*)sData+(i+4), 1, nSize-(i+4), fp);
-				fclose( fp );
-			}
+			printf("write phote %s is %d\n",fileName,nSize);
+			fwrite((const char*)sData, 1, nSize, fp);
+			fclose( fp );
 		}
+	}
+	else
+	{
+		LOGOUT("HI_NET_DEV_SnapJpeg %s,take picture error is %s",fileName,strerror(errno));
 	}
 	free(sData);
 	sData = NULL;
@@ -145,9 +130,9 @@ void * sendMediaToAliyunThread(void* param)
 	return NULL;
 }
 
-HI_S32 creatRecordData(RecordData *v_pRD,const char *v_pVideoPath,time_t v_lTimeStamp,Motion_Data v_mMotionData)
+HI_S32 creatRecordData(RecordData *v_pRD,JOSEPH_MP4_CONFIG *v_pJOSEPH_MP4_CONFIG,Motion_Data v_mMotionData)
 {
-	if(v_pRD==NULL || v_pVideoPath==NULL)
+	if(v_pRD==NULL || v_pJOSEPH_MP4_CONFIG==NULL)
 	{
 		LOGOUT("param is error");
 		return -1;
@@ -156,17 +141,16 @@ HI_S32 creatRecordData(RecordData *v_pRD,const char *v_pVideoPath,time_t v_lTime
 	strncpy(v_pRD->m_server,g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,sizeof(v_pRD->m_server));
 	strncpy(v_pRD->m_id,g_szServerNO,sizeof(v_pRD->m_id));
 	strncpy(v_pRD->m_secret,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,sizeof(v_pRD->m_secret));
-	strncpy(v_pRD->m_videoPath,g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szVideoPath,sizeof(v_pRD->m_videoPath));
-	strncpy(v_pRD->m_jpgPath,g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szJPGPath,sizeof(v_pRD->m_jpgPath));
-	v_pRD->m_creatTimeInMilSecond=v_lTimeStamp*1000;
+	strncpy(v_pRD->m_videoPath,v_pJOSEPH_MP4_CONFIG->nOssVideoName,sizeof(v_pRD->m_videoPath));
+	strncpy(v_pRD->m_jpgPath,v_pJOSEPH_MP4_CONFIG->nOssJpgName,sizeof(v_pRD->m_jpgPath));
+	v_pRD->m_creatTimeInMilSecond=(long long)v_pJOSEPH_MP4_CONFIG->m_startTime*1000;
 	v_pRD->m_mMotionData=v_mMotionData;
 	memcpy(&v_pRD->m_mMotionData,&v_mMotionData,sizeof(v_pRD->m_mMotionData));
-	v_pRD->m_videoFileSize=getFileSize(v_pVideoPath);
+	v_pRD->m_videoFileSize=getFileSize(v_pJOSEPH_MP4_CONFIG->nFifoEndName)/1024;
 	time_t localTime;
 	time((time_t *)&localTime);
 	localTime+=CHINATIME;
-	v_pRD->m_videoTimeLength=localTime-v_lTimeStamp;
-
+	v_pRD->m_videoTimeLength=localTime-v_pJOSEPH_MP4_CONFIG->m_startTime;
 	return 0;
 }
 
@@ -227,7 +211,9 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 			localTime+=CHINATIME;
 			joseph_mp4_config.m_startTime=localTime;
 			getTimeNameString(localTime,timeString,128);
-
+			char day[10]={0};
+			memset(day,0,sizeof(day));
+			memcpy(day,timeString,8);
 			if(0!=isDeviceAccess(SYSTEM_MEDIA_SAVEFILEPATH))
 			{
 				mkdir(SYSTEM_MEDIA_SAVEFILEPATH,0777);
@@ -243,7 +229,13 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 			sprintf(joseph_mp4_config.nFifoEndName,"%s/%s.mp4",SYSTEM_MEDIA_SENDFILEPATH,timeString);	
 			sprintf(joseph_mp4_config.nPictureEndName,"%s/%s.jpg",SYSTEM_MEDIA_SENDFILEPATH,timeString);
 			sprintf(joseph_mp4_config.nDataEndName,"%s/%s.dat",SYSTEM_MEDIA_SENDFILEPATH,timeString);
-
+			sprintf(joseph_mp4_config.nOssVideoName,"%s/%s/%s/%s.mp4",
+					g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szVideoPath,
+					g_szServerNO,day,timeString);
+			sprintf(joseph_mp4_config.nOssJpgName,"%s/%s/%s/%s.jpg",
+					g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szJPGPath,
+					g_szServerNO,day,timeString);
+			
 			iRet=takePicture(u32Handle,joseph_mp4_config.nPictureName);
 			LOGOUT("takePiture %s is %d",joseph_mp4_config.nPictureName,iRet);
 			iRet=InitMp4Module(&joseph_aac_config,&joseph_mp4_config);
@@ -333,6 +325,12 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 				rename(joseph_mp4_config.nPictureName,joseph_mp4_config.nPictureEndName);
 				LOGOUT("rename(%s)",joseph_mp4_config.nFifoEndName);
 				LOGOUT("rename(%s)",joseph_mp4_config.nPictureEndName);
+				RecordData mRecordData;
+				iRet=creatRecordData(&mRecordData,&joseph_mp4_config,motionData.m_stMotionData);
+				if(iRet==0)
+				{
+					iRet=writeFile(joseph_mp4_config.nDataEndName,(LPCTSTR)(&mRecordData),sizeof(mRecordData));
+				}
 			}
 			else
 			{
@@ -341,20 +339,12 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 				LOGOUT("unlink(%s)",joseph_mp4_config.nFifoName);
 				LOGOUT("unlink(%s)",joseph_mp4_config.nPictureName);
 			}
-			iRet=readDirFileNum(SYSTEM_MEDIA_SAVEFILEPATH);
+			iRet=rmDirFile(SYSTEM_MEDIA_SAVEFILEPATH);
 			if(iRet>0)
 			{
-				rmdir(SYSTEM_MEDIA_SAVEFILEPATH);
-				LOGOUT("rmdir %s",SYSTEM_MEDIA_SAVEFILEPATH);
+				LOGOUT("rmdir %s iRet=%d error=%s",SYSTEM_MEDIA_SAVEFILEPATH,iRet,strerror(errno));
 			}
 			motionData.m_u32MotionStatus=0;
-			RecordData mRecordData;
-			iRet=creatRecordData(&mRecordData,joseph_mp4_config.nFifoEndName,
-								joseph_mp4_config.m_startTime,motionData.m_stMotionData);
-			if(iRet==0)
-			{
-				iRet=writeFile(joseph_mp4_config.nDataEndName,(LPCTSTR)(&mRecordData),sizeof(mRecordData));
-			}
 			*u32Status=RECORDIDLE;
 		}
 			break;
@@ -665,7 +655,7 @@ int InitHiSDKServer(HI_U32 *u32Handle,HI_U32 u32Stream)
 		*u32Handle = 0;
 		return -3;
 	}
-	if(u32Stream==1)
+	if(u32Stream==0)
 	{
 		LOGOUT("HI_NET_DEV_SetDataCallBack is stream");
 		s32Ret=HI_NET_DEV_SetDataCallBack(*u32Handle, OnDataCallback, &a);
@@ -994,7 +984,7 @@ int InitHiSDKVideoAllChannel()
 	HI_NET_DEV_Init();
 	memset(&curVideoParam,0,sizeof(curVideoParam));
 	int iRet=-1;
-	iRet=InitHiSDKServer(&u32HandleHight,1);
+	iRet=InitHiSDKServer(&u32HandleHight,0);
 	if(iRet!=0)
 		LOGOUT("InitHiSDKServer Hight is faliure,iRet=%d",iRet);
 	HI_S_Video_Ext sVideo;
