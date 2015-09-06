@@ -36,7 +36,7 @@ int Post_head(char *strUrl, char *strPost, char *strResponse)
         return -1;  
     }  
 	curl_easy_setopt(curl,CURLOPT_URL,strUrl); //url地址  
-
+	LOGOUT("url:%s post:%s",strUrl,strPost);
 	//http_header = curl_slist_append(NULL, "Content-Type:application/json;charset=UTF-8");
 	http_header = curl_slist_append(NULL, "Content-Type:application/x-www-form-urlencoded");
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, http_header); 
@@ -53,7 +53,6 @@ int Post_head(char *strUrl, char *strPost, char *strResponse)
 	curl_easy_setopt(curl,CURLOPT_HEADER,0); //将响应头信息和相应体一起传给write_data  
 	curl_easy_setopt(curl,CURLOPT_FOLLOWLOCATION,1); //设置为非0,响应头信息location  
 	curl_easy_setopt(curl,CURLOPT_COOKIEFILE,"/Users/zhu/CProjects/curlposttest.cookie");  
-
 	res = curl_easy_perform(curl);  
   
     if (res != CURLE_OK)  
@@ -259,7 +258,7 @@ int getLoginInfo(const char *strResponse, LOGINRETURNINFO *returnInfo)
 	return 0;
 }
 
-int loginCtrl(const char *server,int port,const char *v_szId,const char *v_szPwd,LOGINRETURNINFO *returnInfo)
+int loginCtrl(const char *server,const char *v_szId,const char *v_szPwd,LOGINRETURNINFO *returnInfo)
 {
 	if(server==NULL || v_szId==NULL || v_szPwd==NULL || returnInfo==NULL)
 	{
@@ -274,7 +273,7 @@ int loginCtrl(const char *server,int port,const char *v_szId,const char *v_szPwd
 	memset(sendBuf,0,sizeof(sendBuf));
 	memset(strUrl,0,sizeof(strUrl));
 	sprintf(sendBuf,"id=%s&pwd=%s",v_szId,v_szPwd);
-	sprintf(strUrl,STRING_LOGIN_CONSERVER,server,port);
+	sprintf(strUrl,STRING_LOGIN_CONSERVER,server);
 	int iRet=Post_head(strUrl, sendBuf, strResponse);
 	if(iRet!=0)
 	{
@@ -290,7 +289,7 @@ int loginCtrl(const char *server,int port,const char *v_szId,const char *v_szPwd
 	return iRet;
 }
 
-int exitCtrl(const char *server,int port,const char *v_szId,const char *v_szPwd)
+int exitCtrl(const char *server,const char *v_szId,const char *v_szPwd)
 {
 	if(server==NULL || v_szId==NULL || v_szPwd==NULL)
 	{
@@ -306,7 +305,7 @@ int exitCtrl(const char *server,int port,const char *v_szId,const char *v_szPwd)
 	memset(sendBuf,0,sizeof(sendBuf));
 	memset(strUrl,0,sizeof(strUrl));
 	sprintf(sendBuf,"id=%s&pwd=%s",v_szId,v_szPwd);
-	sprintf(strUrl,STRING_LOGOUT_CONSERVER,server,port);
+	sprintf(strUrl,STRING_LOGOUT_CONSERVER,server);
 	
 	int iRet=Post_head(strUrl, sendBuf, strResponse);
 	if(iRet!=0)
@@ -346,8 +345,8 @@ int exitCtrl(const char *server,int port,const char *v_szId,const char *v_szPwd)
 
 	
 
-int dataRecord(const char *server,int port,const char *v_szId, char *videoPath, 
-			   long creatTimeInMilSecond, int videoFileSize,char *jpgFilePath, 
+int dataRecord(const char *server,const char *v_szId, char *videoPath, 
+			   long long creatTimeInMilSecond, int videoFileSize,char *jpgFilePath, 
 			   int videoTimeLength,Motion_Data mMotionData)
 {
 	if(server==NULL || v_szId==NULL)
@@ -365,7 +364,7 @@ int dataRecord(const char *server,int port,const char *v_szId, char *videoPath,
 	sprintf(sendBuf,STRING_RECORD_CONSERVER, v_szId, videoPath, creatTimeInMilSecond, videoFileSize,jpgFilePath, videoTimeLength,
 					 mMotionData.videoMotionTotal_Dist1,mMotionData.videoMotionTotal_Dist2,
 		             mMotionData.videoMotionTotal_Dist3, mMotionData.videoMotionTotal_Dist4,mMotionData.voiceAlarmTotal);
-	sprintf(strUrl,STRING_LOGIN_CONSERVER,server,port);
+	sprintf(strUrl,STRING_DATARECORD_CONSERVER,server);
 	int iRet=Post_head(strUrl, sendBuf, strResponse);
 	if(iRet!=0)
 	{
@@ -404,20 +403,18 @@ int InitConServer()
 	LOGINRETURNINFO returnInfo;
 	Motion_Data mMotion;
 	mMotion.videoMotionTotal_Dist1=3;
-	mMotion.videoMotionTotal_Dist1=4;
-	mMotion.videoMotionTotal_Dist1=5;
-	mMotion.videoMotionTotal_Dist1=4;
-	mMotion.videoMotionTotal_Dist1=2;
+	mMotion.videoMotionTotal_Dist2=4;
+	mMotion.videoMotionTotal_Dist3=5;
+	mMotion.videoMotionTotal_Dist4=4;
+	mMotion.voiceAlarmTotal=0;
+	LOGOUT("long is %d---\n",sizeof(long));
 	memset(&returnInfo, 0, sizeof(LOGINRETURNINFO));
-	loginCtrl(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,
-			  g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort,
+	loginCtrl(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,//g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort,
 			  g_szServerNO,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,
 			  &returnInfo);
-	dataRecord(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,
-			   g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort,
-			   g_szServerNO, "video", 1441099285000, 20,"jpg",1024,mMotion);
-	exitCtrl(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,
-			 g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort,
+	dataRecord(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,//g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort,
+			   g_szServerNO, "video", (long long)1441099285000, 20,"jpg",1024,mMotion);
+	exitCtrl(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,//g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort,
 			 g_szServerNO,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword);//退出
 	return 0;
 }

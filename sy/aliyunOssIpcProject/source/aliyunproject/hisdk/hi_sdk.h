@@ -11,6 +11,7 @@
 #include "hi_param.h"
 #include "../Common/Typedef.h"
 #include "../Common/GlobVariable.h"
+#include "../controlServer/ConServer.h"
 
 
 #define		DEVICEWIDTHBIG						1280

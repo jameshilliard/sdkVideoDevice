@@ -48,8 +48,11 @@
 #define IDC_EDIT_AccessKeyId            1034
 #define IDC_EDIT_AccessKeySecret        1035
 #define IDC_EDIT_KEYFRAME               1036
+#define IDC_EDIT_VIDEOPATH              1036
 #define IDC_EDIT_CODE                   1037
 #define IDC_COMBO_ENBALE                1037
+#define IDC_EDIT_AccessKeySecret3       1037
+#define IDC_EDIT_JPGPATH                1037
 #define IDC_COMBO1                      1038
 #define IDC_COMBO_RESET                 1038
 

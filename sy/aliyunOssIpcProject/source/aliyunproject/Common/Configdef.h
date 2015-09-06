@@ -53,6 +53,9 @@
 #define	DE_ALENDPOINT			"oss-cn-shenzhen.aliyuncs.com"
 #define DE_ALACCESSKEYID		"YCcIdLNNUAkA4d2K"
 #define	DE_ALACCESSSECRET		"jwVtojgl6hsxyj7oj86lz0X3T73x5v"
+#define	DE_VIDEOPATH			"Videos"
+#define	DE_JPGPATH				"Photos"
+
 
 
 // tagCapParamCfg摄像头信息默认参数
@@ -77,8 +80,9 @@
 
 typedef struct __attribute__((packed, aligned(8))) tagMasterServerCfg_
 {
-	int 	m_iMasterPort;		// 主控端口
-	char	m_szMasterIP[236];	// 主控IP
+	//int 	m_iMasterPort;		// 主控端口
+	char	m_szMasterIP[80];	// 主控IP
+	char	m_szReserve[160];	// 主控IP
 }tagMasterServerCfg;
 
 typedef struct __attribute__((packed, aligned(8))) tagCapParamCfg_
@@ -96,7 +100,7 @@ typedef struct __attribute__((packed, aligned(8))) tagCapParamCfg_
 typedef struct __attribute__((packed, aligned(8))) tagDevInfoCfg_
 {
 	char	m_szPassword[80];		// 设备密码	
-	char 	m_szReserver[80];
+	char 	m_szReserver[160];
 }tagDevInfoCfg;
 
 typedef struct __attribute__((packed, aligned(8))) tagAliyunOssCfg_
@@ -105,7 +109,9 @@ typedef struct __attribute__((packed, aligned(8))) tagAliyunOssCfg_
 	char 		m_szOssEndPoint[80];
 	char 		m_szAccessKeyId[80];
 	char 		m_szAccessKeySecret[80];
-	char 		m_szReserver[80];
+	char 		m_szVideoPath[80];
+	char 		m_szJPGPath[80];
+	char 		m_szReserver[160];
 }tagAliyunOssCfg;
 
 

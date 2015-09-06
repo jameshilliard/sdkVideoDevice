@@ -65,9 +65,9 @@ static INT32S resolveCmd1000(S_Data *v_pstData,char *v_szDeviceIp, char *v_szDev
 		LOGOUT("get server:%s",szServer);
 		SetXmlValue(v_pstData, "server",szServer);
 	}
-	sprintf(szServerPort,"%d",g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort);
-	LOGOUT("get port:%s",szServerPort);
-	SetXmlValue(v_pstData, "serverport",szServerPort);
+	//sprintf(szServerPort,"%d",g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort);
+	//LOGOUT("get port:%s",szServerPort);
+	//SetXmlValue(v_pstData, "serverport",szServerPort);
 	iRet=getStringParams(NETFILE,HttpPort,szHttpPort,sizeof(szHttpPort));
 	if(iRet!=0)
 		LOGOUT("get httpPort string is error iRet=%d",iRet);	
@@ -101,11 +101,11 @@ static INT32S resolveCmd1002(S_Data *v_pSData,S_Data *v_pstData,char *v_szDevHwM
 		{
 			strcpy(server,v_pSData->params[i].szValue);
 		}
-		if(strcmp(v_pSData->params[i].szKey,"port")==0)
-		{
-			strcpy(port,v_pSData->params[i].szValue);
-			iPort=atoi(port);
-		}
+		//if(strcmp(v_pSData->params[i].szKey,"port")==0)
+		//{
+		//	strcpy(port,v_pSData->params[i].szValue);
+		//	iPort=atoi(port);
+		//}
 		if(strcmp(v_pSData->params[i].szKey,"id")==0)
 		{
 			strcpy(deviceId,v_pSData->params[i].szValue);
@@ -130,11 +130,12 @@ static INT32S resolveCmd1002(S_Data *v_pSData,S_Data *v_pstData,char *v_szDevHwM
 		LOGOUT("test");
 		strncpy(g_szServerNO,deviceId,sizeof(g_szServerNO));
 		SetServerNo(DEVICECONFIGDIR,g_szServerNO,strlen(g_szServerNO));
-		if(0!=strcmp(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,server) ||
-		   g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort!=iPort)
+		//if(0!=strcmp(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,server) ||
+		//   g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort!=iPort)
+		if(0!=strcmp(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,server))
 		{
 			strncpy(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,server,sizeof(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP));
-			g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort=iPort;
+			//g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort=iPort;
 			SetServerIpAndPort(DEVICECONFIGDIR,server,sizeof(server),iPort);
 		}
 		if(0!=strcmp(g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,secret))

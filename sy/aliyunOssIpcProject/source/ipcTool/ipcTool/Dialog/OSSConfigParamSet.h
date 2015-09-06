@@ -30,6 +30,8 @@ public:
 	CString 	m_szOssEndPoint;
 	CString 	m_szAccessKeyId;
 	CString 	m_szAccessKeySecret;
+	CString 	m_szVideoPath;
+	CString 	m_szJpgPath;
 
 	DECLARE_MESSAGE_MAP()
 };

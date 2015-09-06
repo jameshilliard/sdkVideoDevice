@@ -24,10 +24,10 @@ using namespace std;
 #define LIST_COL_GATEWAY		8
 #define LIST_COL_MACADDRESS		9
 #define LIST_COL_SERVER			10
-#define LIST_COL_PORT			11
-#define LIST_COL_SERVERSTATUS	12
-#define LIST_COL_HTTPPORT		13
-#define LIST_COL_SECRET			14
+//#define LIST_COL_PORT			11
+#define LIST_COL_SERVERSTATUS	11
+#define LIST_COL_HTTPPORT		12
+#define LIST_COL_SECRET			13
 
 #define	MAX_SERVER_COUNTS		100
 #define MULTICAST_IP 			"245.255.255.250"	//¶à²¥×éµØÖ·

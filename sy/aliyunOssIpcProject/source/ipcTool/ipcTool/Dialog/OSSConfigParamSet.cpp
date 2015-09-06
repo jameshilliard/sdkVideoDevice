@@ -27,6 +27,8 @@ void COSSConfigParamSet::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_BucketName,m_szBuctetName);
 	DDX_Text(pDX, IDC_EDIT_AccessKeyId,m_szAccessKeyId);
 	DDX_Text(pDX, IDC_EDIT_AccessKeySecret,m_szAccessKeySecret);
+	DDX_Text(pDX, IDC_EDIT_VIDEOPATH,m_szVideoPath);
+	DDX_Text(pDX, IDC_EDIT_JPGPATH,m_szJpgPath);
 }
 
 
@@ -48,6 +50,8 @@ BOOL COSSConfigParamSet::OnInitDialog()
 		m_szOssEndPoint=mapofResult["OssEndPoint"];		
 		m_szAccessKeyId=mapofResult["AccessKeyId"];
 		m_szAccessKeySecret=mapofResult["AccessKeySecret"];
+		m_szVideoPath=mapofResult["VideoPath"];
+		m_szJpgPath=mapofResult["JpgPath"];
 	}
 	UpdateData(FALSE);
 	return TRUE;  // return TRUE unless you set the focus to a control
@@ -66,6 +70,8 @@ void COSSConfigParamSet::OnBnClickedOk()
 	mapofparam["OssEndPoint"]=m_szOssEndPoint;		
 	mapofparam["AccessKeyId"]=m_szAccessKeyId;
 	mapofparam["AccessKeySecret"]=m_szAccessKeySecret;
+	mapofparam["VideoPath"]=m_szVideoPath;
+	mapofparam["JpgPath"]=m_szJpgPath;
 
 	bool bRet=m_objTcpClient.TcpPost(mapofparam, mapofResult, 4003);
 	if(bRet)

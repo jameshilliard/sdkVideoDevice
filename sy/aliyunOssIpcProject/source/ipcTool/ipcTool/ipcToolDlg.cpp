@@ -128,7 +128,7 @@ BOOL CipcToolDlg::OnInitDialog()
 	m_RecordListCtrl.InsertColumn( LIST_COL_GATEWAY, (LPCTSTR)"Gateway", LVCFMT_LEFT, 100 );
 	m_RecordListCtrl.InsertColumn( LIST_COL_MACADDRESS, (LPCTSTR)"Mac", LVCFMT_LEFT, 100 );
 	m_RecordListCtrl.InsertColumn( LIST_COL_SERVER, (LPCTSTR)"Server", LVCFMT_LEFT, 100 );
-	m_RecordListCtrl.InsertColumn( LIST_COL_PORT, (LPCTSTR)"Port", LVCFMT_LEFT, 100 );
+	//m_RecordListCtrl.InsertColumn( LIST_COL_PORT, (LPCTSTR)"Port", LVCFMT_LEFT, 100 );
 	m_RecordListCtrl.InsertColumn( LIST_COL_SERVERSTATUS, (LPCTSTR)"Status", LVCFMT_LEFT, 100 );
 	m_RecordListCtrl.InsertColumn( LIST_COL_HTTPPORT, (LPCTSTR)"HttpPort", LVCFMT_LEFT, 100 );
 	m_RecordListCtrl.InsertColumn( LIST_COL_SECRET, (LPCTSTR)"secret", LVCFMT_LEFT, 100 );
@@ -306,8 +306,8 @@ int CipcToolDlg::reloveDeviceParamsXml(S_Data &sData,std::string &mac)
 				deviceParams.m_deviceId=it->second;
 			if(it->first=="server")
 				deviceParams.m_server=it->second;
-			if(it->first=="serverport")
-				deviceParams.m_port=it->second;
+			//if(it->first=="serverport")
+			//	deviceParams.m_port=it->second;
 			if(it->first=="httpport")
 				deviceParams.m_httpPort=it->second;
 			if(it->first=="serverstatus")
@@ -410,7 +410,7 @@ void CipcToolDlg::InsertReocrd()
 		m_RecordListCtrl.SetItemText(i,LIST_COL_IPADDRESS,deviceParams.m_ipAddress.c_str());
 		m_RecordListCtrl.SetItemText(i,LIST_COL_GATEWAY,deviceParams.m_gateway.c_str());
 		m_RecordListCtrl.SetItemText(i,LIST_COL_SERVER,deviceParams.m_server.c_str());
-		m_RecordListCtrl.SetItemText(i,LIST_COL_PORT,deviceParams.m_port.c_str());
+		//m_RecordListCtrl.SetItemText(i,LIST_COL_PORT,deviceParams.m_port.c_str());
 		m_RecordListCtrl.SetItemText(i,LIST_COL_HTTPPORT,deviceParams.m_httpPort.c_str());
 		m_RecordListCtrl.SetItemText(i,LIST_COL_SECRET,deviceParams.m_secret.c_str());
 		m_RecordListCtrl.SetItemText(i,LIST_COL_MACADDRESS,it->first.c_str());
@@ -439,7 +439,7 @@ void CipcToolDlg::OnBnClickedButtonSearch()
 			}
 		}
 	}
-	InsertReocrd();
+	InsertReocrd();     
 	UpdateData(FALSE);
 	AfxMessageBox("搜索完成……");
 	// TODO: 在此添加控件通知处理程序代码
@@ -460,7 +460,7 @@ void CipcToolDlg::OnNMClickListRecord(NMHDR *pNMHDR, LRESULT *pResult)
 	GetDlgItem(IDC_EDIT_DEVID)->SetWindowText(m_RecordListCtrl.GetItemText(nItem,LIST_COL_DEVICEID));
 	GetDlgItem(IDC_EDIT_MAC)->SetWindowText(m_RecordListCtrl.GetItemText(nItem,LIST_COL_MACADDRESS));
 	GetDlgItem(IDC_EDIT_SERVER)->SetWindowText(m_RecordListCtrl.GetItemText(nItem,LIST_COL_SERVER));
-	GetDlgItem(IDC_EDIT_PORT)->SetWindowText(m_RecordListCtrl.GetItemText(nItem,LIST_COL_PORT));
+	//GetDlgItem(IDC_EDIT_PORT)->SetWindowText(m_RecordListCtrl.GetItemText(nItem,LIST_COL_PORT));
 	GetDlgItem(IDC_EDIT_SECRET)->SetWindowText(m_RecordListCtrl.GetItemText(nItem,LIST_COL_SECRET));
 	GetDlgItem(IDC_IPADDRESS_IP)->SetWindowText(m_RecordListCtrl.GetItemText(nItem,LIST_COL_IPADDRESS));
 	GetDlgItem(IDC_IPADDRESS_MASK)->SetWindowText(m_RecordListCtrl.GetItemText(nItem,LIST_COL_SUBNETMASK));
@@ -486,14 +486,14 @@ void CipcToolDlg::OnBnClickedButtonModify()
 	GetDlgItem(IDC_EDIT_DEVID)->GetWindowText(deviceId);
 	GetDlgItem(IDC_EDIT_SECRET)->GetWindowText(secret);
 	GetDlgItem(IDC_EDIT_SERVER)->GetWindowText(serverIp);
-	GetDlgItem(IDC_EDIT_PORT)->GetWindowText(serverPort);
+	//GetDlgItem(IDC_EDIT_PORT)->GetWindowText(serverPort);
 
 	sData.commandId=100;
 	sData.commandName="1002";
 	sData.type=CONNETTYPE;
 	sData.params["mac"]=mac.GetBuffer();
 	sData.params["server"]=serverIp.GetBuffer();
-	sData.params["port"]=serverPort.GetBuffer();
+	//sData.params["port"]=serverPort.GetBuffer();
 	sData.params["secret"]=secret.GetBuffer();
 	sData.params["id"]=deviceId.GetBuffer();
 	CString mReset;

@@ -55,11 +55,12 @@ typedef struct Joseph_Mp4_Config
 	unsigned short width;          // ”∆µøÌ
 	unsigned short height;         // ”∆µ∏ﬂ
 	unsigned int  valid;
+	time_t 	m_startTime;
 	char  	nFifoName[256];
 	char 	nPictureName[256];
 	char 	nFifoEndName[256];
 	char 	nPictureEndName[256];
-
+	char 	nDataEndName[256];
 }JOSEPH_MP4_CONFIG;
 
 #ifdef __cplusplus

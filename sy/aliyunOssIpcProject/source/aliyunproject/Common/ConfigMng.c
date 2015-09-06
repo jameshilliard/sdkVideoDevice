@@ -98,7 +98,7 @@ BOOL InitConfigFile(tagConfigCfg *v_pstConfigCfg)
 
 	// tagMasterServerCfg主控参数默认值
 	strncpy(objConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP, DE_ROUTESERVER,sizeof(objConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP));
-	objConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort = DE_ROUTESERVERPORT;
+	//objConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort = DE_ROUTESERVERPORT;
 
 	// tagCapParamCfg摄像头信息默认参数
 	for (i = 0; i< MAXCAMERANUM; i++)
@@ -117,7 +117,8 @@ BOOL InitConfigFile(tagConfigCfg *v_pstConfigCfg)
 	strncpy(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szOssEndPoint, DE_ALENDPOINT,sizeof(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szOssEndPoint));
 	strncpy(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeyId, DE_ALACCESSKEYID,sizeof(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeyId));
 	strncpy(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeySecret, DE_ALACCESSSECRET,sizeof(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeySecret));
-
+	strncpy(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szJPGPath, DE_JPGPATH,sizeof(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szJPGPath));
+	strncpy(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szVideoPath, DE_VIDEOPATH,sizeof(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szVideoPath));
 	
 	objConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iBefRecLastTime = DE_BEFORE_RECORD_MOTION_LASTTIME;
 	objConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iBefRecTimes = DE_BEFORE_RECORD_MOTION_TIMES;
@@ -126,7 +127,6 @@ BOOL InitConfigFile(tagConfigCfg *v_pstConfigCfg)
 	objConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iEndRecTime = DE_END_RECORD_MOTION_TIME;
 	objConfigCfg.m_unMotionCfg.m_objMotionCfg.m_bEnable = DE_ENABLE;
 
-	
 	strncpy(objConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,DE_SECRET,sizeof(objConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword));
 	
 	fwrite((char*)&objConfigCfg, sizeof(objConfigCfg), 1, _RdFile);

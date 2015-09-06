@@ -76,7 +76,7 @@ INT32S SetServerIpAndPort(const char *v_szFlashPath,char *v_szServerIp,INT32U le
 	tagMasterServerCfg objSetMasterInfo = {0};
 	memset(&objSetMasterInfo,0,sizeof(tagMasterServerCfg));
 	strncpy(objSetMasterInfo.m_szMasterIP,v_szServerIp,sizeof(objSetMasterInfo.m_szMasterIP));
-	objSetMasterInfo.m_iMasterPort = v_iPort;
+	//objSetMasterInfo.m_iMasterPort = v_iPort;
 	iRet = SetCfgFile(&objSetMasterInfo, offsetof(tagConfigCfg, m_unMasterServerCfg.m_objMasterServerCfg), sizeof(tagMasterServerCfg));
 	LOGOUT("set serverIP=%s,port=%d,iRet=%d",v_szServerIp,v_iPort,iRet);
 	return iRet;

@@ -10,49 +10,6 @@
 #include "../Common/Configdef.h"
 
 
-#if 0
-#include "../Common/InnerDataMng.h"
-
-Queue * g_videoQuene=NULL;
-
-Queue * InitVideoQuene(int v_iCacheSize)
-{
-	int iRet=0;
-	Queue *localQueue=NULL;
-	localQueue = (Queue*)QueueListConstruction();
-	if(localQueue)
-	{	
-		iRet=localQueue->initqueue(localQueue->_this,v_iCacheSize);
-		if(iRet!=0)
-		{
-			LOGOUT("InitVideoQuene error\n");
-			return NULL;
-		}
-		return localQueue;
-	}
-	else
-	{
-		LOGOUT("InitVideoQuene QueueListConstruction error\n");
-		return NULL;
-	}
-}
-
-
-int ReleaseVideoQuene(Queue *vQueue)
-{
-	int iRet=0;
-
-	if(vQueue==NULL)
-		return	-1;
-	vQueue->release(vQueue->_this);
-	free(vQueue);
-	return 0;
-}
-#endif
-
-#ifndef DEBUG_CPU_X86
-
-//extern PRTMPUnit 	pRtmpServer;
 static HI_U32 				u32HandleHight=0;
 static HI_U32 				u32HandleMid=0;
 static HI_U32 				u32HandleLow=0;
@@ -63,6 +20,10 @@ static JOSEPH_MP4_CONFIG 	joseph_mp4_config;
 static HI_U32  				u32RecordCmd=RECORDIDLE;
 static HI_Motion_Data 		motionData;
 static HI_U32 				u32SendMediaToAliyunStatus=0;
+
+static	HI_U32	 			u32Width=DEVICEWIDTHBIG;	 /* 视频宽 */
+static	HI_U32 				u32Height=DEVICEHIGHHBIG;	 /* 视频高 */
+
 
 int getVideoParam(HI_U32 *u32Handle,HI_S_Video_Ext *sVideo)
 {
@@ -115,14 +76,7 @@ static void SaveRecordFile(HI_CHAR* pPath, HI_U8* pu8Buffer, HI_U32 u32Length)
 	fwrite(pu8Buffer, 1, u32Length, fp);
 	fclose(fp);
 }
-
-#ifdef DEBUG_G711_FILE
-char   g711aFileBuffer[1024*1024]={0};
-#endif
  
-static	HI_U32 u32Width=DEVICEWIDTHBIG;	 /* 视频宽 */
-static	HI_U32 u32Height=DEVICEHIGHHBIG;	 /* 视频高 */
-
 static void getTimeNameString(int timeStamp,char *timeStr,int size)
 {
 	struct tm * timeinfo;
@@ -191,6 +145,31 @@ void * sendMediaToAliyunThread(void* param)
 	return NULL;
 }
 
+HI_S32 creatRecordData(RecordData *v_pRD,const char *v_pVideoPath,time_t v_lTimeStamp,Motion_Data v_mMotionData)
+{
+	if(v_pRD==NULL || v_pVideoPath==NULL)
+	{
+		LOGOUT("param is error");
+		return -1;
+	}
+	memset(v_pRD,0,sizeof(RecordData));
+	strncpy(v_pRD->m_server,g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,sizeof(v_pRD->m_server));
+	strncpy(v_pRD->m_id,g_szServerNO,sizeof(v_pRD->m_id));
+	strncpy(v_pRD->m_secret,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,sizeof(v_pRD->m_secret));
+	strncpy(v_pRD->m_videoPath,g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szVideoPath,sizeof(v_pRD->m_videoPath));
+	strncpy(v_pRD->m_jpgPath,g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szJPGPath,sizeof(v_pRD->m_jpgPath));
+	v_pRD->m_creatTimeInMilSecond=v_lTimeStamp*1000;
+	v_pRD->m_mMotionData=v_mMotionData;
+	memcpy(&v_pRD->m_mMotionData,&v_mMotionData,sizeof(v_pRD->m_mMotionData));
+	v_pRD->m_videoFileSize=getFileSize(v_pVideoPath);
+	time_t localTime;
+	time((time_t *)&localTime);
+	localTime+=CHINATIME;
+	v_pRD->m_videoTimeLength=localTime-v_lTimeStamp;
+
+	return 0;
+}
+
 HI_S32 onRecordTask(HI_U32 u32Handle, /* 句柄 */
                                 HI_U32 u32DataType,     /* 数据类型，视频或音频数据或音视频复合数据 */
                                 HI_U8*  pu8Buffer,      /* 数据包含帧头 */
@@ -225,18 +204,6 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* 句柄 */
 	if(validU32Handle==u32Handle)
 	{
 		HI_S_AVFrame* pstruAV  = (HI_S_AVFrame*)pu8Buffer;
-		//if (pstruAV->u32AVFrameFlag == HI_NET_DEV_VIDEO_FRAME_FLAG)
-		//{
-			//printf("child thread lwpid=%u\n",syscall(SYS_gettid));
-			//printf("child thread tid=%u\n",pthread_self());
-			//printf("Video %u PTS: %u \n", pstruAV->u32VFrameType, pstruAV->u32AVFramePTS);
-			//SaveRecordFile("Video.hx", pu8Buffer, u32Length);
-		//}
-		//else if (pstruAV->u32AVFrameFlag == HI_NET_DEV_AUDIO_FRAME_FLAG)
-		//{
-			//printf("Audio %u PTS: %u \n", pstruAV->u32AVFrameLen, pstruAV->u32AVFramePTS);
-			//SaveRecordFile("Video.hx", pu8Buffer, u32Length);			
-		//}
 		switch(*u32Status)
 		{
 		case RECORDSTART:
@@ -258,6 +225,7 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* 句柄 */
 			time_t localTime;
 			time((time_t *)&localTime);
 			localTime+=CHINATIME;
+			joseph_mp4_config.m_startTime=localTime;
 			getTimeNameString(localTime,timeString,128);
 
 			if(0!=isDeviceAccess(SYSTEM_MEDIA_SAVEFILEPATH))
@@ -270,15 +238,11 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* 句柄 */
 				mkdir(SYSTEM_MEDIA_SENDFILEPATH,0777);
 				LOGOUT("mkidr %s",SYSTEM_MEDIA_SENDFILEPATH);
 			}
-			memset(joseph_mp4_config.nFifoName,0,sizeof(joseph_mp4_config.nFifoName));
 			sprintf(joseph_mp4_config.nFifoName,"%s/%s.mp4",SYSTEM_MEDIA_SAVEFILEPATH,timeString);	
-			memset(joseph_mp4_config.nPictureName,0,sizeof(joseph_mp4_config.nPictureName));
 			sprintf(joseph_mp4_config.nPictureName,"%s/%s.jpg",SYSTEM_MEDIA_SAVEFILEPATH,timeString);
-
-			memset(joseph_mp4_config.nFifoEndName,0,sizeof(joseph_mp4_config.nFifoEndName));
 			sprintf(joseph_mp4_config.nFifoEndName,"%s/%s.mp4",SYSTEM_MEDIA_SENDFILEPATH,timeString);	
-			memset(joseph_mp4_config.nPictureEndName,0,sizeof(joseph_mp4_config.nPictureEndName));
 			sprintf(joseph_mp4_config.nPictureEndName,"%s/%s.jpg",SYSTEM_MEDIA_SENDFILEPATH,timeString);
+			sprintf(joseph_mp4_config.nDataEndName,"%s/%s.dat",SYSTEM_MEDIA_SENDFILEPATH,timeString);
 
 			iRet=takePicture(u32Handle,joseph_mp4_config.nPictureName);
 			LOGOUT("takePiture %s is %d",joseph_mp4_config.nPictureName,iRet);
@@ -292,11 +256,6 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* 句柄 */
 				*u32Status=RECORDVIDEO;
 				LOGOUT("InitMp4Module is success %d",iRet);
 			}
-			#ifdef DEBUG_G711_FILE
-			FILE *pG711a= fopen(JOSEPH_G711A_LOCATION, "rb");
-			fileSum = fread(g711aFileBuffer, 1, sizeof(g711aFileBuffer),pG711a);
-			fclose(pG711a);
-			#endif
 		}
 			break;
 		case RECORDVIDEO:
@@ -351,30 +310,13 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* 句柄 */
 				{	
 					Mp4FileVideoEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)(pu8Buffer+sizeof(HI_S_AVFrame)),u32Length-sizeof(HI_S_AVFrame));
 				}
-				#ifdef DEBUG_G711_FILE
-				Mp4FileAudioEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)(g711aFileBuffer+fileCount+4),160);
-				fileCount+=164;
-				printf("fileCount %d --\n",fileCount);
-				#endif
 			}
 			else if(pstruAV->u32AVFrameFlag==HI_NET_DEV_AUDIO_FRAME_FLAG)
 			{
 
 				int uSize=(u32Length-sizeof(HI_S_AVFrame)-4);
-				//printf("Audio %d %d--\n",pstruAV->u32AVFrameLen,uSize);
 				Mp4FileAudioEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)(pu8Buffer+sizeof(HI_S_AVFrame)+4),u32Length-sizeof(HI_S_AVFrame)-4);
 			}	
-			
-			//DWORD nowTime=getTickCountMs()-motionData.m_u32MotionStartRecordTime;
-			//DWORD endTime=motionData.m_u32MotionStartRecordLast*1000;
-			//if(nowTime<=endTime)
-			{
-			//	break;
-			}
-			//else
-			{
-			//	*u32Status=RECORDSTOP;
-			}
 		}
 			break;
 		case RECORDDELETE:
@@ -391,16 +333,6 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* 句柄 */
 				rename(joseph_mp4_config.nPictureName,joseph_mp4_config.nPictureEndName);
 				LOGOUT("rename(%s)",joseph_mp4_config.nFifoEndName);
 				LOGOUT("rename(%s)",joseph_mp4_config.nPictureEndName);
-				#if 0
-				upLoadFile(joseph_mp4_config.nFifoEndName);
-				upLoadFile(joseph_mp4_config.nPictureEndName);
-				LOGOUT("upLoadFile(%s)",joseph_mp4_config.nFifoEndName);
-				LOGOUT("upLoadFile(%s)",joseph_mp4_config.nPictureEndName);
-				unlink(joseph_mp4_config.nFifoEndName);
-				unlink(joseph_mp4_config.nPictureEndName);
-				LOGOUT("unlink(%s)",joseph_mp4_config.nFifoEndName);
-				LOGOUT("unlink(%s)",joseph_mp4_config.nPictureEndName);
-				#endif
 			}
 			else
 			{
@@ -409,7 +341,20 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* 句柄 */
 				LOGOUT("unlink(%s)",joseph_mp4_config.nFifoName);
 				LOGOUT("unlink(%s)",joseph_mp4_config.nPictureName);
 			}
+			iRet=readDirFileNum(SYSTEM_MEDIA_SAVEFILEPATH);
+			if(iRet>0)
+			{
+				rmdir(SYSTEM_MEDIA_SAVEFILEPATH);
+				LOGOUT("rmdir %s",SYSTEM_MEDIA_SAVEFILEPATH);
+			}
 			motionData.m_u32MotionStatus=0;
+			RecordData mRecordData;
+			iRet=creatRecordData(&mRecordData,joseph_mp4_config.nFifoEndName,
+								joseph_mp4_config.m_startTime,motionData.m_stMotionData);
+			if(iRet==0)
+			{
+				iRet=writeFile(joseph_mp4_config.nDataEndName,(LPCTSTR)(&mRecordData),sizeof(mRecordData));
+			}
 			*u32Status=RECORDIDLE;
 		}
 			break;
@@ -456,9 +401,9 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* 句柄 */
                                 )
 {
 	if(g_stConfigCfg.m_unMotionCfg.m_objMotionCfg.m_bEnable==0)
-		return;
+		return HI_SUCCESS;
 	if(strlen(g_szServerNO)==0)
-		return;
+		return HI_SUCCESS;
 	//printf("time=%d,u32Handle=%d,u32DataType=%d,pu8Buffer=%s,u32Length=%d,pUserData=%s\n",
 	//	    getTickCountMs(),u32Handle,u32DataType,pu8Buffer,u32Length,pUserData);
 	//printf("u32RecordCmd=%d\n",u32RecordCmd);
@@ -736,7 +681,6 @@ int InitHiSDKServer(HI_U32 *u32Handle,HI_U32 u32Stream)
 			return -4;
 		}	
 	}
-	//#endif
 	struStreamInfo.u32Stream = u32Stream;
 	struStreamInfo.u32Channel = HI_NET_DEV_CHANNEL_1;
 	struStreamInfo.u32Mode = HI_NET_DEV_STREAM_MODE_TCP;
@@ -817,7 +761,7 @@ int SetMasterVideoStream(HI_S_Video_Ext *sVideo)
 {	
 	HI_S32 s32Ret = HI_SUCCESS;
 	int iRet=-1;
-	int *u32Handle=&u32HandleHight;
+	HI_U32 *u32Handle=&u32HandleHight;
 	if(*u32Handle==0)
 	{
 		LOGOUT("GetVideoStream is failure handle:%u",*u32Handle);
@@ -883,7 +827,7 @@ int GetMasterVideoStream(HI_S_Video_Ext *sVideo)
 {	
 	HI_S32 s32Ret = HI_SUCCESS;
 	int iRet=-1;
-	int *u32Handle=&u32HandleHight;
+	HI_U32 *u32Handle=&u32HandleHight;
 	if(*u32Handle==0)
 	{
 		LOGOUT("GetVideoStream is failure handle:%u",*u32Handle);
@@ -1108,172 +1052,4 @@ int ReleaseHiSDKVideoAllChannel()
 	return iRet;
 
 }
-
-#else
-
-int get_g711a_frame(JOSEPH_MP4_CONFIG* joseph_mp4_config, unsigned char *nVideoBuffer, int nVideoRet)
-{		
-	int nVideoSize = 0;
-	char nVideoNum[32] = {0};
-	memset(nVideoNum, 0, 32);
-	sprintf(nVideoNum, "%s%d", JOSEPH_H264_LOCALTION, nVideoRet);
-	joseph_mp4_config->fpInVideo = fopen(nVideoNum, "rb");
-	if(joseph_mp4_config->fpInVideo==NULL)
-	{
-		return -1;
-	}
-	memset(nVideoBuffer, 0, nVideoRet);
-	nVideoSize = fread(nVideoBuffer, 1, 512*1024, joseph_mp4_config->fpInVideo);
-
-	fclose(joseph_mp4_config->fpInVideo);
-	
-	return nVideoSize;
-}
-
-
-/*==================================================================
-//函数： playThread
-//功能： 实时播放视频
-//参数： LPVOID data，将对象传入线程
-//返回：无
-==================================================================*/
-void * playThread(void* param)
-{
-	int cmd=0;
-	int iRet=0;
-	int i=0;
-	JOSEPH_ACC_CONFIG joseph_aac_config;
-	JOSEPH_MP4_CONFIG joseph_mp4_config;
-	unsigned char *nBuffer=malloc(1024*512);
-	if(nBuffer==NULL)
-	{
-		LOGOUT("nBuffer is NULL");
-		return NULL;
-	}
-	cmd=RECORDSTART;	
-	while(1)
-	{
-		switch(cmd)
-		{
-		case RECORDIDLE:
-			{
-				usleep(100*1000);
-			}
-			break;
-		case RECORDSTART:
-			{
-				memset(&joseph_aac_config,0,sizeof(joseph_aac_config));
-				memset(&joseph_mp4_config,0,sizeof(joseph_mp4_config));
-				joseph_aac_config.nSampleRate = 8000;
-				joseph_aac_config.nChannels = 1;
-				joseph_aac_config.nPCMBitSize = 16;
-				
-				strcpy(joseph_mp4_config.nFifoName,"test.mp4");
-				strcpy(joseph_mp4_config.nPictureName,"test.mp4");
-				strcpy(joseph_mp4_config.nFifoEndName,"test.mp4");
-				strcpy(joseph_mp4_config.nPictureEndName,"test.mp4");
-					
-				joseph_mp4_config.m_vFrameDur = 0;
-				joseph_mp4_config.timeScale = 90000;	
-				joseph_mp4_config.fps = 25; 			 
-				joseph_mp4_config.width = 640;			
-				joseph_mp4_config.height = 480;
-				joseph_mp4_config.video = MP4_INVALID_TRACK_ID;	
-				joseph_mp4_config.audio = MP4_INVALID_TRACK_ID;
-				joseph_mp4_config.hFile = NULL;
-				joseph_mp4_config.hFile = MP4Create(JOSEPH_MP4_FILE, 0);
-				if(joseph_mp4_config.hFile == MP4_INVALID_FILE_HANDLE)
-				{
-			        printf("open file fialed.\n");
-			        return NULL;
-			    }	
-				iRet=InitMp4Module(&joseph_aac_config,&joseph_mp4_config);
-				if(iRet!=0)
-				{
-					LOGOUT("InitMp4Module is failure %d",iRet);
-				}
-				else
-				{
-					cmd=RECORDVIDEO;
-				}
-			}
-			break;
-		case RECORDVIDEO:
-			{
-				iRet=get_g711a_frame(&joseph_mp4_config,nBuffer,i++);
-				if(iRet>0)
-				{
-					//printf("=====%d=====\m",i);
-					//Mp4FileEncode(&joseph_aac_config,&joseph_mp4_config,RECORDVIDEO,nBuffer,iRet);
-				}
-				else
-				{
-			        cmd=RECORDSTOP;
-					LOGOUT("get_g711a_frame is error %d",iRet);
-				}
-				usleep(10*1000);
-			}
-			break;
-		case RECORDSTOP:
-			{
-				iRet=CloseMp4Module(&joseph_aac_config,&joseph_mp4_config);
-				if(iRet!=0)
-				{
-					LOGOUT("CloseMp4Module is failure %d",iRet);
-				}
-				else
-				{
-					cmd=RECORDIDLE;
-				}
-
-			}
-			break;
-		default:
-			break;
-		}
-		
-	}
-	free(nBuffer);
-	return NULL;
-}
-
-
-int InitHiSDKVideoAllChannel()
-{
-	int iRet;
-	pthread_t m_playThread;//实时播放，过程控制线程
-	#if 0
-	g_videoQuene=InitVideoQuene(VIDEOBUFFERSIZE);
-	if(g_videoQuene==NULL)
-	{
-		LOGOUT("InitVideoQuene %d failure",VIDEOBUFFERSIZE);
-	}
-	#endif
-	iRet = pthread_create(&m_playThread, NULL, playThread, NULL);
-	if(iRet != 0)
-	{
-		LOGOUT("can't create thread: %s",strerror(iRet));
-		return -1;
-	}
-	return 0;
-
-}
-
-
-int ReleaseHiSDKVideoAllChannel()
-{
-
-}
-
-int startVideoStream(HI_S_Video_Ext sVideo)
-{
-	return 0;
-}
-
-int MakeKeyFrame()
-{
-	return 0;
-}
-
-#endif
 

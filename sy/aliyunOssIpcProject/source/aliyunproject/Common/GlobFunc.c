@@ -119,7 +119,7 @@ DWORD getTickCountMs()
 // 获取文件大小
 DWORD getFileSize(LPCTSTR path)    
 {    
-	DWORD filesize = -1;        
+	DWORD filesize = 0;        
 	struct stat statbuff;    
 	if(stat(path, &statbuff) < 0){    
 		return filesize;    
@@ -340,7 +340,31 @@ INT32S writeFile(LPCTSTR filePath,LPCTSTR fileBuffer,DWORD size)
 	return iRet;
 }
 
-int readMediaFile(const char *pszDir,char fileName[MAX_PATH])
+INT32S readDirFileNum(const char *pszDir)
+{
+	if(pszDir==NULL)
+		return -1;
+	if(strlen(pszDir)==0)
+		return -1;
+	if(0!=isDeviceAccess(pszDir))
+	{
+		return -1;
+	}
+	DIR    *dir;
+    struct dirent *ptr;
+	unsigned int count=0;
+	
+    dir = opendir(pszDir); ///open the dir
+    int iRet=0;
+    while((ptr = readdir(dir)) != NULL) ///read the list of this dir
+    {
+		iRet++;
+    }
+    closedir(dir);
+    return iRet;
+}
+
+INT32S readMediaFile(const char *pszDir,char fileName[MAX_PATH])
 {
 	if(pszDir==NULL)
 		return -1;
@@ -369,7 +393,11 @@ int readMediaFile(const char *pszDir,char fileName[MAX_PATH])
 				{
 					iRet=2;
 				}
-				if(iRet==1 || iRet==2)
+				if(strstr(ptr->d_name,"dat"))
+				{
+					iRet=3;
+				}
+				if(iRet==1 || iRet==2 || iRet==3)
 				{
 					printf("d_type:%s %d d_name: %s\n",pszDir,ptr->d_type,ptr->d_name);
 					strcpy(fileName,ptr->d_name);
