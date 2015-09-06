@@ -22,7 +22,7 @@
 
 // 设备类型
 #define SDK_HARD_FWVERSION		"SYKJIPC-1.0.0"
-#define SDK_SYSTEM_FWVERSION	"1.0.0000"	// SDK版本号
+#define SDK_SYSTEM_FWVERSION	"1.0.0002"	// SDK版本号
 
 // 设备编号和产品型号配置文件名字
 #define SERVERNOFILENAME  		"serverNo"
@@ -42,17 +42,22 @@
 //char strUrl[] = "http://cgtx.100memory.com/ipccmd.php?act=login";
 
 #define	DE_DEVICEPRODUCT		"SYKJ"
-#define DE_DEVICEMODEL 			"MD1.0"
+#define DE_DEVICEMODEL 			"MotionDetect1.0"
 #define DE_DEVICETYPE			"IPC"
 #define	DE_DEFAULTDEVICEMACADDR	"00-00-00-00-00-00"
 #define	DEVICECHANNELNUM		1
 #define	DEVICECHANNELSTARTNUM	1
 #define DE_SECRET				"123456"
 
-#define	DE_ALBUCKETNAME			"zs-oss-test-go"	
-#define	DE_ALENDPOINT			"oss-cn-shenzhen.aliyuncs.com"
-#define DE_ALACCESSKEYID		"YCcIdLNNUAkA4d2K"
-#define	DE_ALACCESSSECRET		"jwVtojgl6hsxyj7oj86lz0X3T73x5v"
+//#define	DE_ALBUCKETNAME			"zs-oss-test-go"	
+//#define	DE_ALENDPOINT			"oss-cn-shenzhen.aliyuncs.com"
+//#define 	DE_ALACCESSKEYID		"YCcIdLNNUAkA4d2K"
+//#define	DE_ALACCESSSECRET		"jwVtojgl6hsxyj7oj86lz0X3T73x5v"
+#define	DE_ALBUCKETNAME			"memory100"	
+#define	DE_ALENDPOINT			"oss-cn-qingdao.aliyuncs.com"
+#define DE_ALACCESSKEYID		"FNbJ4XFhi337eObw"
+#define	DE_ALACCESSSECRET		"mwpC5hLaYOIR3obMkqJ4uKoPCvwupf"
+
 #define	DE_VIDEOPATH			"Videos"
 #define	DE_JPGPATH				"Photos"
 

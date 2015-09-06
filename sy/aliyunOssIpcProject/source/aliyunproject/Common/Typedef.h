@@ -101,11 +101,6 @@ typedef struct
 	int videoMotionTotal_Dist2;
 	int videoMotionTotal_Dist3; 
 	int videoMotionTotal_Dist4;
-	
-	int videoMotionTotal_Dist1Sum; 
-	int videoMotionTotal_Dist2Sum;
-	int videoMotionTotal_Dist3Sum; 
-	int videoMotionTotal_Dist4Sum;
 	int voiceAlarmTotal;
 }Motion_Data;
 

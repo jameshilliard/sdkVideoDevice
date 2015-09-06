@@ -326,7 +326,7 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 				LOGOUT("rename(%s)",joseph_mp4_config.nFifoEndName);
 				LOGOUT("rename(%s)",joseph_mp4_config.nPictureEndName);
 				RecordData mRecordData;
-				iRet=creatRecordData(&mRecordData,&joseph_mp4_config,motionData.m_stMotionData);
+				iRet=creatRecordData(&mRecordData,&joseph_mp4_config,motionData.m_stSumMotionData);
 				if(iRet==0)
 				{
 					iRet=writeFile(joseph_mp4_config.nDataEndName,(LPCTSTR)(&mRecordData),sizeof(mRecordData));
@@ -390,12 +390,12 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
                                 HI_VOID* pUserData    /* ÓÃ»§Êý¾Ý*/
                                 )
 {
+	//printf("time=%d,u32Handle=%d,u32DataType=%d,pu8Buffer=%s,u32Length=%d,pUserData=%s\n",
+	//	    getTickCountMs(),u32Handle,u32DataType,pu8Buffer,u32Length,pUserData);
 	if(g_stConfigCfg.m_unMotionCfg.m_objMotionCfg.m_bEnable==0)
 		return HI_SUCCESS;
 	if(strlen(g_szServerNO)==0)
 		return HI_SUCCESS;
-	//printf("time=%d,u32Handle=%d,u32DataType=%d,pu8Buffer=%s,u32Length=%d,pUserData=%s\n",
-	//	    getTickCountMs(),u32Handle,u32DataType,pu8Buffer,u32Length,pUserData);
 	//printf("u32RecordCmd=%d\n",u32RecordCmd);
 	switch(u32RecordCmd)
 	{
@@ -411,7 +411,6 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 			motionData.m_u32MotionLastSecond=DE_BEFORE_RECORD_MOTION_LASTTIME;
 			motionData.m_u32MotionTimesIsValid=DE_BEFORE_RECORD_MOTION_TIMES;
 			motionData.m_u32MotionEndTime=DE_END_RECORD_MOTION_TIME;
-			memset(motionData.m_u32MotionCountPerSecond,0,sizeof(motionData.m_u32MotionCountPerSecond));
 			u32RecordCmd=RECORDSTART;
 		}
 	}
@@ -424,19 +423,12 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 		{
 			nowTime=nowTime-motionData.m_u32MotionStartTime;
 			endTime=motionData.m_u32MotionLastSecond*1000;
-			//if(u32DataType==0)
-			//	printf("before:nowTime=%d endTime=%d\n",nowTime,endTime);
 			if(nowTime<=endTime)
 			{
-				HI_U32 second=nowTime/1000;
-				if(second>=0 && second<=motionData.m_u32MotionLastSecond)
-				{
-					if(u32DataType==0)
-						motionData.m_u32MotionCountPerSecond[second]++;
-				}
 				if(u32DataType==0)
 				{
-					HI_S_ALARM_MD *pMd=(HI_S_ALARM_MD *)pUserData;
+					HI_S_ALARM_MD *pMd=(HI_S_ALARM_MD *)pu8Buffer;
+					printf("pMd->u32Area is %d---\n",pMd->u32Area);
 					switch(pMd->u32Area)
 					{
 						case 1:
@@ -458,15 +450,13 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 			}
 			else
 			{
-				HI_U32 i=0;
 				HI_U32 motionCount=0;
-				for(i=0;i<motionData.m_u32MotionLastSecond;i++)
-				{
-					if(motionData.m_u32MotionCountPerSecond[i]!=0)
-					{
-						motionCount++;
-					}
-				}
+				motionData.m_stSumMotionData.videoMotionTotal_Dist1+=motionData.m_stMotionData.videoMotionTotal_Dist1;
+				motionData.m_stSumMotionData.videoMotionTotal_Dist2+=motionData.m_stMotionData.videoMotionTotal_Dist2;
+				motionData.m_stSumMotionData.videoMotionTotal_Dist3+=motionData.m_stMotionData.videoMotionTotal_Dist3;
+				motionData.m_stSumMotionData.videoMotionTotal_Dist4+=motionData.m_stMotionData.videoMotionTotal_Dist4;
+				motionCount=motionData.m_stMotionData.videoMotionTotal_Dist1+motionData.m_stMotionData.videoMotionTotal_Dist2+
+							motionData.m_stMotionData.videoMotionTotal_Dist3+motionData.m_stMotionData.videoMotionTotal_Dist4;
 				LOGOUT("before:motionCount is %d",motionCount);
 				if(motionCount>=motionData.m_u32MotionTimesIsValid)
 				{
@@ -475,7 +465,7 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 					motionData.m_u32MotionLastSecond=DE_CONTINUES_RECORD_MOTION_LASTTIME;
 					motionData.m_u32MotionTimesIsValid=DE_CONTINUES_RECORD_MOTION_TIMES;
 					motionData.m_u32MotionEndTime=DE_END_RECORD_MOTION_TIME;
-					memset(motionData.m_u32MotionCountPerSecond,0,sizeof(motionData.m_u32MotionCountPerSecond));
+					memset(&motionData.m_stMotionData,0,sizeof(motionData.m_stMotionData));
 				}
 				else
 				{
@@ -487,13 +477,12 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 		{
 			nowTime=nowTime-motionData.m_u32MotionStartTime;
 			endTime=motionData.m_u32MotionLastSecond*1000;
-			//if(u32DataType==0)
-			//	printf("continue:nowTime=%d endTime=%d\n",nowTime,endTime);
 			if(nowTime<=endTime)
 			{
 				if(u32DataType==0)
 				{
-					HI_S_ALARM_MD *pMd=(HI_S_ALARM_MD *)pUserData;
+					HI_S_ALARM_MD *pMd=(HI_S_ALARM_MD *)pu8Buffer;
+					printf("pMd->u32Area is %d---\n",pMd->u32Area);
 					switch(pMd->u32Area)
 					{
 						case 1:
@@ -512,24 +501,16 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 							break;
 					}
 				}
-				HI_U32 second=nowTime/1000;
-				if(second>=0 && second<=motionData.m_u32MotionLastSecond)
-				{
-					if(u32DataType==0)
-						motionData.m_u32MotionCountPerSecond[second]++;
-				}
 			}
 			else
 			{
-				HI_U32 i=0;
 				HI_U32 motionCount=0;
-				for(i=0;i<motionData.m_u32MotionLastSecond;i++)
-				{
-					if(motionData.m_u32MotionCountPerSecond[i]!=0)
-					{
-						motionCount++;
-					}
-				}
+				motionData.m_stSumMotionData.videoMotionTotal_Dist1+=motionData.m_stMotionData.videoMotionTotal_Dist1;
+				motionData.m_stSumMotionData.videoMotionTotal_Dist2+=motionData.m_stMotionData.videoMotionTotal_Dist2;
+				motionData.m_stSumMotionData.videoMotionTotal_Dist3+=motionData.m_stMotionData.videoMotionTotal_Dist3;
+				motionData.m_stSumMotionData.videoMotionTotal_Dist4+=motionData.m_stMotionData.videoMotionTotal_Dist4;
+				motionCount=motionData.m_stMotionData.videoMotionTotal_Dist1+motionData.m_stMotionData.videoMotionTotal_Dist2+
+							motionData.m_stMotionData.videoMotionTotal_Dist3+motionData.m_stMotionData.videoMotionTotal_Dist4;
 				LOGOUT("continue:motionCount is %d",motionCount);
 				if(motionCount>=motionData.m_u32MotionTimesIsValid)
 				{
@@ -538,7 +519,7 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 					motionData.m_u32MotionLastSecond=DE_CONTINUES_RECORD_MOTION_LASTTIME;
 					motionData.m_u32MotionTimesIsValid=DE_CONTINUES_RECORD_MOTION_TIMES;
 					motionData.m_u32MotionEndTime=DE_END_RECORD_MOTION_TIME;
-					memset(motionData.m_u32MotionCountPerSecond,0,sizeof(motionData.m_u32MotionCountPerSecond));
+					memset(&motionData.m_stMotionData,0,sizeof(motionData.m_stMotionData));
 				}
 				else
 				{
