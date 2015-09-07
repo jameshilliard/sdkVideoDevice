@@ -100,7 +100,7 @@
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			UseOfMFC="2"
-			CharacterSet="1"
+			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -125,7 +125,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG"
+				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG; "
 				MinimalRebuild="false"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -278,6 +278,14 @@
 								UsePrecompiledHeader="0"
 							/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								UsePrecompiledHeader="0"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath=".\Utility\xml\tinyxml\tinystr.h"
@@ -288,6 +296,14 @@
 						>
 						<FileConfiguration
 							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								UsePrecompiledHeader="0"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32"
 							>
 							<Tool
 								Name="VCCLCompilerTool"
@@ -310,6 +326,14 @@
 								UsePrecompiledHeader="0"
 							/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								UsePrecompiledHeader="0"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath=".\Utility\xml\tinyxml\tinyxmlparser.cpp"
@@ -322,12 +346,28 @@
 								UsePrecompiledHeader="0"
 							/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								UsePrecompiledHeader="0"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath=".\Utility\xml\tinyxml\xmlparser.cpp"
 						>
 						<FileConfiguration
 							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								UsePrecompiledHeader="0"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32"
 							>
 							<Tool
 								Name="VCCLCompilerTool"
@@ -347,6 +387,14 @@
 				<File
 					RelativePath=".\Utility\httpClient\httpClient.cpp"
 					>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\Utility\httpClient\httpClient.h"
@@ -355,6 +403,14 @@
 				<File
 					RelativePath=".\Utility\httpClient\SyTcpClient.cpp"
 					>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\Utility\httpClient\SyTcpClient.h"
@@ -372,6 +428,14 @@
 			<File
 				RelativePath=".\Dialog\AlgorithmParamSet.cpp"
 				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\Dialog\AlgorithmParamSet.h"
@@ -380,6 +444,14 @@
 			<File
 				RelativePath=".\Dialog\OSSConfigParamSet.cpp"
 				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\Dialog\OSSConfigParamSet.h"
@@ -388,6 +460,14 @@
 			<File
 				RelativePath=".\Dialog\VideoParamSet.cpp"
 				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\Dialog\VideoParamSet.h"

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "../../StdAfx.h"
 #include "httpclient.h"  
 #include "urlParser.hpp"
 #include <WinSock2.h>
