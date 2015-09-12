@@ -196,11 +196,25 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 			memset(&joseph_aac_config,0,sizeof(joseph_aac_config));
 			memset(&joseph_mp4_config,0,sizeof(joseph_mp4_config));
 
+			HI_S_Video_Ext sVideo;
+			int iRet=GetMasterVideoStream(&sVideo);
+			if(iRet!=0)
+			{
+				LOGOUT("GetMasterVideoStream is failure");
+				sVideo.u32Frame=12;
+				sVideo.u32Width=u32Width;
+				sVideo.u32Height=u32Height;
+			}
+			else
+			{
+				LOGOUT("sVideo.u32Frame=%d,sVideo.u32Width=%d,sVideo.u32Height=%d",
+					   sVideo.u32Frame,sVideo.u32Width,sVideo.u32Height);
+			}
 			joseph_mp4_config.m_vFrameDur = 0;
 			joseph_mp4_config.timeScale = 90000;	
-			joseph_mp4_config.fps = 25; 			 
-			joseph_mp4_config.width = u32Width;			
-			joseph_mp4_config.height = u32Height;
+			joseph_mp4_config.fps = sVideo.u32Frame; 			 
+			joseph_mp4_config.width = sVideo.u32Width;			
+			joseph_mp4_config.height = sVideo.u32Height;
 			joseph_mp4_config.video = MP4_INVALID_TRACK_ID; 
 			joseph_mp4_config.audio = MP4_INVALID_TRACK_ID;
 			joseph_mp4_config.hFile = NULL;
@@ -968,6 +982,7 @@ int InitHiSDKVideoAllChannel()
 	iRet=InitHiSDKServer(&u32HandleHight,0);
 	if(iRet!=0)
 		LOGOUT("InitHiSDKServer Hight is faliure,iRet=%d",iRet);
+	#if 0 //zss++
 	HI_S_Video_Ext sVideo;
 	iRet=GetMasterVideoStream(&sVideo);
 	sVideo.u32Bitrate=g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg[0].m_wBitRate;
@@ -978,6 +993,7 @@ int InitHiSDKVideoAllChannel()
 	sVideo.u32Iframe=g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg[0].m_wKeyFrameRate;
 	sVideo.blCbr=g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg[0].m_CodeType;
 	SetMasterVideoStream(&sVideo);
+	#endif
 	
 	#if 0
 	iRet=InitHiSDKServer(&u32HandleMid,1);

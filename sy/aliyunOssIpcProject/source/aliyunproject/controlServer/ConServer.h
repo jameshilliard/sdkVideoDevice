@@ -12,7 +12,7 @@
 
 
 #define  HTTPVESION 	"HTTP/1.1"
-#define  CURLFILENAME  	"curlposttest.log"  
+#define  CURLFILENAME  	"/mnt/mtd/ipc/tmpfs/syflash/curlposttest.log"  
 //"cgtx.100memory.com"
 #define 	STRING_LOGIN_CONSERVER  	"http://%s/ipccmd.php?act=login"
 #define 	STRING_LOGOUT_CONSERVER		"http://%s/ipccmd.php?act=logout"
