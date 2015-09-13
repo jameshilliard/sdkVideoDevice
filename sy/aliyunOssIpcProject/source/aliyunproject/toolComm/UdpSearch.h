@@ -18,7 +18,7 @@
 #  ifdef __cplusplus
 extern "C" {
 #  endif /* __cplusplus */
-	BOOL InitUdpSearch();
+	int  InitUdpSearch();
 	void RealseUdpSearch();
 #  ifdef __cplusplus
 }

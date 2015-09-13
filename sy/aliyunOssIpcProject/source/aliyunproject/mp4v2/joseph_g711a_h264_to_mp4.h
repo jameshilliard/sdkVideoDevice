@@ -19,6 +19,7 @@
 #define 	RECORDIDLE		0x1000
 #define 	RECORDSTART		0x1001
 #define 	RECORDVIDEO		0x1002
+#define 	RECORDAUDIO		0x1005
 #define 	RECORDDELETE	0x1003
 #define 	RECORDSTOP      0x1004
 

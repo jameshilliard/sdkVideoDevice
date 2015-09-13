@@ -24,7 +24,7 @@
 #define		DEVICEHIGHHSMALL					176
 #define 	CHINATIME 							8*3600
 
-
+#define     CONNECTTIMEOUT						1000
 
 #define 	VIDEOBUFFERSIZE						1024*1024*4
 
@@ -35,6 +35,12 @@
 #define     SYSTEM_MEDIA_SAVEFILEPATH			"mediaSave"
 #define     SYSTEM_MEDIA_SENDFILEPATH			"mediaSend"
 #endif
+
+#define 	VIDEO_FLAG			1
+#define 	AUDIO_FLAG			2
+#define 	START_FLAG			3
+#define 	DROPSTOP_FLAG	    4
+#define 	SAVESTOP_FLAG	    5
 
 typedef struct 
 {

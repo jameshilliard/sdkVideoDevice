@@ -59,17 +59,32 @@ int main()
 				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szOssEndPoint,
 				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeyId,
 				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeySecret);
-	Init_LogOut(LOGSIZE,LOGDIR,FALSE,TEMPDIR);	
+	Init_LogOut(LOGSIZE,LOGDIR,TRUE,TEMPDIR);	
 	LOGOUT("Init_LogOut over");
 	//InitConServer();
 	iRet=InitHiSDKVideoAllChannel();
 	LOGOUT("InitHiSDKVideoAllChannel iRet=%d over",iRet);
-	iRet=initAliyunOssTask();
+	if(iRet!=0)
+	{
+		LOGOUT("error and return");
+		return -1;
+	}
+	//iRet=initAliyunOssTask();
 	LOGOUT("initAliyunOssTask iRet=%d over",iRet);
 	iRet=InitUdpSearch();
 	LOGOUT("InitUdpSearch iRet=%d over",iRet);
+	if(iRet!=0)
+	{
+		LOGOUT("error and return");
+		return -1;
+	}
 	iRet=InitTcpServer();
 	LOGOUT("InitTcpServer iRet=%d over",iRet);
+	if(iRet!=0)
+	{
+		LOGOUT("error and return");
+		return -1;
+	}
 	while(g_main_start)
 	{
 		sleep(2);

@@ -340,7 +340,7 @@ void *P_SearchServerThread()
 **备注：
        1). 
 ************************************************************************/
-BOOL InitUdpSearch()
+int InitUdpSearch()
 {
 	bQuitUdpSearch = FALSE;
 	bQuit = FALSE;
@@ -351,11 +351,11 @@ BOOL InitUdpSearch()
 	if(iRet)
 	{
 		LOGOUT("Create P_SearchServerThread Fail!!\n");
-		return FALSE;
+		return -1;
 	}
 
 	pthread_detach(pThreadWork);
-	return TRUE;
+	return 0;
 }
 
 // 退出搜索线程
