@@ -56,6 +56,7 @@ CipcToolDlg::CipcToolDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(CipcToolDlg::IDD, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	m_lastTickCount=0;
 }
 
 void CipcToolDlg::DoDataExchange(CDataExchange* pDX)
@@ -328,6 +329,19 @@ int CipcToolDlg::reloveDeviceParamsXml(S_Data &sData,std::string &mac)
 			if(it->first=="result")
 				result=it->second;
 		}
+		DWORD nowTickCount=GetTickCount();
+		if(nowTickCount-m_lastTickCount>3*1000)
+		{
+			m_lastTickCount=nowTickCount;
+			if(result=="10000")
+			{
+				AfxMessageBox("更新成功");
+			}
+			else
+			{
+				AfxMessageBox("更新失败");
+			}	
+		}
 		return 0;
 	}
 	else
@@ -414,14 +428,17 @@ void CipcToolDlg::InsertReocrd()
 		m_RecordListCtrl.SetItemText(i,LIST_COL_HTTPPORT,deviceParams.m_httpPort.c_str());
 		m_RecordListCtrl.SetItemText(i,LIST_COL_SECRET,deviceParams.m_secret.c_str());
 		m_RecordListCtrl.SetItemText(i,LIST_COL_MACADDRESS,it->first.c_str());
+		//0:登录失败 1：登录成功，2：uid不存在，3:pwd错误，4：该uid已经登陆，不能重复登陆。
 		if(deviceParams.m_serverStatus=="0")
 			m_RecordListCtrl.SetItemText(i,LIST_COL_SERVERSTATUS,"服务器连接不正常");
 		else if(deviceParams.m_serverStatus=="1")
-			m_RecordListCtrl.SetItemText(i,LIST_COL_SERVERSTATUS,"路由服务器连接正常");
+			m_RecordListCtrl.SetItemText(i,LIST_COL_SERVERSTATUS,"路由服务器登录成功");
 		else if(deviceParams.m_serverStatus=="2")
-			m_RecordListCtrl.SetItemText(i,LIST_COL_SERVERSTATUS,"设备未注册");
+			m_RecordListCtrl.SetItemText(i,LIST_COL_SERVERSTATUS,"设备uid不存在");
 		else if(deviceParams.m_serverStatus=="3")
-			m_RecordListCtrl.SetItemText(i,LIST_COL_SERVERSTATUS,"设备连接正常");
+			m_RecordListCtrl.SetItemText(i,LIST_COL_SERVERSTATUS,"设备pwd错误");
+		else if(deviceParams.m_serverStatus=="4")
+			m_RecordListCtrl.SetItemText(i,LIST_COL_SERVERSTATUS,"该uid已经登陆，不能重复登陆");
 		i++;
 	}
 }

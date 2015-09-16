@@ -110,6 +110,7 @@ private:
 	sockaddr_in		m_ServerScanAddr;
 	sockaddr_in		m_ZuboScanAddr;
 	CComboBox	    m_cbReset;
+	DWORD			m_lastTickCount;
 	map<std::string,DeviceParams> m_deviceParams;  //macAddress
 	int				m_iNetCardNum;
 
