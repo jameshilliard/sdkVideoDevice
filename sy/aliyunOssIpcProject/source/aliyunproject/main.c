@@ -59,7 +59,7 @@ int main()
 				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szOssEndPoint,
 				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeyId,
 				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeySecret);
-	Init_LogOut(LOGSIZE,LOGDIR,TRUE,TEMPDIR);	
+	Init_LogOut(LOGSIZE,LOGDIR,FALSE,TEMPDIR);	
 	LOGOUT("Init_LogOut");
 	//InitConServer();
 	iRet=InitHiSDKVideoAllChannel();
