@@ -60,7 +60,7 @@ int main()
 				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeyId,
 				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeySecret);
 	Init_LogOut(LOGSIZE,LOGDIR,TRUE,TEMPDIR);	
-	LOGOUT("Init_LogOut over");
+	LOGOUT("Init_LogOut");
 	//InitConServer();
 	iRet=InitHiSDKVideoAllChannel();
 	LOGOUT("InitHiSDKVideoAllChannel iRet=%d over",iRet);
@@ -69,7 +69,7 @@ int main()
 		LOGOUT("error and return");
 		return -1;
 	}
-	//iRet=initAliyunOssTask();
+	iRet=initAliyunOssTask();
 	LOGOUT("initAliyunOssTask iRet=%d over",iRet);
 	iRet=InitUdpSearch();
 	LOGOUT("InitUdpSearch iRet=%d over",iRet);

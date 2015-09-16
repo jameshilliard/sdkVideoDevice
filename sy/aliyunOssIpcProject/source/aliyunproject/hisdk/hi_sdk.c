@@ -525,9 +525,9 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 			motionData.m_u32MotionStartTime=getTickCountMs();
 			motionData.m_u32MotionFirstTime=motionData.m_u32MotionStartTime;
 			motionData.m_u32MotionStatus=1;
-			motionData.m_u32MotionLastSecond=DE_BEFORE_RECORD_MOTION_LASTTIME;
-			motionData.m_u32MotionTimesIsValid=DE_BEFORE_RECORD_MOTION_TIMES;
-			motionData.m_u32MotionEndTime=DE_END_RECORD_MOTION_TIME;
+			motionData.m_u32MotionLastSecond=g_stConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iBefRecLastTime;
+			motionData.m_u32MotionTimesIsValid=g_stConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iBefRecTimes;
+			motionData.m_u32MotionEndTime=g_stConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iEndRecTime;
 			u32RecordCmd=RECORDSTART;
 		}
 	}
@@ -579,9 +579,9 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 				{
 					motionData.m_u32MotionStatus=2;
 					motionData.m_u32MotionStartTime=getTickCountMs();
-					motionData.m_u32MotionLastSecond=DE_CONTINUES_RECORD_MOTION_LASTTIME;
-					motionData.m_u32MotionTimesIsValid=DE_CONTINUES_RECORD_MOTION_TIMES;
-					motionData.m_u32MotionEndTime=DE_END_RECORD_MOTION_TIME;
+					motionData.m_u32MotionLastSecond=g_stConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iConRecLastTime;
+					motionData.m_u32MotionTimesIsValid=g_stConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iConRecTimes;
+					motionData.m_u32MotionEndTime=g_stConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iEndRecTime;
 					memset(&motionData.m_stMotionData,0,sizeof(motionData.m_stMotionData));
 				}
 				else
@@ -633,9 +633,9 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 				{
 					motionData.m_u32MotionStatus=2;
 					motionData.m_u32MotionStartTime=getTickCountMs();
-					motionData.m_u32MotionLastSecond=DE_CONTINUES_RECORD_MOTION_LASTTIME;
-					motionData.m_u32MotionTimesIsValid=DE_CONTINUES_RECORD_MOTION_TIMES;
-					motionData.m_u32MotionEndTime=DE_END_RECORD_MOTION_TIME;
+					motionData.m_u32MotionLastSecond=g_stConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iConRecLastTime;
+					motionData.m_u32MotionTimesIsValid=g_stConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iConRecTimes;
+					motionData.m_u32MotionEndTime=g_stConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iEndRecTime;
 					memset(&motionData.m_stMotionData,0,sizeof(motionData.m_stMotionData));
 				}
 				else

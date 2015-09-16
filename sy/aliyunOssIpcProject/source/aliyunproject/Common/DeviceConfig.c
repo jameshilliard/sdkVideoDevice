@@ -133,7 +133,7 @@ INT32S SetSecret(const char *v_szFlashPath,char *v_szSecret,INT32U length)
 
 	tagDevInfoCfg objDevInfoCfg;
 	memset(&objDevInfoCfg,0,sizeof(objDevInfoCfg));
-	strncpy(objDevInfoCfg.m_szPassword,DE_SECRET,sizeof(objDevInfoCfg.m_szPassword));
+	strncpy(objDevInfoCfg.m_szPassword,v_szSecret,sizeof(objDevInfoCfg.m_szPassword));
 	iRet = SetCfgFile(&objDevInfoCfg, offsetof(tagConfigCfg, m_unDevInfoCfg.m_objDevInfoCfg), sizeof(tagDevInfoCfg));
 	LOGOUT("set secret=%s,iRet=%d",v_szSecret,iRet);
 	return iRet;	
