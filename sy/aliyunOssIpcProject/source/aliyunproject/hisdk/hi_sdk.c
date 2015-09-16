@@ -152,10 +152,8 @@ HI_S32 creatRecordData(RecordData *v_pRD,JOSEPH_MP4_CONFIG *v_pJOSEPH_MP4_CONFIG
 	v_pRD->m_mMotionData=v_mMotionData;
 	memcpy(&v_pRD->m_mMotionData,&v_mMotionData,sizeof(v_pRD->m_mMotionData));
 	v_pRD->m_videoFileSize=getFileSize(v_pJOSEPH_MP4_CONFIG->nFifoEndName)/1024;
-	time_t localTime;
-	time((time_t *)&localTime);
-	localTime+=CHINATIME;
-	v_pRD->m_videoTimeLength=localTime-v_pJOSEPH_MP4_CONFIG->m_startTime;
+	v_pRD->m_videoTimeLength=v_pJOSEPH_MP4_CONFIG->m_overTime-v_pJOSEPH_MP4_CONFIG->m_startTime;
+	LOGOUT("v_pRD->m_videoTimeLength=%d",v_pRD->m_videoTimeLength);
 	return 0;
 }
 
@@ -182,6 +180,11 @@ void * makeMp4Task(void* param)
 			{
 			case RECORDSTART:
 			{
+				iRet=MakeKeyFrame(1);
+				if(iRet!=0)
+				{
+					LOGOUT("make key frame");
+				}
 				memset(&joseph_aac_config,0,sizeof(joseph_aac_config));
 				memset(&joseph_mp4_config,0,sizeof(joseph_mp4_config));
 
@@ -198,11 +201,6 @@ void * makeMp4Task(void* param)
 				{
 					LOGOUT("sVideo.u32Frame=%d,sVideo.u32Width=%d,sVideo.u32Height=%d",
 						   sVideo.u32Frame,sVideo.u32Width,sVideo.u32Height);
-				}
-				iRet=MakeKeyFrame(1);
-				if(iRet!=0)
-				{
-					LOGOUT("make key frame");
 				}
 				joseph_mp4_config.m_vFrameDur = 0;
 				joseph_mp4_config.timeScale = 90000;	
@@ -374,6 +372,7 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 				if(pstruAV->u32VFrameType==1)
 				{
 					u32LastStartTPS=pstruAV->u32AVFramePTS;
+					//motionData.m_u32MotionStartTime=getTickCountMs();
 					u32WaitIFrame=0;
 				}
 				else
@@ -454,7 +453,6 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 		{
 			if(g_quene)
 			{
-				g_quene->clearData(g_quene->_this);
 				int test=0;
 				int ret=g_quene->pushData(g_quene->_this,(void *)&test,sizeof(test),*u32Status,0);
 				if(ret!=0)
@@ -640,6 +638,10 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 				}
 				else
 				{
+					time_t localTime;
+					time((time_t *)&localTime);
+					localTime+=CHINATIME;
+					joseph_mp4_config.m_overTime=localTime;
 					u32RecordCmd=RECORDSTOP;
 				}
 			}
@@ -649,7 +651,13 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 		nowTime=nowTime-motionData.m_u32MotionFirstTime;
 		endTime=motionData.m_u32MotionEndTime*1000;
 		if(nowTime>endTime)
-			u32RecordCmd=RECORDSTOP;
+		{
+			time_t localTime;
+			time((time_t *)&localTime);
+			localTime+=CHINATIME;
+			joseph_mp4_config.m_overTime=localTime-1;
+			u32RecordCmd=RECORDSTOP;	
+		}
 		INT32U mem=getFreeMemory();
 		if(mem<3*1024*1024)
 		{	
@@ -658,6 +666,10 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 			INT32U mem=getFreeMemory();
 			if(mem>3*1024*1024)
 				break;
+			time_t localTime;
+			time((time_t *)&localTime);
+			localTime+=CHINATIME;
+			joseph_mp4_config.m_overTime=localTime;
 			u32RecordCmd=RECORDSTOP;
 			LOGOUT("getFreeMemory()=%d stop record",mem);
 		}

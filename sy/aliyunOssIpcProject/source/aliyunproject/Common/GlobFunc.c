@@ -397,11 +397,12 @@ INT32S readMediaFile(const char *pszDir,char fileName[MAX_PATH])
 				{
 					iRet=2;
 				}
-				if(strstr(ptr->d_name,"dat"))
-				{
-					iRet=3;
-				}
-				if(iRet==1 || iRet==2 || iRet==3)
+				//if(strstr(ptr->d_name,"dat"))
+				//{
+				//	iRet=3;
+				//}
+				//if(iRet==1 || iRet==2 || iRet==3)
+				if(iRet==1 || iRet==2)
 				{
 					printf("d_type:%s %d d_name: %s\n",pszDir,ptr->d_type,ptr->d_name);
 					strcpy(fileName,ptr->d_name);

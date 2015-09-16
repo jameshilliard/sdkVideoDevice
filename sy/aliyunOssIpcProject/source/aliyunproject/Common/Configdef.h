@@ -22,7 +22,7 @@
 
 // 设备类型
 #define SDK_HARD_FWVERSION		"SYKJIPC-1.0.0"
-#define SDK_SYSTEM_FWVERSION	"1.0.0008"	// SDK版本号
+#define SDK_SYSTEM_FWVERSION	"1.0.0009"	// SDK版本号
 
 // 设备编号和产品型号配置文件名字
 #define SERVERNOFILENAME  		"serverNo"
@@ -36,7 +36,7 @@
 #define TEMPDIR 				"/mnt/mtd/ipc/tmpfs/sytmp"
 
 #define	DE_ROUTESERVERPORT		80
-#define DE_ROUTESERVER			"cgtx.100memory.com"
+#define DE_ROUTESERVER			"ipc.100memory.com"
 
 //char sendBuf[] = "id=LB1GB29HYM3M8HJ7111C&pwd=123456";
 //char strUrl[] = "http://cgtx.100memory.com/ipccmd.php?act=login";
@@ -47,7 +47,7 @@
 #define	DE_DEFAULTDEVICEMACADDR	"00-00-00-00-00-00"
 #define	DEVICECHANNELNUM		1
 #define	DEVICECHANNELSTARTNUM	1
-#define DE_SECRET				"123456"
+#define DE_SECRET				""
 
 //#define	DE_ALBUCKETNAME			"zs-oss-test-go"	
 //#define	DE_ALENDPOINT			"oss-cn-shenzhen.aliyuncs.com"
@@ -64,21 +64,21 @@
 
 
 // tagCapParamCfg摄像头信息默认参数
-#define DE_BITRATE				1000					// 码率
+#define DE_BITRATE				512					// 码率
 #define DE_FRAMERATE			12					// 帧率
 #define DE_HEIGHT				720					// 视频高
-#define DE_WIDTH				1280					// 视频高
+#define DE_WIDTH				1280				// 视频高
 #define DE_QPCONSTANT			1					// 视频质量
-#define DE_KEYFRAMERATE			50					// 关键帧间隔
+#define DE_KEYFRAMERATE			100					// 关键帧间隔
 #define DE_CODETYPE				0					//
 
 
 
-#define DE_BEFORE_RECORD_MOTION_LASTTIME		5
-#define DE_BEFORE_RECORD_MOTION_TIMES			3
+#define DE_BEFORE_RECORD_MOTION_LASTTIME		15
+#define DE_BEFORE_RECORD_MOTION_TIMES			15
 #define DE_CONTINUES_RECORD_MOTION_LASTTIME		5
-#define DE_CONTINUES_RECORD_MOTION_TIMES		3
-#define	DE_END_RECORD_MOTION_TIME				3*60
+#define DE_CONTINUES_RECORD_MOTION_TIMES		5
+#define	DE_END_RECORD_MOTION_TIME				100
 #define	DE_ENABLE								1
 
 #define LCM_80(x) ((0==(x)%80) ? (x) : (80*(((x)+80)/80)))   //80的最小整数倍

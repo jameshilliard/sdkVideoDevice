@@ -57,6 +57,7 @@ typedef struct Joseph_Mp4_Config
 	unsigned short height;         // ”∆µ∏ﬂ
 	unsigned int  valid;
 	time_t 	m_startTime;
+	time_t 	m_overTime;
 	char  	nFifoName[256];
 	char 	nPictureName[256];
 	char 	nFifoEndName[256];

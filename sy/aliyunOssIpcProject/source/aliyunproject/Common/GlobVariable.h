@@ -10,7 +10,7 @@ extern BOOL			g_main_start;
 extern tagConfigCfg g_stConfigCfg;
 extern char 		g_szServerNO[80];
 extern char 		g_szProductId[80];
-
+extern int 			g_iServerStatus;
 
 
 #endif
