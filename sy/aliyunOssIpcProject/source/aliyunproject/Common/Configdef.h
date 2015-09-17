@@ -22,7 +22,7 @@
 
 // 设备类型
 #define SDK_HARD_FWVERSION		"SYKJIPC-1.0.0"
-#define SDK_SYSTEM_FWVERSION	"1.0.0010"	// SDK版本号
+#define SDK_SYSTEM_FWVERSION	"1.0.0011"	// SDK版本号
 
 // 设备编号和产品型号配置文件名字
 #define SERVERNOFILENAME  		"serverNo"

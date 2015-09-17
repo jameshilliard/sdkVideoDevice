@@ -70,6 +70,8 @@ void * aliyunOssTask(void* param)
 			if(!(g_iServerStatus==1 || g_iServerStatus==4))
 				sleep(28);
 		}
+		if(!(g_iServerStatus==1 || g_iServerStatus==4))
+			continue;
 		memset(fileName,0,sizeof(fileName));
 		memset(filePath,0,sizeof(filePath));
 		memset(aliyunFilePath,0,sizeof(aliyunFilePath));

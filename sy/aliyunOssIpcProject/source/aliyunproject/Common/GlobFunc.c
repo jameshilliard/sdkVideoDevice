@@ -171,12 +171,15 @@ INT32S isFileSystemBigger(LPCTSTR sdDir,DWORD size)
 	if(statfs(sdDir, &disk_statfs) >= 0 )
 	{
 		totalspace = (((INT64S)disk_statfs.f_bsize * (INT64S)disk_statfs.f_blocks) /(INT64S)1024);
-	}else
+	}
+	else
 	{
 		return -1;
 	}
-	if( totalspace < size)
+	//printf("total size is %d---\n",totalspace);
+	if(totalspace < size)
 	{
+		
 		return -2;
 	}
 	return 0;

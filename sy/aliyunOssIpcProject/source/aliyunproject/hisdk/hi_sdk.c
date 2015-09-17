@@ -148,7 +148,7 @@ HI_S32 creatRecordData(RecordData *v_pRD,JOSEPH_MP4_CONFIG *v_pJOSEPH_MP4_CONFIG
 	strncpy(v_pRD->m_secret,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,sizeof(v_pRD->m_secret));
 	strncpy(v_pRD->m_videoPath,v_pJOSEPH_MP4_CONFIG->nOssVideoName,sizeof(v_pRD->m_videoPath));
 	strncpy(v_pRD->m_jpgPath,v_pJOSEPH_MP4_CONFIG->nOssJpgName,sizeof(v_pRD->m_jpgPath));
-	v_pRD->m_creatTimeInMilSecond=(long long)v_pJOSEPH_MP4_CONFIG->m_startTime*1000;
+	v_pRD->m_creatTimeInMilSecond=(long long)v_pJOSEPH_MP4_CONFIG->m_startTime*1000-CHINATIME;
 	v_pRD->m_mMotionData=v_mMotionData;
 	memcpy(&v_pRD->m_mMotionData,&v_mMotionData,sizeof(v_pRD->m_mMotionData));
 	v_pRD->m_videoFileSize=getFileSize(v_pJOSEPH_MP4_CONFIG->nFifoEndName)/1024;
@@ -511,6 +511,15 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 		return HI_SUCCESS;
 	if(strlen(g_szServerNO)==0)
 		return HI_SUCCESS;
+	if(!(g_iServerStatus==1 || g_iServerStatus==4))
+	{
+		int iRet=isFileSystemBigger(SYSTEM_SD_SAVEFILEPATH,50*1024);
+		if(iRet!=0)
+		{
+			LOGOUT("%s isFileSystemBigger sd",SYSTEM_SD_SAVEFILEPATH);
+			return HI_SUCCESS;
+		}
+	}
 	//printf("u32RecordCmd=%d\n",u32RecordCmd);
 	switch(u32RecordCmd)
 	{
