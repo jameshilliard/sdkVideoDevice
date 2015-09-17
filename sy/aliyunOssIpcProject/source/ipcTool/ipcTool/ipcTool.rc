@@ -131,11 +131,11 @@ BEGIN
     DEFPUSHBUTTON   "确定",IDOK,38,158,50,14
     PUSHBUTTON      "取消",2,101,159,50,14
     GROUPBOX        "算法",IDC_STATIC,7,7,162,175
-    LTEXT           "有效侦测(秒):",IDC_STATIC,37,94,70,14
+    LTEXT           "有效侦测(次):",IDC_STATIC,37,94,70,14
     EDITTEXT        IDC_EDIT_ConRecTimes,107,92,40,14,ES_AUTOHSCROLL
     LTEXT           "第二阶段时长(秒):",IDC_STATIC,36,71,70,14
     EDITTEXT        IDC_EDIT_ConRecLastTime,107,70,40,14,ES_AUTOHSCROLL
-    LTEXT           "有效侦测(秒):",IDC_STATIC,37,48,70,14
+    LTEXT           "有效侦测(次):",IDC_STATIC,37,48,70,14
     EDITTEXT        IDC_EDIT_BefRecTimes,107,48,40,14,ES_AUTOHSCROLL
     LTEXT           "第一阶段时长(秒):",IDC_STATIC,37,25,70,14
     EDITTEXT        IDC_EDIT_BefRecLastTime,107,26,40,14,ES_AUTOHSCROLL
