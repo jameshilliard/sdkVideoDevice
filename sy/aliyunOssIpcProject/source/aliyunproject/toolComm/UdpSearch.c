@@ -137,11 +137,13 @@ static INT32S resolveCmd1002(S_Data *v_pSData,S_Data *v_pstData,char *v_szDevHwM
 			strncpy(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,server,sizeof(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP));
 			//g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort=iPort;
 			SetServerIpAndPort(DEVICECONFIGDIR,server,sizeof(server),iPort);
+			g_iServerStatus=-1;
 		}
 		if(0!=strcmp(g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,secret))
 		{
 			strncpy(g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,secret,sizeof(g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword));
 			SetSecret(DEVICECONFIGDIR,secret,sizeof(secret));
+			g_iServerStatus=-1;
 		}
 		SetXmlValue(v_pstData, "mac", v_szDevHwMask); 
 		SetXmlValue(v_pstData, "result", "10000");

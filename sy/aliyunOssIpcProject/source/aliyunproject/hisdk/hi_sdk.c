@@ -148,7 +148,7 @@ HI_S32 creatRecordData(RecordData *v_pRD,JOSEPH_MP4_CONFIG *v_pJOSEPH_MP4_CONFIG
 	strncpy(v_pRD->m_secret,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,sizeof(v_pRD->m_secret));
 	strncpy(v_pRD->m_videoPath,v_pJOSEPH_MP4_CONFIG->nOssVideoName,sizeof(v_pRD->m_videoPath));
 	strncpy(v_pRD->m_jpgPath,v_pJOSEPH_MP4_CONFIG->nOssJpgName,sizeof(v_pRD->m_jpgPath));
-	v_pRD->m_creatTimeInMilSecond=(long long)v_pJOSEPH_MP4_CONFIG->m_startTime*1000-CHINATIME;
+	v_pRD->m_creatTimeInMilSecond=(long long)v_pJOSEPH_MP4_CONFIG->m_startTime*1000-CHINATIME*1000;
 	v_pRD->m_mMotionData=v_mMotionData;
 	memcpy(&v_pRD->m_mMotionData,&v_mMotionData,sizeof(v_pRD->m_mMotionData));
 	v_pRD->m_videoFileSize=getFileSize(v_pJOSEPH_MP4_CONFIG->nFifoEndName)/1024;
