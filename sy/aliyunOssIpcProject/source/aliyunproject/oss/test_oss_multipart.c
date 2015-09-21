@@ -198,6 +198,7 @@ int upLoadFile(char *filePath,char *fileName)
 	int filePos = 0;
 	int upLoadSize = 0;
 	int upResult = -1;
+	int i=0;
 	if(fileName != NULL)
 	{
 		int fd= open(filePath,O_RDWR);
@@ -209,7 +210,21 @@ int upLoadFile(char *filePath,char *fileName)
 				if(size>0)
 				{
 					//LOGOUT("fd=%d read size is %d,error=%d",fd,size,errno);
-					upResult=test_oss_local_from_buf(object_name, data, size, filePos);
+					for(i=0;i<10;i++)
+					{
+						upResult=test_oss_local_from_buf(object_name, data, size, filePos);
+						if(upResult==0)
+						{
+							break;
+						}
+						usleep(100);
+					}
+				    if(upResult!=0)
+					{
+						LOGOUT("the file send oss failure %d",upResult);
+						upResult=-1;
+						break;
+				    }
 					filePos += size;
 				}
 				else

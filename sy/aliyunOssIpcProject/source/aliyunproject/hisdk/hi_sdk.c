@@ -24,7 +24,7 @@ static HI_U32 				u32SendMediaToAliyunStatus=0;
 
 static	HI_U32	 			u32Width=DEVICEWIDTHBIG;	 /* ÊÓÆµ¿í */
 static	HI_U32 				u32Height=DEVICEHIGHHBIG;	 /* ÊÓÆµ¸ß */
-
+static  INT32S				s32Mp4FailFlag=0;
 
 static Queue *	 			g_quene=NULL;
 
@@ -258,7 +258,9 @@ void * makeMp4Task(void* param)
 				break;
 			case RECORDVIDEO:
 			{
-				Mp4FileVideoEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)buf,length);
+				int iRet=Mp4FileVideoEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)buf,length);
+				if(iRet<0)
+					s32Mp4FailFlag=-1;
 			}
 				break;
 			case RECORDAUDIO:
@@ -527,6 +529,16 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 	{
 		if(motionData.m_u32MotionStatus==0 && u32DataType==0)
 		{
+			int iRet=isFileSystemBigger(SYSTEM_SD_SAVEFILEPATH,3*1024);
+			if(iRet!=0)
+			{	
+				system("echo 3 >/proc/sys/vm/drop_caches");
+				LOGOUT("echo 3 >/proc/sys/vm/drop_caches");
+				iRet=isFileSystemBigger(SYSTEM_SD_SAVEFILEPATH,3*1024);
+				if(iRet!=0)
+					break;
+				LOGOUT("getFreeMemory start record");
+			}
 			memset(&motionData,0,sizeof(motionData));
 			printf("motionData.m_u32MotionStatus=0\n");
 			motionData.m_u32MotionStartTime=getTickCountMs();
@@ -665,8 +677,13 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 			time((time_t *)&localTime);
 			localTime+=CHINATIME;
 			joseph_mp4_config.m_overTime=localTime-1;
-			u32RecordCmd=RECORDSTOP;	
+			if(motionData.m_u32MotionStatus!=1)
+				u32RecordCmd=RECORDSTOP;
+			else
+				u32RecordCmd=RECORDDELETE;
+			break;
 		}
+		#if 0
 		INT32U mem=getFreeMemory();
 		if(mem<3*1024*1024)
 		{	
@@ -681,6 +698,32 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 			joseph_mp4_config.m_overTime=localTime;
 			u32RecordCmd=RECORDSTOP;
 			LOGOUT("getFreeMemory()=%d stop record",mem);
+		}
+		#endif
+		int iRet=isFileSystemBigger(SYSTEM_SD_SAVEFILEPATH,1*1024);
+		if(iRet!=0)
+		{	
+			system("echo 3 >/proc/sys/vm/drop_caches");
+			LOGOUT("echo 3 >/proc/sys/vm/drop_caches");
+			iRet=isFileSystemBigger(SYSTEM_SD_SAVEFILEPATH,1*1024);
+			if(iRet==0)
+				break;
+			time_t localTime;
+			time((time_t *)&localTime);
+			localTime+=CHINATIME;
+			joseph_mp4_config.m_overTime=localTime;
+			if(motionData.m_u32MotionStatus!=1)
+				u32RecordCmd=RECORDSTOP;
+			else
+				u32RecordCmd=RECORDDELETE;
+			break;
+			LOGOUT("getFreeMemory small then 1024K stop record Record cmd %d",u32RecordCmd);
+		}
+		if(s32Mp4FailFlag<0)
+		{
+			s32Mp4FailFlag=0;
+			u32RecordCmd=RECORDDELETE;
+			LOGOUT("make mp4 file is error");
 		}
 	}
 		break;	
