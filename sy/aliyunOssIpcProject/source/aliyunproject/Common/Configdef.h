@@ -20,9 +20,32 @@
 // devtool的xml类型
 #define CONNETTYPE 				"View-DeviceTool"
 
-// 设备类型
 #define SDK_HARD_FWVERSION		"SYKJIPC-1.0.0"
-#define SDK_SYSTEM_FWVERSION	"1.0.0013"	// SDK版本号
+
+
+#define 	COMMVER1 					1
+#define 	COMMVER2 					2
+#define 	SDKVERSION 					COMMVER1 
+
+#if   SDKVERSION == COMMVER1
+
+#define SDK_SYSTEM_FWVERSION	"1.0.0014"	// SDK版本号
+#define DE_ROUTESERVER			"ipc.100memory.com"
+#define	DE_ALBUCKETNAME			"memory100"	
+#define	DE_ALENDPOINT			"oss-cn-qingdao.aliyuncs.com"
+#define DE_ALACCESSKEYID		"FNbJ4XFhi337eObw"
+#define	DE_ALACCESSSECRET		"mwpC5hLaYOIR3obMkqJ4uKoPCvwupf"
+
+#elif SDKVERSION == COMMVER2 
+
+#define SDK_SYSTEM_FWVERSION	"2.0.0014"	// SDK版本号
+#define DE_ROUTESERVER			"ipc.355fun.com"
+#define	DE_ALBUCKETNAME			"cyq-fyws"	
+#define	DE_ALENDPOINT			"oss-cn-qingdao.aliyuncs.com"
+#define DE_ALACCESSKEYID		"QyPpDQ2ZRTaO9R4G"
+#define	DE_ALACCESSSECRET		"L3gqCggwtaH3byJipRTTZdXs1bTSt8"
+
+#endif
 
 // 设备编号和产品型号配置文件名字
 #define SERVERNOFILENAME  		"serverNo"
@@ -36,7 +59,8 @@
 #define TEMPDIR 				"/mnt/mtd/ipc/tmpfs/sytmp"
 
 #define	DE_ROUTESERVERPORT		80
-#define DE_ROUTESERVER			"ipc.100memory.com"
+
+
 
 //char sendBuf[] = "id=LB1GB29HYM3M8HJ7111C&pwd=123456";
 //char strUrl[] = "http://cgtx.100memory.com/ipccmd.php?act=login";
@@ -67,7 +91,7 @@
 #define DE_BITRATE				512					// 码率
 #define DE_FRAMERATE			12					// 帧率
 #define DE_HEIGHT				720					// 视频高
-#define DE_WIDTH				1280				// 视频高
+#define DE_WIDTH				120				// 视频高
 #define DE_QPCONSTANT			1					// 视频质量
 #define DE_KEYFRAMERATE			100					// 关键帧间隔
 #define DE_CODETYPE				0					//

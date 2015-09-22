@@ -222,7 +222,6 @@ int upLoadFile(char *filePath,char *fileName)
 				    if(upResult!=0)
 					{
 						LOGOUT("the file send oss failure %d",upResult);
-						upResult=-1;
 						break;
 				    }
 					filePos += size;

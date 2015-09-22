@@ -105,6 +105,10 @@ void * aliyunOssTask(void* param)
 						unlink(filePath);
 						LOGOUT("filePath %s %s was exist and unlink",filePath,aliyunFilePath);						
 					}
+					else
+					{
+						LOGOUT("upload file %d is error iRet=%d",filePath,iRet);
+					}
 					if(fileType==2)
 					{
 						memset(fileDataName,0,sizeof(fileDataName));
