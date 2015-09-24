@@ -129,6 +129,51 @@ DWORD getFileSize(LPCTSTR path)
 	return filesize;    
 }    
 
+INT32S isMp4File(LPCTSTR path)
+{
+	if(NULL==path)
+		return -1;
+	INT32S iRet = -2;
+	INT32S numRead=0;
+	INT32U endNum=0;
+	INT32U endFreeFlag=0x65657266;
+	INT32U endFree=0;
+	//printf("endNum is 0x%x,endFree is 0x%x\n",endNum,endFree);
+	FILE *fp=NULL;
+	if ((fp = fopen(path, "rb")) != NULL)
+	{
+		iRet=fseek(fp,-136L,SEEK_END);//把文件内部指针退回到离文件结尾100字节处。
+		if(iRet!=0)
+		{
+			fclose(fp);
+			return iRet;
+		}
+		numRead = fread((void *)(&endNum), sizeof(char), 4, fp);
+		if(numRead!=4)
+		{
+			fclose(fp);
+			return -2;
+		}
+		numRead = fread((void *)(&endFree), sizeof(char), 4, fp);
+		if(numRead!=4)
+		{
+			fclose(fp);
+			return -3;
+		}
+		printf("endNum is 0x%x,endFree is 0x%x\n",endNum,endFree);
+		if(endNum==0x88000000 && endFree==endFreeFlag)
+		{
+			iRet=0;
+		}
+		else
+		{
+			iRet=-4;
+		}
+		fclose(fp);
+	}
+	return iRet;
+}
+
 INT8U calCRC8(INT8U *pData,DWORD nLength)
 {
 	if(pData==NULL)
@@ -176,7 +221,7 @@ INT32S isFileSystemBigger(LPCTSTR sdDir,DWORD size)
 	{
 		return -1;
 	}
-	printf("total size is %d---\n",totalspace);
+	//printf("total size is %d---\n",totalspace);
 	if(totalspace < size)
 	{
 		
@@ -384,7 +429,8 @@ INT32S readMediaFile(const char *pszDir,char fileName[MAX_PATH])
 	DIR    *dir;
     struct dirent *ptr;
 	unsigned int count=0;
-	
+	//int i=0;
+	//char otherFileName[MAX_PATH]={0};
     dir = opendir(pszDir); ///open the dir
     int iRet=-1;
     while((ptr = readdir(dir)) != NULL) ///read the list of this dir
@@ -398,6 +444,15 @@ INT32S readMediaFile(const char *pszDir,char fileName[MAX_PATH])
 				}
 				if(strstr(ptr->d_name,"mp4"))
 				{
+					//memset(otherFileName,0,sizeof(otherFileName));
+					//sprintf(otherFileName,"%s/%s",pszDir,ptr->d_name);
+					//printf("otherFileName 1 %s i=%d\n",otherFileName,i);
+					//iRet=isMp4File(otherFileName);
+					//if(iRet==0)
+					//{
+					//	i++;
+					//	printf("otherFileName 2 %s i=%d\n",otherFileName,i);
+					//}
 					iRet=2;
 				}
 				//if(strstr(ptr->d_name,"dat"))

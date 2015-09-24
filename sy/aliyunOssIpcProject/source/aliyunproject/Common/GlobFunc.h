@@ -9,7 +9,7 @@ extern "C" {
 #  endif /* __cplusplus */
 	INT32S 	isDeviceAccess(const char *filePath);
 	INT32S 	CreateConfigFile(char *v_szFilePath, char *v_szWriteBuf, int v_iLen);
-
+	INT32S  isMp4File(LPCTSTR path);
 	INT32S  ReadConfigFile(char *v_szFilePath, char *v_szReadBuf, int v_iBufLen);
 	INT32U  getFreeMemory(void);
 	DWORD 	getTickCountMs();

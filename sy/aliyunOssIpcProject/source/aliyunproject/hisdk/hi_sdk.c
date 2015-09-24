@@ -275,6 +275,7 @@ void * makeMp4Task(void* param)
 				if(iRet!=0)
 				{
 					LOGOUT("CloseMp4Module is failure %d",iRet);
+					sym==RECORDDELETE;
 				}
 				if(sym==RECORDSTOP)
 				{				
@@ -606,6 +607,7 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 				else
 				{
 					u32RecordCmd=RECORDDELETE;
+					break;
 				}
 			}
 		}
@@ -664,6 +666,7 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 					localTime+=CHINATIME;
 					joseph_mp4_config.m_overTime=localTime;
 					u32RecordCmd=RECORDSTOP;
+					break;
 				}
 			}
 		}

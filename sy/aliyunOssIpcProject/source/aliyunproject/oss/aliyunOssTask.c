@@ -94,6 +94,22 @@ void * aliyunOssTask(void* param)
 						LOGOUT("upLoadFile %s %s is null and unlink",filePath,aliyunFilePath);
 						continue;
 					}
+					if(fileType==2)
+					{
+						iRet=isMp4File(filePath);
+						if(iRet!=0)
+						{
+							unlink(filePath);
+							LOGOUT("upLoadFile %s %s is no mp4 file and unlink",filePath,aliyunFilePath);
+							memset(fileDataName,0,sizeof(fileDataName));
+							sscanf(fileName,"%[^.]",fileDataName);
+							sprintf(fileDataName,"%s.dat",fileDataName);
+							sprintf(filePath,"%s/%s",SYSTEM_MEDIA_SENDFILEPATH,fileDataName);
+							unlink(filePath);
+							LOGOUT("error mp4 file unlink %s",filePath);
+							continue;
+						}
+					}
 					iRet=upLoadFile(filePath,aliyunFilePath);
 					if(iRet==0)
 					{
