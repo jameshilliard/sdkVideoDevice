@@ -23,6 +23,7 @@ extern "C" {
 	char * 	SY_base64Encode(const char *text);
 	INT32S 	readMediaFile(const char *pszDir,char fileName[MAX_PATH]);
 	INT32S  rmDirFile(const char *pszDir);
+	INT32S  GetProfileString(char *profile, char *AppName, char *KeyName, char *KeyVal);
 #  ifdef __cplusplus
 }
 #  endif /* __cplusplus */

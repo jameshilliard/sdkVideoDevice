@@ -16,6 +16,7 @@ static HI_U32 				u32HandleMid=0;
 static HI_U32 				u32HandleLow=0;
 static HI_U32 				u32ChannelFlag=1;  // 1 hight 2 mid 3 low
 static HI_S_Video_Ext 		curVideoParam;
+static HI_S_Video_Ext 		lastVideoParam;
 static JOSEPH_ACC_CONFIG 	joseph_aac_config;
 static JOSEPH_MP4_CONFIG 	joseph_mp4_config;
 static HI_U32  				u32RecordCmd=RECORDIDLE;
@@ -29,6 +30,35 @@ static  INT32S				s32Mp4FailFlag=0;
 static Queue *	 			g_quene=NULL;
 
 
+static INT32S getVideoParamFormEncodeFile(char *filePath,HI_S_Video_Ext *sVideo)
+{
+	if(filePath==NULL || strlen(filePath)==0)
+	{
+		LOGOUT("filePath is error");
+		return -1;
+	}
+	if(sVideo==NULL)
+	{
+		LOGOUT("HI_S_Video_Ext sVideo is error");
+		return -2;
+	}
+	INT32S iRet = -1;
+	iRet=isDeviceAccess(filePath);
+	if(iRet!=0)
+	{
+		LOGOUT("%s is no found",filePath);
+		return -3;
+	}
+	iRet=GetMasterVideoStream(&lastVideoParam);
+	if(iRet!=0)
+	{
+		LOGOUT("GetMasterVideoStream is error");
+		return -4;
+	}
+	*sVideo=lastVideoParam;
+	
+	
+}
 
 int getVideoParam(HI_U32 *u32Handle,HI_S_Video_Ext *sVideo)
 {
@@ -180,6 +210,17 @@ void * makeMp4Task(void* param)
 			{
 			case RECORDSTART:
 			{
+				HI_S_Video_Ext sVideo;
+				iRet=GetMasterVideoStream(&sVideo);
+				lastVideoParam=sVideo;
+				sVideo.u32Bitrate=g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg[0].m_wBitRate;
+				sVideo.u32Frame=g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg[0].m_wFrameRate;
+				sVideo.u32Height=g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg[0].m_wHeight;
+				sVideo.u32Width=g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg[0].m_wWidth;
+				sVideo.u32ImgQuality=g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg[0].m_wQpConstant;
+				sVideo.u32Iframe=g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg[0].m_wKeyFrameRate;
+				sVideo.blCbr=g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg[0].m_CodeType;
+				SetMasterVideoStream(&sVideo);
 				iRet=MakeKeyFrame(1);
 				if(iRet!=0)
 				{
@@ -188,7 +229,6 @@ void * makeMp4Task(void* param)
 				memset(&joseph_aac_config,0,sizeof(joseph_aac_config));
 				memset(&joseph_mp4_config,0,sizeof(joseph_mp4_config));
 
-				HI_S_Video_Ext sVideo;
 				int iRet=GetMasterVideoStream(&sVideo);
 				if(iRet!=0)
 				{
@@ -303,6 +343,7 @@ void * makeMp4Task(void* param)
 					LOGOUT("rmdir %s iRet=%d error=%s",SYSTEM_MEDIA_SAVEFILEPATH,iRet,strerror(errno));
 				}
 				motionData.m_u32MotionStatus=0;
+				SetMasterVideoStream(&lastVideoParam);
 			}
 				break;
 			default:
