@@ -156,11 +156,54 @@ HI_S32 takePicture(HI_U32 u32Handle,char fileName[256])
 }
 
 
-void * sendMediaToAliyunThread(void* param)
+void * controlMotionDetect(void* param)
 {	
-	while(0)
+	HI_S32 s32Ret=0;
+	HI_S_MD_PARAM mHI_S_MD_PARAM[4];
+	
+	HI_S_MD_PARAM sMdParam;
+	// 注：u32Channel 与HI_S_STREAM_INFO 一致
+	sMdParam.u32Channel = HI_NET_DEV_CHANNEL_1;
+	sMdParam.u32Area = 1;
+	sMdParam.blEnable = HI_TRUE;
+	sMdParam.u32Sensitivity = 50;
+	sMdParam.u32X = 0;
+	sMdParam.u32Y = (float)DE_HEIGHT/8;
+	sMdParam.u32Width = DE_WIDTH/10;
+	sMdParam.u32Height = DE_HEIGHT/8;
+
+	mHI_S_MD_PARAM[0]=sMdParam;
+	sMdParam.u32Area = 2;
+	sMdParam.u32Y = (float)DE_HEIGHT*5/16;
+	mHI_S_MD_PARAM[1]=sMdParam;
+	sMdParam.u32Area = 3;
+	sMdParam.u32Y = (float)DE_HEIGHT*9/16;
+	mHI_S_MD_PARAM[2]=sMdParam;
+	sMdParam.u32Area = 4;
+	sMdParam.u32Y = (float)DE_HEIGHT*3/4;
+	mHI_S_MD_PARAM[3]=sMdParam;
+	HI_S32 i=0;
+	HI_S32 j=0;
+	
+	while(1)
 	{
-		usleep(100);
+		for(i=0;i<4;i++)
+		{
+			mHI_S_MD_PARAM[i].u32X=mHI_S_MD_PARAM[i].u32X+DE_WIDTH*1/5;
+			if(mHI_S_MD_PARAM[i].u32X>DE_WIDTH)
+			{
+				mHI_S_MD_PARAM[i].u32X=0;
+				j=0;
+			}
+			HI_NET_DEV_SetConfig(u32HandleHight,HI_NET_DEV_CMD_MD_PARAM,&mHI_S_MD_PARAM[i],sizeof(HI_S_MD_PARAM));
+			if(s32Ret != HI_SUCCESS)
+			{
+				LOGOUT("HI_NET_DEV_SetConfig is failure 0x%x",s32Ret);
+			}
+			LOGOUT("area=%d,x=%d,y=%d",i,mHI_S_MD_PARAM[i].u32X,mHI_S_MD_PARAM[i].u32Y);
+		}
+		j++;
+		usleep(200000);
 	}
 	return NULL;
 }
@@ -1250,7 +1293,7 @@ int InitHiSDKVideoAllChannel()
 	LOGOUT("hight handle 0x%x=%d,mid handle 0x%x=%d,low handle 0x%x=%d",&u32HandleHight,u32HandleHight,
 			&u32HandleMid,u32HandleMid,&u32HandleLow,u32HandleLow);
 	
-	pthread_t m_sendMediaToAliyunThread;//实时播放，过程控制线程
+	pthread_t m_controlMotionDetect;//实时播放，过程控制线程
 	#if 0
 	g_videoQuene=InitVideoQuene(VIDEOBUFFERSIZE);
 	if(g_videoQuene==NULL)
@@ -1258,12 +1301,13 @@ int InitHiSDKVideoAllChannel()
 		LOGOUT("InitVideoQuene %d failure",VIDEOBUFFERSIZE);
 	}
 	#endif
-	iRet = pthread_create(&m_sendMediaToAliyunThread, NULL, sendMediaToAliyunThread, NULL);
+	iRet = pthread_create(&m_controlMotionDetect, NULL, controlMotionDetect, NULL);
 	if(iRet != 0)
 	{
 		LOGOUT("can't create thread: %s",strerror(iRet));
 		return -4;
 	}
+	
 	return iRet;
 }  
 

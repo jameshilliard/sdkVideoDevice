@@ -91,7 +91,7 @@
 #define DE_BITRATE				512					// 码率
 #define DE_FRAMERATE			12					// 帧率
 #define DE_HEIGHT				720					// 视频高
-#define DE_WIDTH				120				// 视频高
+#define DE_WIDTH				1280				// 视频高
 #define DE_QPCONSTANT			1					// 视频质量
 #define DE_KEYFRAMERATE			100					// 关键帧间隔
 #define DE_CODETYPE				0					//
