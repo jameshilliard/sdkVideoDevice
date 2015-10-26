@@ -26,6 +26,7 @@ static HI_U32 				u32SendMediaToAliyunStatus=0;
 static	HI_U32	 			u32Width=DEVICEWIDTHBIG;	 /* ÊÓÆµ¿í */
 static	HI_U32 				u32Height=DEVICEHIGHHBIG;	 /* ÊÓÆµ¸ß */
 static  INT32S				s32Mp4FailFlag=0;
+static  HI_U32 				u32WaitIFrame=1;
 
 static Queue *	 			g_quene=NULL;
 
@@ -155,55 +156,72 @@ HI_S32 takePicture(HI_U32 u32Handle,char fileName[256])
 	return s32Ret;
 }
 
+int  controlMD(DWORD vTime)
+{		
+	static HI_S32 j=0;
+	static DWORD  lastTickCountMs=0;
+	DWORD  nowTickCountMs=getTickCountMs();
+	if((nowTickCountMs-lastTickCountMs)>=vTime)
+	{
+		lastTickCountMs=nowTickCountMs;
+	}
+	else
+	{
+		return -1;
+	}
+	static HI_S_MD_PARAM mHI_S_MD_PARAM[4]=
+	{
+	 {HI_NET_DEV_CHANNEL_1,1,HI_TRUE,50,0			,DE_HEIGHT/8   ,DE_WIDTH/10,DE_HEIGHT/8},
+	 {HI_NET_DEV_CHANNEL_1,2,HI_TRUE,50,DE_WIDTH*1/5,DE_HEIGHT*5/16,DE_WIDTH/10,DE_HEIGHT/8},
+	 {HI_NET_DEV_CHANNEL_1,3,HI_TRUE,50,DE_WIDTH*2/5,DE_HEIGHT*9/16,DE_WIDTH/10,DE_HEIGHT/8},
+	 {HI_NET_DEV_CHANNEL_1,4,HI_TRUE,50,DE_WIDTH*3/5,DE_HEIGHT*3/4 ,DE_WIDTH/10,DE_HEIGHT/8}
+	};
+	HI_S32 s32Ret=0;
+	HI_S32 i=0;
+	for(i=0;i<4;i++)
+	{
+		mHI_S_MD_PARAM[i].u32X=mHI_S_MD_PARAM[i].u32X+DE_WIDTH*1/5;
+		if(mHI_S_MD_PARAM[i].u32X>=DE_WIDTH)
+		{
+			mHI_S_MD_PARAM[i].u32X=0;
+			j=0;
+		}
+		HI_NET_DEV_SetConfig(u32HandleHight,HI_NET_DEV_CMD_MD_PARAM,&mHI_S_MD_PARAM[i],sizeof(HI_S_MD_PARAM));
+		if(s32Ret != HI_SUCCESS)
+		{
+			LOGOUT("HI_NET_DEV_SetConfig is failure 0x%x",s32Ret);
+		}
+		//LOGOUT("area=%d,x=%d,y=%d",mHI_S_MD_PARAM[i].u32Area,mHI_S_MD_PARAM[i].u32X,mHI_S_MD_PARAM[i].u32Y);
+	}
+	LOGOUT("area=%d,x=%04d,y=%03d    area=%d,x=%04d,y=%03d    area=%d,x=%04d,y=%03d    area=%d,x=%04d,y=%03d"
+	,mHI_S_MD_PARAM[0].u32Area,mHI_S_MD_PARAM[0].u32X,mHI_S_MD_PARAM[0].u32Y
+	,mHI_S_MD_PARAM[1].u32Area,mHI_S_MD_PARAM[1].u32X,mHI_S_MD_PARAM[1].u32Y
+	,mHI_S_MD_PARAM[2].u32Area,mHI_S_MD_PARAM[2].u32X,mHI_S_MD_PARAM[2].u32Y
+	,mHI_S_MD_PARAM[3].u32Area,mHI_S_MD_PARAM[3].u32X,mHI_S_MD_PARAM[3].u32Y);
+	j++;
+	return 0;
+}
+
+#define DETECT_MAXTIME	1000
 
 void * controlMotionDetect(void* param)
 {	
-	HI_S32 s32Ret=0;
-	HI_S_MD_PARAM mHI_S_MD_PARAM[4];
-	
-	HI_S_MD_PARAM sMdParam;
-	// ×¢£ºu32Channel ÓëHI_S_STREAM_INFO Ò»ÖÂ
-	sMdParam.u32Channel = HI_NET_DEV_CHANNEL_1;
-	sMdParam.u32Area = 1;
-	sMdParam.blEnable = HI_TRUE;
-	sMdParam.u32Sensitivity = 50;
-	sMdParam.u32X = 0;
-	sMdParam.u32Y = (float)DE_HEIGHT/8;
-	sMdParam.u32Width = DE_WIDTH/10;
-	sMdParam.u32Height = DE_HEIGHT/8;
 
-	mHI_S_MD_PARAM[0]=sMdParam;
-	sMdParam.u32Area = 2;
-	sMdParam.u32Y = (float)DE_HEIGHT*5/16;
-	mHI_S_MD_PARAM[1]=sMdParam;
-	sMdParam.u32Area = 3;
-	sMdParam.u32Y = (float)DE_HEIGHT*9/16;
-	mHI_S_MD_PARAM[2]=sMdParam;
-	sMdParam.u32Area = 4;
-	sMdParam.u32Y = (float)DE_HEIGHT*3/4;
-	mHI_S_MD_PARAM[3]=sMdParam;
-	HI_S32 i=0;
-	HI_S32 j=0;
-	
+	DWORD  lastTickCountMs=0;
+	DWORD  nowTickCountMs=0;
+	int    sleepTime=0;
 	while(1)
 	{
-		for(i=0;i<4;i++)
-		{
-			mHI_S_MD_PARAM[i].u32X=mHI_S_MD_PARAM[i].u32X+DE_WIDTH*1/5;
-			if(mHI_S_MD_PARAM[i].u32X>DE_WIDTH)
-			{
-				mHI_S_MD_PARAM[i].u32X=0;
-				j=0;
-			}
-			HI_NET_DEV_SetConfig(u32HandleHight,HI_NET_DEV_CMD_MD_PARAM,&mHI_S_MD_PARAM[i],sizeof(HI_S_MD_PARAM));
-			if(s32Ret != HI_SUCCESS)
-			{
-				LOGOUT("HI_NET_DEV_SetConfig is failure 0x%x",s32Ret);
-			}
-			LOGOUT("area=%d,x=%d,y=%d",i,mHI_S_MD_PARAM[i].u32X,mHI_S_MD_PARAM[i].u32Y);
-		}
-		j++;
-		usleep(200000);
+		lastTickCountMs = getTickCountMs();
+		controlMD(DETECT_MAXTIME);
+		nowTickCountMs = getTickCountMs();
+		sleepTime=(nowTickCountMs-lastTickCountMs)*1000;
+		if(sleepTime>DETECT_MAXTIME*1000)
+			sleepTime=DETECT_MAXTIME*1000-DETECT_MAXTIME*100;
+		else if(sleepTime<0)
+			sleepTime=0;
+		//LOGOUT("nowTickCountMs=%d lastTickCountMs=%d sleepTime=%d",nowTickCountMs,lastTickCountMs,sleepTime);
+		usSleep(DETECT_MAXTIME*1000-sleepTime);
 	}
 	return NULL;
 }
@@ -410,7 +428,6 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 {
 	HI_S32 iRet=0;
 	HI_U32 validU32Handle=0;
-	static HI_U32 u32WaitIFrame=0;
 	static HI_U32 u32LastStartTPS=0;
 	HI_U32 i=0;
 	static HI_U8  g711Buffer[1000]={0};
@@ -461,6 +478,7 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 					u32LastStartTPS=pstruAV->u32AVFramePTS;
 					//motionData.m_u32MotionStartTime=getTickCountMs();
 					u32WaitIFrame=0;
+					
 				}
 				else
 					break;
@@ -584,6 +602,27 @@ HI_S32 OnStreamCallback(HI_U32 u32Handle, /* ¾ä±ú */
 	return HI_SUCCESS;
 }
 
+int reloveMotionArea(HI_S_ALARM_MD v_stHI_S_ALARM_MD)
+{
+	switch(v_stHI_S_ALARM_MD.u32Area)
+	{
+		case 1:
+			motionData.m_stMotionData.videoMotionTotal_Dist1++;
+			break;
+		case 2:
+			motionData.m_stMotionData.videoMotionTotal_Dist2++;
+			break;
+		case 3:
+			motionData.m_stMotionData.videoMotionTotal_Dist3++;
+			break;
+		case 4:
+			motionData.m_stMotionData.videoMotionTotal_Dist4++;
+			break;	
+		default:
+			break;
+	}
+
+}
 
 HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
                                 HI_U32 u32DataType,       /* Êý¾ÝÀàÐÍ*/
@@ -592,8 +631,11 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
                                 HI_VOID* pUserData    /* ÓÃ»§Êý¾Ý*/
                                 )
 {
-	//printf("time=%d,u32Handle=%d,u32DataType=%d,pu8Buffer=%s,u32Length=%d,pUserData=%s\n",
-	//	    getTickCountMs(),u32Handle,u32DataType,pu8Buffer,u32Length,pUserData);
+	if(u32DataType!=2)
+	{
+		//LOGOUT("time=%d,u32Handle=%d,u32DataType=%d,pu8Buffer=%s,u32Length=%d,pUserData=%s\n",
+		//		getTickCountMs(),u32Handle,u32DataType,pu8Buffer,u32Length,pUserData);
+	}
 	if(g_stConfigCfg.m_unMotionCfg.m_objMotionCfg.m_bEnable==0)
 		return HI_SUCCESS;
 	if(strlen(g_szServerNO)==0)
@@ -638,6 +680,8 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 		break;
 	case RECORDVIDEO:
 	{
+		if(u32WaitIFrame==1)
+			break;
 		DWORD nowTime=getTickCountMs();
 		DWORD endTime=0;
 		if(motionData.m_u32MotionStatus==1)
@@ -648,25 +692,34 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 			{
 				if(u32DataType==0)
 				{
-					HI_S_ALARM_MD *pMd=(HI_S_ALARM_MD *)pu8Buffer;
-					//printf("pMd->u32Area is %d---\n",pMd->u32Area);
-					switch(pMd->u32Area)
+					HI_S_ALARM_MD *pMd=NULL;
+					int i=0;
+					for(;i<u32Length/sizeof(HI_S_ALARM_MD);i++)
 					{
-						case 1:
-							motionData.m_stMotionData.videoMotionTotal_Dist1++;
-							break;
-						case 2:
-							motionData.m_stMotionData.videoMotionTotal_Dist2++;
-							break;
-						case 3:
-							motionData.m_stMotionData.videoMotionTotal_Dist3++;
-							break;
-						case 4:
-							motionData.m_stMotionData.videoMotionTotal_Dist4++;
-							break;	
-						default:
-							break;
+
+						pMd=(HI_S_ALARM_MD *)pu8Buffer+i;
+						LOGOUT("pMd=0x%x,u32Area=%d,u32X=%d,u32Y=%d,u32Width=%d,u32Height=%d",
+							    pMd,pMd->u32Area,pMd->u32X,pMd->u32Y,pMd->u32Width,pMd->u32Height);
+						switch(pMd->u32Area)
+						{
+							case 1:
+								motionData.m_stMotionData.videoMotionTotal_Dist1++;
+								break;
+							case 2:
+								motionData.m_stMotionData.videoMotionTotal_Dist2++;
+								break;
+							case 3:
+								motionData.m_stMotionData.videoMotionTotal_Dist3++;
+								break;
+							case 4:
+								motionData.m_stMotionData.videoMotionTotal_Dist4++;
+								break;	
+							default:
+								break;
+						}
+						
 					}
+					
 				}
 			}
 			else
@@ -704,23 +757,28 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 				if(u32DataType==0)
 				{
 					HI_S_ALARM_MD *pMd=(HI_S_ALARM_MD *)pu8Buffer;
-					//printf("pMd->u32Area is %d---\n",pMd->u32Area);
-					switch(pMd->u32Area)
+					int i=0;
+					for(;i<u32Length/sizeof(HI_S_ALARM_MD);i++)
 					{
-						case 1:
-							motionData.m_stMotionData.videoMotionTotal_Dist1++;
-							break;
-						case 2:
-							motionData.m_stMotionData.videoMotionTotal_Dist2++;
-							break;
-						case 3:
-							motionData.m_stMotionData.videoMotionTotal_Dist3++;
-							break;
-						case 4:
-							motionData.m_stMotionData.videoMotionTotal_Dist4++;
-							break;	
-						default:
-							break;
+						LOGOUT("u32Area=%d,u32X=%d,u32Y=%d,u32Width=%d,u32Height=%d",
+							    pMd->u32Area,pMd->u32X,pMd->u32Y,pMd->u32Width,pMd->u32Height);
+						switch(pMd->u32Area)
+						{
+							case 1:
+								motionData.m_stMotionData.videoMotionTotal_Dist1++;
+								break;
+							case 2:
+								motionData.m_stMotionData.videoMotionTotal_Dist2++;
+								break;
+							case 3:
+								motionData.m_stMotionData.videoMotionTotal_Dist3++;
+								break;
+							case 4:
+								motionData.m_stMotionData.videoMotionTotal_Dist4++;
+								break;	
+							default:
+								break;
+						}
 					}
 				}
 			}

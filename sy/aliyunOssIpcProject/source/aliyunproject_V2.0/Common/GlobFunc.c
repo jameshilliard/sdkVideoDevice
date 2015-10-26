@@ -115,6 +115,13 @@ DWORD getTickCountMs()
 	return (ts.tv_sec * 1000 + ts.tv_nsec / 1000000);
 }
 
+INT32S usSleep(long us) 
+{
+    struct timeval tv;
+    tv.tv_sec = 0;
+    tv.tv_usec = us;
+    return select(0, NULL, NULL, NULL, &tv);
+}
 
 // 获取文件大小
 DWORD getFileSize(LPCTSTR path)    

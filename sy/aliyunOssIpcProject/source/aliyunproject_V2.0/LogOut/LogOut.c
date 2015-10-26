@@ -163,8 +163,10 @@ void LogOutPut(INT32U v_iLv,LPCTSTR v_szFileName,INT32U v_iFileLine,LPCTSTR v_sz
 	}
 	pthread_mutex_lock( &g_SzyLogFileMutex[v_iLv]);
 	struct tm nowTime;
-	time_t   now;         
+	time_t   now;  
+	struct timeval mTimeVal;
 	time(&now);
+	gettimeofday(&mTimeVal,NULL);
 	localtime_r(&now, &nowTime);
 	va_list argList;
 	SCHAR szLogBuf[1024] = {0};
@@ -180,8 +182,8 @@ void LogOutPut(INT32U v_iLv,LPCTSTR v_szFileName,INT32U v_iFileLine,LPCTSTR v_sz
 	{
 		pFile = v_szFileName;
 	}
-	sprintf(szLogBuf, "%04d-%02d-%02d %02d:%02d:%02d [%15s at %4d] %s  \n", 
-		nowTime.tm_year + 1900, nowTime.tm_mon+1, nowTime.tm_mday, nowTime.tm_hour, nowTime.tm_min, nowTime.tm_sec, pFile, v_iFileLine, v_szMsg);
+	sprintf(szLogBuf, "%04d-%02d-%02d %02d:%02d:%02d:%03d [%15s at %4d] %s  \n", 
+		nowTime.tm_year + 1900, nowTime.tm_mon+1, nowTime.tm_mday, nowTime.tm_hour, nowTime.tm_min, nowTime.tm_sec,mTimeVal.tv_usec/1000,pFile, v_iFileLine, v_szMsg);
 	va_start(argList, szLogBuf);
 	n = vsnprintf(szOutBuf, size, szLogBuf, argList);
 	//vsprintf(szOutBuf, szLogBuf, argList);

@@ -24,6 +24,7 @@ extern "C" {
 	INT32S 	readMediaFile(const char *pszDir,char fileName[MAX_PATH]);
 	INT32S  rmDirFile(const char *pszDir);
 	INT32S  GetProfileString(char *profile, char *AppName, char *KeyName, char *KeyVal);
+	INT32S 	usSleep(long us);
 #  ifdef __cplusplus
 }
 #  endif /* __cplusplus */

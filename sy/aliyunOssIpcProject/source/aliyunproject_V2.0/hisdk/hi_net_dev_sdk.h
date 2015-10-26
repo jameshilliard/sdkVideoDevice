@@ -345,10 +345,10 @@ typedef struct HI_OSD
 
 typedef struct HI_MD_PARAM
 {
-       HI_U32 u32Channel;       /* 通道 */
+    HI_U32 u32Channel;       /* 通道 */
 	HI_U32 u32Area;            /* 报警区域 */
-       HI_BOOL blEnable;        /* HI_TRUE启动报警，HI_FALSE关闭报警   */
-       HI_U32 u32Sensitivity;  /* 报警灵敏度，取值范围1~99 */
+    HI_BOOL blEnable;        /* HI_TRUE启动报警，HI_FALSE关闭报警   */
+    HI_U32 u32Sensitivity;  /* 报警灵敏度，取值范围1~99 */
 	HI_U32 u32X;
 	HI_U32 u32Y;
 	HI_U32 u32Width;
