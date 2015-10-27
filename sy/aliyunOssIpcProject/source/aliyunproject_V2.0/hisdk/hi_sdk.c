@@ -202,7 +202,7 @@ int  controlMD(DWORD vTime)
 	return 0;
 }
 
-#define DETECT_MAXTIME	1000
+#define DETECT_MAXTIME	200
 
 void * controlMotionDetect(void* param)
 {	
@@ -210,7 +210,7 @@ void * controlMotionDetect(void* param)
 	DWORD  lastTickCountMs=0;
 	DWORD  nowTickCountMs=0;
 	int    sleepTime=0;
-	while(1)
+	while(0)
 	{
 		lastTickCountMs = getTickCountMs();
 		controlMD(DETECT_MAXTIME);
@@ -221,7 +221,7 @@ void * controlMotionDetect(void* param)
 		else if(sleepTime<0)
 			sleepTime=0;
 		//LOGOUT("nowTickCountMs=%d lastTickCountMs=%d sleepTime=%d",nowTickCountMs,lastTickCountMs,sleepTime);
-		usSleep(DETECT_MAXTIME*1000-sleepTime);
+		//usSleep(DETECT_MAXTIME*1000-sleepTime);
 	}
 	return NULL;
 }
@@ -760,8 +760,8 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 					int i=0;
 					for(;i<u32Length/sizeof(HI_S_ALARM_MD);i++)
 					{
-						LOGOUT("u32Area=%d,u32X=%d,u32Y=%d,u32Width=%d,u32Height=%d",
-							    pMd->u32Area,pMd->u32X,pMd->u32Y,pMd->u32Width,pMd->u32Height);
+						LOGOUT("pMd=0x%x,u32Area=%d,u32X=%d,u32Y=%d,u32Width=%d,u32Height=%d",
+								pMd,pMd->u32Area,pMd->u32X,pMd->u32Y,pMd->u32Width,pMd->u32Height);
 						switch(pMd->u32Area)
 						{
 							case 1:
