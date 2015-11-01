@@ -13,7 +13,7 @@
 #include "hisdk/hi_sdk.h"
 #include "toolComm/UdpSearch.h"
 #include "controlServer/ConServer.h"
-
+#include "update/update.h"
 
 
 BOOL g_main_start=TRUE;
@@ -46,9 +46,11 @@ void ReleaseAllConfig()
 {
 	ReleaseDeviceConfig();
 }
+//
 
 int main()
 {
+
 	int iRet = 0;
 	sigset_t set;
 	sigemptyset(&set);
@@ -69,6 +71,10 @@ int main()
 		LOGOUT("error and return");
 		return -1;
 	}
+	//test
+	//	devInfo_test();
+	//exit(1);
+	//
 	iRet=initAliyunOssTask();
 	LOGOUT("initAliyunOssTask iRet=%d over",iRet);
 	iRet=InitUdpSearch();
@@ -78,13 +84,22 @@ int main()
 		LOGOUT("error and return");
 		return -1;
 	}
-	iRet=InitTcpServer();
+	/*iRet=InitTcpServer();
 	LOGOUT("InitTcpServer iRet=%d over",iRet);
 	if(iRet!=0)
 	{
 		LOGOUT("error and return");
 		return -1;
+	}*/
+
+	iRet=InitUpdate();
+	LOGOUT("updateMoudle iRet=%d over",iRet);
+	if(iRet!=0)
+	{
+		LOGOUT("error and return");
+		return -1;
 	}
+	
 	while(g_main_start)
 	{
 		sleep(2);

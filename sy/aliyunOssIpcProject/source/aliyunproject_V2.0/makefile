@@ -1,4 +1,6 @@
 LIB = -L./liball/libarm -lNetLib -loss_c_sdk -lutf8proc  -laprutil-1 -lapr-1 -lcurl -lxml2 -lfaac -lmp4v2 -ldl -lrt -lpthread -lm -Wl,--rpath=./liball/libarm
+#LIB = -L./liball/libarm -lNetLib -loss_c_sdk -lutf8proc  -laprutil-1 -lapr-1 -lcurl -lxml2 -lfaac -ldl -lrt -lpthread -lm -Wl,--rpath=./liball/libarm
+
 INCLUDES = -I./include\
 		   -I./include/libxml2\
 		   -I./include/apr-1\
@@ -17,19 +19,23 @@ FLAGS = -O2 -Wall -Wno-unused -Wno-format -fstrength-reduce -DHI_OS_LINUX -DCPU_
 #export PATH=$PATH:/opt/hisi-linux-nptl/arm-hisiv100-linux/target/bin
 GXX = arm-hisiv100nptl-linux-g++ $(INCLUDES) $(FLAGS) $(LIB)
 GCC = arm-hisiv100nptl-linux-gcc $(INCLUDES) $(FLAGS) $(LIB)
+//GXX = /opt/hisi-linux-nptl/arm-hisiv100-linux/bin/arm-hisiv100-linux-uclibcgnueabi-gcc $(INCLUDES) $(FLAGS) $(LIB)
+//GCC = /opt/hisi-linux-nptl/arm-hisiv100-linux/bin/arm-hisiv100-linux-uclibcgnueabi-gcc $(INCLUDES) $(FLAGS) $(LIB)
 
 CSRCS := $(wildcard ./*.c)
 CSRCS += $(wildcard ./Common/*.c)
 CSRCS += $(wildcard ./LogOut/*.c)
 CSRCS += $(wildcard ./hisdk/*.c)
 CSRCS += $(wildcard ./toolComm/*.c)
-CSRCS += $(wildcard ./mp4v2/*.c)
+#CSRCS += $(wildcard ./mp4v2/*.c)
 CSRCS += $(wildcard ./oss/*.c)
 CSRCS += $(wildcard ./mxml/*.c)
 CSRCS += $(wildcard ./controlServer/*.c)
 CSRCS += $(wildcard ./json/*.c)
+CSRCS += $(wildcard ./update/*.c)
 
-VPATH = ./Common:./LogOut:./hisdk:./toolComm:./mxml:./mp4v2:./oss:./controlServer:./json
+#VPATH = ./Common:./LogOut:./hisdk:./toolComm:./mxml:./mp4v2:./oss:./controlServer:./json:./update
+VPATH = ./Common:./LogOut:./hisdk:./toolComm:./mxml:./oss:./controlServer:./json:./update
 
 OBJDIR := ./objs
 DEPDIR := ./deps
