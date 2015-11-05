@@ -15,6 +15,12 @@ extern "C" {
 	INT32S GetServerNo(const char *v_szFlashPath,char *v_szServerNo,INT32U length);
 	INT32S GetProductId(const char *v_szFlashPath,char *v_szProductId,INT32U length);
 	INT32S SetProductId(const char *v_szFlashPath,char *v_szProductId,INT32U length);
+	//
+	INT32S SetHardVersion(const char *v_szFlashPath,char *v_szHdVersion,INT32U length);//zmt
+	INT32S GetHardVersion(const char *v_szFlashPath,char *v_szHdVersion,INT32U length);//zmt
+	INT32S SetSoftVersion(const char *v_szFlashPath,char *v_szSfServer,INT32U length);//zmt
+	INT32S GetSoftVersion(const char *v_szFlashPath,char *v_szSfServer,INT32U length);//zmt
+	//
 	INT32S SetServerIpAndPort(const char *v_szFlashPath,char *v_szServerIp,INT32U length,INT32U v_iPort);
 	INT32S SetSecret(const char *v_szFlashPath,char *v_szSecret,INT32U length);
 	INT32S SetAliyunOssCfg(const char *v_szFlashPath,tagAliyunOssCfg v_stAliyunOssCfg);

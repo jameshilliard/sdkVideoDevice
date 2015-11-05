@@ -51,6 +51,9 @@
 #define SERVERNOFILENAME  		"serverNo"
 #define PRODUCTFILENAME  		"productNo"
 #define PASSWORDFILE	  		"password"
+//硬件版本和软件版本配置文件名字
+#define HDVERSIONFILENAME  		"hardVersion"
+#define SFVERSIONFILENAME  		"softVersion"
 
 #define LOGSIZE					256*1024
 #define CMDBUFFER				256*1024
@@ -154,6 +157,14 @@ typedef struct __attribute__((packed, aligned(8))) tagMotionCfg_
 	char		m_bEnable;
 	char 		m_szReserver[59];
 }tagMotionCfg;
+//
+/*typedef struct __attribute__((packed, aligned(8))) tagVersionCfg_
+{
+	char 		m_szHardVerion[80];
+	char 		m_szSoftVerion[80];
+}tagVersionCfg;*/
+//
+
 
 typedef struct __attribute__((packed, aligned(8))) tagConfigCfg_
 {
@@ -191,6 +202,12 @@ typedef struct __attribute__((packed, aligned(8))) tagConfigCfg_
 		char		m_szReserved[LCM_80(sizeof(tagMotionCfg))];
 		tagMotionCfg 	m_objMotionCfg;
 	} m_unMotionCfg;
+
+	/*union
+	{
+		char		m_szReserved[LCM_80(sizeof(tagVersionCfg))];
+		tagVersionCfg m_objVerionCfg;
+	} m_unVersionCfg;*/
 
 }tagConfigCfg;
 

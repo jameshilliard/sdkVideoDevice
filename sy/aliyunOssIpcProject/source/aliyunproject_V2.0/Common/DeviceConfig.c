@@ -5,7 +5,68 @@ tagConfigCfg g_stConfigCfg;
 char 		 g_szServerNO[80] = {0};
 char 		 g_szProductId[80] = {0};
 
+//硬件版本号
+INT32S SetHardVersion(const char *v_szFlashPath,char *v_szHdVersion,INT32U length)
+{
+	if(NULL==v_szFlashPath || 0==strlen(v_szFlashPath) || NULL==v_szHdVersion)
+	{
+		LOGOUT("v_szFlashPath or v_szVersionNo is NULL or strlen = 0");
+		return -1;
+	}
+	char szPath[256] = {0};
+	memset(szPath, 0, sizeof(szPath));
+	sprintf(szPath, "%s/%s",v_szFlashPath, HDVERSIONFILENAME);
+	INT32S iRet=CreateConfigFile(szPath, v_szHdVersion, length);
+	LOGOUT("set serverNo %s,iRet=%d",v_szHdVersion,iRet);
+	return iRet;
+}
+//获取硬件版本号
+INT32S GetHardVersion(const char *v_szFlashPath,char *v_szHdVersion,INT32U length)
+{
+	if(NULL==v_szFlashPath || 0==strlen(v_szFlashPath) || NULL==v_szHdVersion)
+	{
+		LOGOUT("v_szFlashPath or v_szServerNo is NULL or strlen = 0");
+		return -1;
+	}
+	char szPath[256] = {0};
+	memset(szPath, 0, sizeof(szPath));
+	memset(v_szHdVersion, 0, length);
+	sprintf(szPath, "%s/%s",v_szFlashPath, HDVERSIONFILENAME);
+	INT32S iRet=ReadConfigFile(szPath, v_szHdVersion, length);
+	return iRet;
+}
+//设置版本号
+INT32S SetSoftVersion(const char *v_szFlashPath,char *v_szSfServer,INT32U length)
+{
+	if(NULL==v_szFlashPath || 0==strlen(v_szFlashPath) || NULL==v_szSfServer)
+	{
+		LOGOUT("v_szFlashPath or v_szServerNo is NULL or strlen = 0");
+		return -1;
+	}
+	char szPath[256] = {0};
+	memset(szPath, 0, sizeof(szPath));
+	sprintf(szPath, "%s/%s",v_szFlashPath, SFVERSIONFILENAME);
+	INT32S iRet=CreateConfigFile(szPath, v_szSfServer, length);
+	LOGOUT("set serverNo %s,iRet=%d",v_szSfServer,iRet);
+	return iRet;
+}
+//获取软件版本号
+INT32S GetSoftVersion(const char *v_szFlashPath,char *v_szSfServer,INT32U length)
+{
+	if(NULL==v_szFlashPath || 0==strlen(v_szFlashPath) || NULL==v_szSfServer)
+	{
+		LOGOUT("v_szFlashPath or v_szServerNo is NULL or strlen = 0");
+		return -1;
+	}
+	char szPath[256] = {0};
+	memset(szPath, 0, sizeof(szPath));
+	memset(v_szSfServer, 0, length);
+	sprintf(szPath, "%s/%s",v_szFlashPath, SFVERSIONFILENAME);
+	INT32S iRet=ReadConfigFile(szPath, v_szSfServer, length);
+	return iRet;
+}
 
+//
 INT32S SetServerNo(const char *v_szFlashPath,char *v_szServerNo,INT32U length)
 {
 	if(NULL==v_szFlashPath || 0==strlen(v_szFlashPath) || NULL==v_szServerNo)
@@ -107,6 +168,37 @@ INT32S SetAliyunOssCfg(const char *v_szFlashPath,tagAliyunOssCfg v_stAliyunOssCf
 	LOGOUT("SetAliyunOssCfg iRet=%d",iRet);
 	return iRet;
 }
+//tagVersionCfg
+/*INT32S SetVersionCfg(const char *v_szFlashPath,tagVersionCfg v_stVersionCfg)
+{
+	if(NULL==v_szFlashPath || 0==strlen(v_szFlashPath))
+	{
+		LOGOUT("v_szFlashPath or v_szProductId is NULL or strlen = 0");
+		return -1;
+	}
+	int iRet=-1;
+	iRet = SetCfgFile(&v_stVersionCfg, offsetof(tagConfigCfg, m_unVersionCfg.m_objVersionCfg), sizeof(tagVersionCfg));
+	LOGOUT("SetAliyunOssCfg iRet=%d",iRet);
+	return iRet;
+}*/
+//
+/*INT32S GetProductId(const char *v_szFlashPath,char *v_szVersion,INT32U length)
+{
+	if(NULL==v_szFlashPath || 0==strlen(v_szFlashPath) || NULL==v_szVersion)
+	{
+		LOGOUT("v_szFlashPath or v_szProductId is NULL or strlen = 0");
+		return -1;
+	}
+	char szPath[256] = {0};
+	memset(szPath, 0, sizeof(szPath));
+	memset(v_szVersion, 0, length);
+	sprintf(szPath, "%s/%s",v_szFlashPath, PRODUCTFILENAME);
+	INT32S iRet=ReadConfigFile(szPath, v_szVersion, length);
+	return iRet;
+}
+*/
+//
+
 INT32S SetCapParamCfg(const char *v_szFlashPath,tagCapParamCfg v_stCapParamCfg)
 {
 	if(NULL==v_szFlashPath || 0==strlen(v_szFlashPath))

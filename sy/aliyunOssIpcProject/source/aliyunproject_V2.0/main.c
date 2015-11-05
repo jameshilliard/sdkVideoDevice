@@ -40,6 +40,26 @@ void InitAllConfig()
 	{
 		LOGOUT("GetProductId %s over iRet=%d",g_szProductId,iRet);
 	}
+	//设置硬件版本信息
+	iRet= SetHardVersion(DEVICECONFIGDIR, SDK_HARD_FWVERSION, strlen(SDK_HARD_FWVERSION));//zmt
+	if(0==iRet)
+	{
+		LOGOUT("SetHardVersion success over iRet=%d",iRet);
+	}
+	else
+	{
+		LOGOUT("SetHardVersion failed over iRet=%d",iRet);
+	}
+	//设置软件版本信息
+	iRet= SetSoftVersion(DEVICECONFIGDIR, SDK_SYSTEM_FWVERSION, strlen(SDK_SYSTEM_FWVERSION));//zmt
+	if(0==iRet)
+	{
+		LOGOUT("SetSoftVersion success over iRet=%d",iRet);
+	}
+	else
+	{
+		LOGOUT("SetSoftVersion failed over iRet=%d",iRet);
+	}
 }
 
 void ReleaseAllConfig()
@@ -47,7 +67,31 @@ void ReleaseAllConfig()
 	ReleaseDeviceConfig();
 }
 //
-
+void GetVersionCfg()
+{
+	int ret = 0;
+	char hardVersion[20] = {0};
+	char softVersion[20] = {0};
+	ret = GetHardVersion(DEVICECONFIGDIR, hardVersion, sizeof(hardVersion));
+	if(ret == 0)
+	{
+		LOGOUT("GetHardVersion success over iRet=%d, hardVersion:%s", ret, hardVersion);
+	}
+	else
+	{
+		LOGOUT("GetHardVersion failed over iRet=%d, hardVersion:%s", ret, hardVersion);
+	}
+	//
+	ret = GetSoftVersion(DEVICECONFIGDIR, softVersion, sizeof(softVersion));
+	if(ret == 0)
+	{
+		LOGOUT("GetSoftVersion success over iRet=%d, hardVersion:%s", ret, hardVersion);
+	}
+	else
+	{
+		LOGOUT("GetSoftVersion failed over iRet=%d, hardVersion:%s", ret, hardVersion);
+	}
+}
 int main()
 {
 
@@ -57,6 +101,7 @@ int main()
 	sigaddset(&set, SIGPIPE);
 	sigprocmask(SIG_BLOCK, &set, NULL); 
 	InitAllConfig();
+	GetVersionCfg();//test
 	InitOSSConfig(g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szBuctetName,
 				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szOssEndPoint,
 				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeyId,
@@ -92,13 +137,13 @@ int main()
 		return -1;
 	}*/
 
-	iRet=InitUpdate();
+	/*iRet=InitUpdate();
 	LOGOUT("updateMoudle iRet=%d over",iRet);
 	if(iRet!=0)
 	{
 		LOGOUT("error and return");
 		return -1;
-	}
+	}*/
 	
 	while(g_main_start)
 	{
