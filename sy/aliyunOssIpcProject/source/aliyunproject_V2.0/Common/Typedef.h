@@ -95,7 +95,19 @@ typedef struct XmlData_
 	byte m_bytXmlType;				// xml类型
 	char szXmlDataBuf[XMLDATALEN];	// xml数据内容
 }XmlData;
-
+//
+typedef struct 
+{
+	int videoMotionTotal_Dist1; 
+	int videoMotionTotal_Dist2;
+	int videoMotionTotal_Dist3; 
+	int videoMotionTotal_Dist4;
+	int voiceAlarmTotal;
+	int videoMotionScoreFromIPC;
+	int videoSoundScoreFromIPC;
+}Motion_Data;
+//
+/*
 typedef struct 
 {
 	int videoMotionTotal_Dist1; 
@@ -104,7 +116,7 @@ typedef struct
 	int videoMotionTotal_Dist4;
 	int voiceAlarmTotal;
 }Motion_Data;
-
+*/
 #define MIN(a,b) ((a)<(b))?(a):(b)
 #define MAX(a,b) ((a)>(b))?(a):(b)
 

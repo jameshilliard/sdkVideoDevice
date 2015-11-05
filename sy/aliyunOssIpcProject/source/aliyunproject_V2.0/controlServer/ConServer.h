@@ -17,10 +17,16 @@
 #define 	STRING_LOGIN_CONSERVER  	"http://%s/ipccmd.php?act=login"
 #define 	STRING_LOGOUT_CONSERVER		"http://%s/ipccmd.php?act=logout"
 #define 	STRING_DATARECORD_CONSERVER	"http://%s/ipccmd.php?act=dataRecord"
-#define 	STRING_RECORD_CONSERVER		"ipc_id=%s&videoPath=%s&creatTimeInMilSecond=%lld&videoFileSize=%d&\
+/*#define 	STRING_RECORD_CONSERVER		"ipc_id=%s&videoPath=%s&creatTimeInMilSecond=%lld&videoFileSize=%d&\
 jpgFilePath=%s&videoTimeLength=%d&videoMotionTotal_Dist1=%d&\
 videoMotionTotal_Dist2=%d&videoMotionTotal_Dist3=%d&videoMotionTotal_Dist4=%d&\
-voiceAlarmTotal=%d"
+voiceAlarmTotal=%d"*/
+#define 	STRING_RECORD_CONSERVER		"ipc_id=%s&videoPath=%s&creatTimeInMilSecond=%lld&videoFileSize=%d&\
+	jpgFilePath=%s&videoTimeLength=%d&videoMotionTotal_Dist1=%d&\
+	videoMotionTotal_Dist2=%d&videoMotionTotal_Dist3=%d&videoMotionTotal_Dist4=%d&\
+	voiceAlarmTotal=%d&videoMotionScoreFromIPC=%d&videoSoundScoreFromIPC=%d"
+
+
 
 typedef struct loginReturnInfo_
 {
