@@ -22,7 +22,7 @@
 //
 char g_szHardVersion[20] = {0};
 char g_szSoftVersion[20] = {0};
-char g_szServerNO[80] = {0};
+char g_szOtherServerNO[80] = {0};
 
 
 void GetVersionCfg()
@@ -48,14 +48,14 @@ void GetVersionCfg()
 		LOGOUT("GetSoftVersion failed over iRet=%d, hardVersion:%s", ret, g_szSoftVersion);
 	}
 	//
-	ret = GetServerNo(DEVICECONFIGDIR, g_szServerNO, sizeof(g_szServerNO));
+	ret = GetServerNo(DEVICECONFIGDIR, g_szOtherServerNO, sizeof(g_szOtherServerNO));
 	if(ret == 0)
 	{
-		LOGOUT("GetSoftVersion success over iRet=%d, hardVersion:%s", ret, g_szServerNO);
+		LOGOUT("GetSoftVersion success over iRet=%d, hardVersion:%s", ret, g_szOtherServerNO);
 	}
 	else
 	{
-		LOGOUT("GetSoftVersion failed over iRet=%d, hardVersion:%s", ret, g_szServerNO);
+		LOGOUT("GetSoftVersion failed over iRet=%d, hardVersion:%s", ret, g_szOtherServerNO);
 	}
 }
 //

@@ -1,8 +1,9 @@
-LIB = -L./liball/libarm -lcurl -ldl -lrt -lpthread -lm -Wl,--rpath=./liball/libarm
-#LIB = -L./liball/libarm -lNetLib -loss_c_sdk -lutf8proc  -laprutil-1 -lapr-1 -lcurl -lxml2 -lfaac -ldl -lrt -lpthread -lm -Wl,--rpath=./liball/libarm
+LIB = -L../aliyunproject_V2.0/liball/libarm -lcurl -ldl -lrt -lpthread -lm -Wl,--rpath=../aliyunproject_V2.0/liball/libarm
+#LIB = -L../aliyunproject_V2.0/liball/libarm -lNetLib -loss_c_sdk -lutf8proc  -laprutil-1 -lapr-1 -lcurl -lxml2 -lfaac -ldl -lrt -lpthread -lm -Wl,--rpath=./liball/libarm
 
-INCLUDES =  -I./include \
-			-I./
+INCLUDES =  -I../aliyunproject_V2.0/include \
+			-I./ \
+			-I../aliyunproject_V2.0
 #关闭所有 未使用变量、printf格式化、警告 
 #FLAGS = -m32 -O2 -Wall -Wno-unused -Wno-format -fstrength-reduce -DHI_OS_LINUX
 FLAGS = -O2 -Wall -Wno-unused -Wno-format -fstrength-reduce -DHI_OS_LINUX -DCPU_ARM
@@ -18,12 +19,12 @@ GCC = arm-hisiv100nptl-linux-gcc $(INCLUDES) $(FLAGS) $(LIB)
 //GCC = /opt/hisi-linux-nptl/arm-hisiv100-linux/bin/arm-hisiv100-linux-uclibcgnueabi-gcc $(INCLUDES) $(FLAGS) $(LIB)
 
 CSRCS := $(wildcard ./*.c)
-CSRCS += $(wildcard ./Common/*.c)
-CSRCS += $(wildcard ./LogOut/*.c)
-CSRCS += $(wildcard ./json/*.c)
+CSRCS += $(wildcard ../aliyunproject_V2.0/Common/*.c)
+CSRCS += $(wildcard ../aliyunproject_V2.0/json/*.c)
+CSRCS += $(wildcard ../aliyunproject_V2.0/Logout/*.c)
 CSRCS += $(wildcard ./update/*.c)
 
-VPATH = ./Common:./LogOut:./json:./update
+VPATH = ../aliyunproject_V2.0/Common:../aliyunproject_V2.0/LogOut:../aliyunproject_V2.0/json:./update
 
 OBJDIR := ./objs
 DEPDIR := ./deps
