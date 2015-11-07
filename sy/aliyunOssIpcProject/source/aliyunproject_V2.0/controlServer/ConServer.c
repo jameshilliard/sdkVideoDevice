@@ -420,7 +420,7 @@ int dataRecord(const char *server,const char *v_szId, char *videoPath,
 	}	
 
 	int result = 0;
-	char sendBuf[2048]={0};
+	char sendBuf[50480]={0};
 	char strUrl[1024]={0};
 	char strResponse[1024] = {0};
 	memset(sendBuf,0,sizeof(sendBuf));
@@ -430,7 +430,7 @@ int dataRecord(const char *server,const char *v_szId, char *videoPath,
 		             mMotionData.videoMotionTotal_Dist3, mMotionData.videoMotionTotal_Dist4,mMotionData.voiceAlarmTotal);*/
 	sprintf(sendBuf,STRING_RECORD_CONSERVER, v_szId, videoPath, creatTimeInMilSecond, videoFileSize,jpgFilePath, videoTimeLength,
 					 mMotionData.videoMotionTotal_Dist1,mMotionData.videoMotionTotal_Dist2,
-		             mMotionData.videoMotionTotal_Dist3, mMotionData.videoMotionTotal_Dist4,mMotionData.voiceAlarmTotal, mMotionData.videoMotionScoreFromIPC, mMotionData.videoSoundScoreFromIPC);
+		             mMotionData.videoMotionTotal_Dist3, mMotionData.videoMotionTotal_Dist4,mMotionData.voiceAlarmTotal, mMotionData.motionDetectInfo, mMotionData.soundVolumeInfo);
 	
 	sprintf(strUrl,STRING_DATARECORD_CONSERVER,server);
 	int iRet=Post_head(strUrl, sendBuf, strResponse);

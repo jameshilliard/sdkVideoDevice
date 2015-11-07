@@ -103,8 +103,8 @@ typedef struct
 	int videoMotionTotal_Dist3; 
 	int videoMotionTotal_Dist4;
 	int voiceAlarmTotal;
-	int videoMotionScoreFromIPC;
-	int videoSoundScoreFromIPC;
+	char *motionDetectInfo;
+	char *soundVolumeInfo;
 }Motion_Data;
 
 #define MIN(a,b) ((a)<(b))?(a):(b)
