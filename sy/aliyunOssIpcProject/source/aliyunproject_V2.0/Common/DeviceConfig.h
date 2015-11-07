@@ -5,7 +5,6 @@
 #include "Configdef.h"
 #include "GlobFunc.h"
 #include "NetFunc.h"
-#include "../mxml/mxmlparser.h"
 
 
 #  ifdef __cplusplus

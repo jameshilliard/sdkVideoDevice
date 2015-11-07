@@ -51,9 +51,19 @@ typedef struct
 	DWORD  m_u32MotionStartTime;
 	DWORD  m_u32MotionLastSecond;
 	DWORD  m_u32MotionTimesIsValid;
+	HI_U32 m_u32AreaTimes[20];
 	Motion_Data m_stMotionData;
 	Motion_Data m_stSumMotionData;
 } HI_Motion_Data;
+
+
+typedef struct 
+{
+	INT32S m_channel;
+	HI_U32 m_u32Handle;
+	DWORD  m_vTime;
+	BOOL   m_start;
+} HI_CONTROLMD_DATA;
 
 #  ifdef __cplusplus
 extern "C" {

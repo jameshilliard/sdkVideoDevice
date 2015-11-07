@@ -13,7 +13,6 @@
 #include "hisdk/hi_sdk.h"
 #include "toolComm/UdpSearch.h"
 #include "controlServer/ConServer.h"
-#include "update/update.h"
 
 
 BOOL g_main_start=TRUE;

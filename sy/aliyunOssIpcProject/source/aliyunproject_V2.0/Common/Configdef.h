@@ -21,6 +21,7 @@
 #define CONNETTYPE 				"View-DeviceTool"
 
 #define SDK_HARD_FWVERSION		"SYKJIPC-1.0.0"
+#define SDK_PROCESS_NAME        "aliyunOss.bin"
 
 
 #define 	COMMVER1 					1

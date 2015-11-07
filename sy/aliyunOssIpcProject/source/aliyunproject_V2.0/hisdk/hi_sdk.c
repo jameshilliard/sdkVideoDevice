@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <sys/syscall.h>//Linux system call for thread id
+#include <sys/syscall.h>  //Linux system call for thread id
 #include <assert.h>
 #include <pthread.h>
 #include "hi_sdk.h"
@@ -10,6 +10,9 @@
 #include "../Common/Configdef.h"
 #include "../Common/Queue.h"
 
+#define 	MAX_MOTION_STRING		50*1024
+#define     MAX_SOUND_STRING		20*1024
+#define 	DETECT_MAXTIME			200
 
 static HI_U32 				u32HandleHight=0;
 static HI_U32 				u32HandleMid=0;
@@ -27,38 +30,33 @@ static	HI_U32	 			u32Width=DEVICEWIDTHBIG;	 /* 视频宽 */
 static	HI_U32 				u32Height=DEVICEHIGHHBIG;	 /* 视频高 */
 static  INT32S				s32Mp4FailFlag=0;
 static  HI_U32 				u32WaitIFrame=1;
+static  HI_U32 				g_motionFlag=0;
+
 
 static Queue *	 			g_quene=NULL;
+static DWORD				g_nowRecordTime=0;
+static DWORD				g_lastRecordTime=0;
 
+static char  * 				g_motionString=NULL;
+static char  *				g_soundString=NULL;
+HI_CONTROLMD_DATA 			g_controlMd[4];
 
-static INT32S getVideoParamFormEncodeFile(char *filePath,HI_S_Video_Ext *sVideo)
+#if 0
+HI_S32 OnEventCallback(HI_U32 u32Handle, /* 句柄 */
+                                HI_U32 u32Event,      /* 事件 */
+                                HI_VOID* pUserData  /* 用户数据*/
+                                )
 {
-	if(filePath==NULL || strlen(filePath)==0)
-	{
-		LOGOUT("filePath is error");
-		return -1;
-	}
-	if(sVideo==NULL)
-	{
-		LOGOUT("HI_S_Video_Ext sVideo is error");
-		return -2;
-	}
-	INT32S iRet = -1;
-	iRet=isDeviceAccess(filePath);
-	if(iRet!=0)
-	{
-		LOGOUT("%s is no found",filePath);
-		return -3;
-	}
-	iRet=GetMasterVideoStream(&lastVideoParam);
-	if(iRet!=0)
-	{
-		LOGOUT("GetMasterVideoStream is error");
-		return -4;
-	}
-	*sVideo=lastVideoParam;
-	
-	
+	//printf("u32Handle=%d,u32Event=%d,pUserData=%s\n",u32Handle,u32Event,pUserData);
+	return HI_SUCCESS;
+}
+
+static void SaveRecordFile(HI_CHAR* pPath, HI_U8* pu8Buffer, HI_U32 u32Length)
+{
+	FILE* fp;
+	fp = fopen(pPath, "ab+");
+	fwrite(pu8Buffer, 1, u32Length, fp);
+	fclose(fp);
 }
 
 int getVideoParam(HI_U32 *u32Handle,HI_S_Video_Ext *sVideo)
@@ -96,23 +94,141 @@ int getVideoParam(HI_U32 *u32Handle,HI_S_Video_Ext *sVideo)
 	return 0;
 }
 
-HI_S32 OnEventCallback(HI_U32 u32Handle, /* 句柄 */
-                                HI_U32 u32Event,      /* 事件 */
-                                HI_VOID* pUserData  /* 用户数据*/
-                                )
+static INT32S getVideoParamFormEncodeFile(char *filePath,HI_S_Video_Ext *sVideo)
 {
-	//printf("u32Handle=%d,u32Event=%d,pUserData=%s\n",u32Handle,u32Event,pUserData);
-	return HI_SUCCESS;
+	if(filePath==NULL || strlen(filePath)==0)
+	{
+		LOGOUT("filePath is error");
+		return -1;
+	}
+	if(sVideo==NULL)
+	{
+		LOGOUT("HI_S_Video_Ext sVideo is error");
+		return -2;
+	}
+	INT32S iRet = -1;
+	iRet=isDeviceAccess(filePath);
+	if(iRet!=0)
+	{
+		LOGOUT("%s is no found",filePath);
+		return -3;
+	}
+	iRet=GetMasterVideoStream(&lastVideoParam);
+	if(iRet!=0)
+	{
+		LOGOUT("GetMasterVideoStream is error");
+		return -4;
+	}
+	*sVideo=lastVideoParam;
+	
+	
 }
 
-static void SaveRecordFile(HI_CHAR* pPath, HI_U8* pu8Buffer, HI_U32 u32Length)
+int stopVideoStream(HI_U32 *u32Handle)
 {
-	FILE* fp;
-	fp = fopen(pPath, "ab+");
-	fwrite(pu8Buffer, 1, u32Length, fp);
-	fclose(fp);
+	HI_S32 s32Ret = HI_SUCCESS;
+	s32Ret = HI_NET_DEV_StopStream(*u32Handle);
+	if (s32Ret != HI_SUCCESS)
+	{
+		LOGOUT("HI_NET_DEV_StopStream is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);	
+		*u32Handle=0;
+		return -1;
+	}
+    return 0;
 }
- 
+
+#endif
+
+
+static int  controlMD(HI_U32 u32Handle,DWORD vTime,int i)
+{		
+	static HI_S32 j=0;
+	static DWORD  lastTickCountMs=0;
+	DWORD  nowTickCountMs=getTickCountMs();
+	if((nowTickCountMs-lastTickCountMs)>=vTime)
+	{
+		lastTickCountMs=nowTickCountMs;
+	}
+	else
+	{
+		return -1;
+	}
+	static HI_S_MD_PARAM mHI_S_MD_PARAM[4]=
+	{
+	 {HI_NET_DEV_CHANNEL_1,1,HI_TRUE,50,0			,DE_HEIGHT/8   ,DE_WIDTH/10,DE_HEIGHT/8},
+	 {HI_NET_DEV_CHANNEL_1,2,HI_TRUE,50,DE_WIDTH*1/5,DE_HEIGHT*5/16,DE_WIDTH/10,DE_HEIGHT/8},
+	 {HI_NET_DEV_CHANNEL_1,3,HI_TRUE,50,DE_WIDTH*2/5,DE_HEIGHT*9/16,DE_WIDTH/10,DE_HEIGHT/8},
+	 {HI_NET_DEV_CHANNEL_1,4,HI_TRUE,50,DE_WIDTH*3/5,DE_HEIGHT*3/4 ,DE_WIDTH/10,DE_HEIGHT/8}
+	};
+	HI_S32 s32Ret=0;
+	//HI_S32 i=0;
+	//for(i=0;i<4;i++)
+	{
+		mHI_S_MD_PARAM[i].u32X=mHI_S_MD_PARAM[i].u32X+DE_WIDTH*1/5;
+		if(mHI_S_MD_PARAM[i].u32X>=DE_WIDTH)
+		{
+			mHI_S_MD_PARAM[i].u32X=0;
+			j=0;
+		}
+		HI_NET_DEV_SetConfig(u32Handle,HI_NET_DEV_CMD_MD_PARAM,&mHI_S_MD_PARAM[i],sizeof(HI_S_MD_PARAM));
+		if(s32Ret != HI_SUCCESS)
+		{
+			printf("HI_NET_DEV_SetConfig is failure 0x%x\n",s32Ret);
+		}
+		//printf("area=%d,x=%d,y=%d\n",mHI_S_MD_PARAM[i].u32Area,mHI_S_MD_PARAM[i].u32X,mHI_S_MD_PARAM[i].u32Y);
+	}
+	//LOGOUT("time=%010ld area=%d,x=%04d,y=%03d    area=%d,x=%04d,y=%03d    area=%d,x=%04d,y=%03d    area=%d,x=%04d,y=%03d"
+	//,getTickCountMs(),mHI_S_MD_PARAM[0].u32Area,mHI_S_MD_PARAM[0].u32X,mHI_S_MD_PARAM[0].u32Y
+	//,mHI_S_MD_PARAM[1].u32Area,mHI_S_MD_PARAM[1].u32X,mHI_S_MD_PARAM[1].u32Y
+	//,mHI_S_MD_PARAM[2].u32Area,mHI_S_MD_PARAM[2].u32X,mHI_S_MD_PARAM[2].u32Y
+	//,mHI_S_MD_PARAM[3].u32Area,mHI_S_MD_PARAM[3].u32X,mHI_S_MD_PARAM[3].u32Y);
+	j++;
+	return 0;
+}
+
+void * controlMDTask(void* param)
+{
+	int iRet = 0;
+	HI_S32 s32Ret=HI_SUCCESS;
+	DWORD  lastTickCountMs=0;
+	DWORD  nowTickCountMs=0;
+
+	HI_CONTROLMD_DATA *pHI_CONTROLMD_DATA=(HI_CONTROLMD_DATA *)(param);
+	sigset_t set;
+	sigemptyset(&set);
+	sigaddset(&set, SIGPIPE);
+	sigprocmask(SIG_BLOCK, &set, NULL); 
+	s32Ret=InitHiSDKServer(&pHI_CONTROLMD_DATA->m_u32Handle);
+	if (s32Ret != HI_SUCCESS)
+	{
+		printf("InitHiSDKServer is failcode:0x%x",s32Ret);	
+	}	
+	else
+	{
+
+		LOGOUT("chanel=%d,handle=%d",pHI_CONTROLMD_DATA->m_channel,pHI_CONTROLMD_DATA->m_u32Handle);
+	}
+	while(1)
+	{
+		nowTickCountMs=getTickCountMs();
+		if((getTickCountMs()-lastTickCountMs)>=DETECT_MAXTIME && g_motionFlag==2)
+		{
+			lastTickCountMs = nowTickCountMs;
+			//LOGOUT("channel=%d nowTickCountMs=%d lastTickCountMs=%d",pHI_CONTROLMD_DATA->m_channel,nowTickCountMs,lastTickCountMs);
+			controlMD(pHI_CONTROLMD_DATA->m_u32Handle,pHI_CONTROLMD_DATA->m_vTime,pHI_CONTROLMD_DATA->m_channel);
+		}
+		else
+		{
+			//printf("channel=%d usleep---\n",pHI_CONTROLMD_DATA->m_channel);
+			usleep(20*1000);
+		}
+	}
+	return 0;
+
+
+}
+
+
 static void getTimeNameString(int timeStamp,char *timeStr,int size)
 {
 	struct tm * timeinfo;
@@ -122,7 +238,115 @@ static void getTimeNameString(int timeStamp,char *timeStr,int size)
 	return;
 }
 
-HI_S32 takePicture(HI_U32 u32Handle,char fileName[256])
+static int reloveMotionArea(HI_S_ALARM_MD v_stHI_S_ALARM_MD,HI_Motion_Data *pv_HI_Motion_Data)
+{
+	switch(v_stHI_S_ALARM_MD.u32Area)
+	{
+		case 1:
+			{
+				switch(v_stHI_S_ALARM_MD.u32X)
+				{
+					case DE_WIDTH*0/5:
+						pv_HI_Motion_Data->m_u32AreaTimes[0]++;
+						break;
+					case DE_WIDTH*1/5:
+						pv_HI_Motion_Data->m_u32AreaTimes[4]++;
+						break;
+					case DE_WIDTH*2/5:
+						pv_HI_Motion_Data->m_u32AreaTimes[8]++;
+						break;
+					case DE_WIDTH*3/5:
+						pv_HI_Motion_Data->m_u32AreaTimes[12]++;
+						break;
+					case DE_WIDTH*4/5:
+						pv_HI_Motion_Data->m_u32AreaTimes[16]++;
+						break;
+					default:
+						break;
+				}
+			}
+			break;
+		case 2:
+			{
+				switch(v_stHI_S_ALARM_MD.u32X)
+				{
+					case DE_WIDTH*0/5:
+						pv_HI_Motion_Data->m_u32AreaTimes[1]++;
+						break;
+					case DE_WIDTH*1/5:
+						pv_HI_Motion_Data->m_u32AreaTimes[5]++;
+						break;
+					case DE_WIDTH*2/5:
+						pv_HI_Motion_Data->m_u32AreaTimes[9]++;
+						break;
+					case DE_WIDTH*3/5:
+						pv_HI_Motion_Data->m_u32AreaTimes[13]++;
+						break;
+					case DE_WIDTH*4/5:
+						pv_HI_Motion_Data->m_u32AreaTimes[17]++;
+						break;
+					default:
+						break;
+				}
+			}
+			break;
+
+		case 3:
+			{
+				switch(v_stHI_S_ALARM_MD.u32X)
+				{
+					case DE_WIDTH*0/5:
+						pv_HI_Motion_Data->m_u32AreaTimes[2]++;
+						break;
+					case DE_WIDTH*1/5:
+						pv_HI_Motion_Data->m_u32AreaTimes[6]++;
+						break;
+					case DE_WIDTH*2/5:
+						pv_HI_Motion_Data->m_u32AreaTimes[10]++;
+						break;
+					case DE_WIDTH*3/5:
+						pv_HI_Motion_Data->m_u32AreaTimes[14]++;
+						break;
+					case DE_WIDTH*4/5:
+						pv_HI_Motion_Data->m_u32AreaTimes[18]++;
+						break;
+					default:
+						break;
+				}
+			}
+			break;
+
+		case 4:
+			{
+				switch(v_stHI_S_ALARM_MD.u32X)
+				{
+					case DE_WIDTH*0/5:
+						pv_HI_Motion_Data->m_u32AreaTimes[3]++;
+						break;
+					case DE_WIDTH*1/5:
+						pv_HI_Motion_Data->m_u32AreaTimes[7]++;
+						break;
+					case DE_WIDTH*2/5:
+						pv_HI_Motion_Data->m_u32AreaTimes[11]++;
+						break;
+					case DE_WIDTH*3/5:
+						pv_HI_Motion_Data->m_u32AreaTimes[15]++;
+						break;
+					case DE_WIDTH*4/5:
+						pv_HI_Motion_Data->m_u32AreaTimes[19]++;
+						break;
+					default:
+						break;
+				}
+			}
+			break;	
+		default:
+			break;
+	}
+	return 0;
+}
+
+static HI_S32 takePicture(HI_U32 u32Handle,char fileName[256])
 {
 	char *sData = (char*)malloc(1024*1024);
 	if(sData==NULL)
@@ -156,77 +380,7 @@ HI_S32 takePicture(HI_U32 u32Handle,char fileName[256])
 	return s32Ret;
 }
 
-int  controlMD(DWORD vTime)
-{		
-	static HI_S32 j=0;
-	static DWORD  lastTickCountMs=0;
-	DWORD  nowTickCountMs=getTickCountMs();
-	if((nowTickCountMs-lastTickCountMs)>=vTime)
-	{
-		lastTickCountMs=nowTickCountMs;
-	}
-	else
-	{
-		return -1;
-	}
-	static HI_S_MD_PARAM mHI_S_MD_PARAM[4]=
-	{
-	 {HI_NET_DEV_CHANNEL_1,1,HI_TRUE,50,0			,DE_HEIGHT/8   ,DE_WIDTH/10,DE_HEIGHT/8},
-	 {HI_NET_DEV_CHANNEL_1,2,HI_TRUE,50,DE_WIDTH*1/5,DE_HEIGHT*5/16,DE_WIDTH/10,DE_HEIGHT/8},
-	 {HI_NET_DEV_CHANNEL_1,3,HI_TRUE,50,DE_WIDTH*2/5,DE_HEIGHT*9/16,DE_WIDTH/10,DE_HEIGHT/8},
-	 {HI_NET_DEV_CHANNEL_1,4,HI_TRUE,50,DE_WIDTH*3/5,DE_HEIGHT*3/4 ,DE_WIDTH/10,DE_HEIGHT/8}
-	};
-	HI_S32 s32Ret=0;
-	HI_S32 i=0;
-	for(i=0;i<4;i++)
-	{
-		mHI_S_MD_PARAM[i].u32X=mHI_S_MD_PARAM[i].u32X+DE_WIDTH*1/5;
-		if(mHI_S_MD_PARAM[i].u32X>=DE_WIDTH)
-		{
-			mHI_S_MD_PARAM[i].u32X=0;
-			j=0;
-		}
-		HI_NET_DEV_SetConfig(u32HandleHight,HI_NET_DEV_CMD_MD_PARAM,&mHI_S_MD_PARAM[i],sizeof(HI_S_MD_PARAM));
-		if(s32Ret != HI_SUCCESS)
-		{
-			LOGOUT("HI_NET_DEV_SetConfig is failure 0x%x",s32Ret);
-		}
-		//LOGOUT("area=%d,x=%d,y=%d",mHI_S_MD_PARAM[i].u32Area,mHI_S_MD_PARAM[i].u32X,mHI_S_MD_PARAM[i].u32Y);
-	}
-	LOGOUT("area=%d,x=%04d,y=%03d    area=%d,x=%04d,y=%03d    area=%d,x=%04d,y=%03d    area=%d,x=%04d,y=%03d"
-	,mHI_S_MD_PARAM[0].u32Area,mHI_S_MD_PARAM[0].u32X,mHI_S_MD_PARAM[0].u32Y
-	,mHI_S_MD_PARAM[1].u32Area,mHI_S_MD_PARAM[1].u32X,mHI_S_MD_PARAM[1].u32Y
-	,mHI_S_MD_PARAM[2].u32Area,mHI_S_MD_PARAM[2].u32X,mHI_S_MD_PARAM[2].u32Y
-	,mHI_S_MD_PARAM[3].u32Area,mHI_S_MD_PARAM[3].u32X,mHI_S_MD_PARAM[3].u32Y);
-	j++;
-	return 0;
-}
-
-#define DETECT_MAXTIME	200
-
-void * controlMotionDetect(void* param)
-{	
-
-	DWORD  lastTickCountMs=0;
-	DWORD  nowTickCountMs=0;
-	int    sleepTime=0;
-	while(0)
-	{
-		lastTickCountMs = getTickCountMs();
-		controlMD(DETECT_MAXTIME);
-		nowTickCountMs = getTickCountMs();
-		sleepTime=(nowTickCountMs-lastTickCountMs)*1000;
-		if(sleepTime>DETECT_MAXTIME*1000)
-			sleepTime=DETECT_MAXTIME*1000-DETECT_MAXTIME*100;
-		else if(sleepTime<0)
-			sleepTime=0;
-		//LOGOUT("nowTickCountMs=%d lastTickCountMs=%d sleepTime=%d",nowTickCountMs,lastTickCountMs,sleepTime);
-		//usSleep(DETECT_MAXTIME*1000-sleepTime);
-	}
-	return NULL;
-}
-
-HI_S32 creatRecordData(RecordData *v_pRD,JOSEPH_MP4_CONFIG *v_pJOSEPH_MP4_CONFIG,Motion_Data v_mMotionData)
+static HI_S32 creatRecordData(RecordData *v_pRD,JOSEPH_MP4_CONFIG *v_pJOSEPH_MP4_CONFIG,Motion_Data v_mMotionData)
 {
 	if(v_pRD==NULL || v_pJOSEPH_MP4_CONFIG==NULL)
 	{
@@ -390,6 +544,10 @@ void * makeMp4Task(void* param)
 					{
 						iRet=writeFile(joseph_mp4_config.nDataEndName,(LPCTSTR)(&mRecordData),sizeof(mRecordData));
 					}
+					if(g_motionString)
+					{
+						LOGOUT("%s",g_motionString);
+					}
 				}
 				else
 				{
@@ -414,12 +572,13 @@ void * makeMp4Task(void* param)
 		}
 		else
 		{
-			usleep(100*1000);
+			usleep(10*1000);
 		}
 	}
 	free(buf);
 }
-HI_S32 onRecordTask(HI_U32 u32Handle, /* 句柄 */
+
+static HI_S32 onRecordTask(HI_U32 u32Handle, /* 句柄 */
                     HI_U32 u32DataType,     /* 数据类型，视频或音频数据或音视频复合数据 */
                     HI_U8*  pu8Buffer,      /* 数据包含帧头 */
                     HI_U32 u32Length,      /* 数据长度 */
@@ -476,9 +635,11 @@ HI_S32 onRecordTask(HI_U32 u32Handle, /* 句柄 */
 				if(pstruAV->u32VFrameType==1)
 				{
 					u32LastStartTPS=pstruAV->u32AVFramePTS;
-					//motionData.m_u32MotionStartTime=getTickCountMs();
+					motionData.m_u32MotionStartTime=getTickCountMs();
 					u32WaitIFrame=0;
-					
+					g_nowRecordTime=getTickCountMs();
+					g_lastRecordTime=g_nowRecordTime;
+					LOGOUT("the video start time is %d",g_lastRecordTime);
 				}
 				else
 					break;
@@ -596,32 +757,10 @@ HI_S32 OnStreamCallback(HI_U32 u32Handle, /* 句柄 */
 		pstruSys = (HI_S_SysHeader*)pu8Buffer;
 		u32Width=pstruSys->struVHeader.u32Width;
 		u32Height=pstruSys->struVHeader.u32Height;
-		printf("Video W:%u H:%u Audio: %u \n", pstruSys->struVHeader.u32Width, pstruSys->struVHeader.u32Height, pstruSys->struAHeader.u32Format);
+		LOGOUT("Video W:%u H:%u Audio: %u \n", pstruSys->struVHeader.u32Width, pstruSys->struVHeader.u32Height, pstruSys->struAHeader.u32Format);
 	} 
 
 	return HI_SUCCESS;
-}
-
-int reloveMotionArea(HI_S_ALARM_MD v_stHI_S_ALARM_MD)
-{
-	switch(v_stHI_S_ALARM_MD.u32Area)
-	{
-		case 1:
-			motionData.m_stMotionData.videoMotionTotal_Dist1++;
-			break;
-		case 2:
-			motionData.m_stMotionData.videoMotionTotal_Dist2++;
-			break;
-		case 3:
-			motionData.m_stMotionData.videoMotionTotal_Dist3++;
-			break;
-		case 4:
-			motionData.m_stMotionData.videoMotionTotal_Dist4++;
-			break;	
-		default:
-			break;
-	}
-
 }
 
 HI_S32 OnDataCallback(HI_U32 u32Handle, /* 句柄 */
@@ -640,6 +779,7 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* 句柄 */
 		return HI_SUCCESS;
 	if(strlen(g_szServerNO)==0)
 		return HI_SUCCESS;
+	#if 0 //zss++DEBUG
 	if(!(g_iServerStatus==1 || g_iServerStatus==4))
 	{
 		int iRet=isFileSystemBigger(SYSTEM_SD_SAVEFILEPATH,50*1024);
@@ -649,6 +789,7 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* 句柄 */
 			return HI_SUCCESS;
 		}
 	}
+	#endif
 	//printf("u32RecordCmd=%d\n",u32RecordCmd);
 	switch(u32RecordCmd)
 	{
@@ -667,6 +808,11 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* 句柄 */
 				LOGOUT("getFreeMemory start record");
 			}
 			memset(&motionData,0,sizeof(motionData));
+			if(g_motionString)
+				memset(g_motionString,0,MAX_MOTION_STRING);
+			if(g_soundString)
+				memset(g_soundString,0,MAX_SOUND_STRING);
+			g_motionFlag=1;
 			printf("motionData.m_u32MotionStatus=0\n");
 			motionData.m_u32MotionStartTime=getTickCountMs();
 			motionData.m_u32MotionFirstTime=motionData.m_u32MotionStartTime;
@@ -684,6 +830,46 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* 句柄 */
 			break;
 		DWORD nowTime=getTickCountMs();
 		DWORD endTime=0;
+		if(motionData.m_u32MotionStatus==3 || motionData.m_u32MotionStatus==4)
+		{
+			DWORD notTick=getTickCountMs();
+			int   times=0;
+			while(times<100)
+			{
+				times++;
+				DWORD diffTime=notTick-g_lastRecordTime;
+				if(diffTime>DETECT_MAXTIME)
+				{
+					g_lastRecordTime=g_lastRecordTime+DETECT_MAXTIME;
+					char motionString[512]={0};
+					char tempString[16]={0};
+					memset(motionString,0,sizeof(motionString));
+					int i=0;
+					int flag=0;
+					for(i=0;i<sizeof(motionData.m_u32AreaTimes)/sizeof(HI_U32);i++)
+					{
+						if(motionData.m_u32AreaTimes[i]!=0)
+						{
+							memset(tempString,0,sizeof(tempString));
+							sprintf(tempString,"%d,%d;",i+1,motionData.m_u32AreaTimes[i]);
+							strcat(g_motionString,tempString);
+							flag=1;
+						}
+					}
+					if(flag==1)
+					{
+						*(g_motionString+strlen(g_motionString)-1)=0;
+					}
+					strcat(g_motionString,"#");
+					//LOGOUT("%s",g_motionString);
+					memset(motionData.m_u32AreaTimes,0,sizeof(motionData.m_u32AreaTimes));
+				}
+				else
+				{
+					break;
+				}
+			}
+		}
 		if(motionData.m_u32MotionStatus==1)
 		{
 			nowTime=nowTime-motionData.m_u32MotionStartTime;
@@ -696,10 +882,11 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* 句柄 */
 					int i=0;
 					for(;i<u32Length/sizeof(HI_S_ALARM_MD);i++)
 					{
-
+						
 						pMd=(HI_S_ALARM_MD *)pu8Buffer+i;
-						LOGOUT("pMd=0x%x,u32Area=%d,u32X=%d,u32Y=%d,u32Width=%d,u32Height=%d",
-							    pMd,pMd->u32Area,pMd->u32X,pMd->u32Y,pMd->u32Width,pMd->u32Height);
+						reloveMotionArea(*pMd,&motionData);
+						//LOGOUT("pMd=0x%x,u32Area=%d,u32X=%d,u32Y=%d,u32Width=%d,u32Height=%d",
+						//	    pMd,pMd->u32Area,pMd->u32X,pMd->u32Y,pMd->u32Width,pMd->u32Height);
 						switch(pMd->u32Area)
 						{
 							case 1:
@@ -756,12 +943,15 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* 句柄 */
 			{
 				if(u32DataType==0)
 				{
-					HI_S_ALARM_MD *pMd=(HI_S_ALARM_MD *)pu8Buffer;
+					HI_S_ALARM_MD *pMd=NULL;
 					int i=0;
 					for(;i<u32Length/sizeof(HI_S_ALARM_MD);i++)
 					{
-						LOGOUT("pMd=0x%x,u32Area=%d,u32X=%d,u32Y=%d,u32Width=%d,u32Height=%d",
-								pMd,pMd->u32Area,pMd->u32X,pMd->u32Y,pMd->u32Width,pMd->u32Height);
+						
+						pMd=(HI_S_ALARM_MD *)pu8Buffer+i;
+						reloveMotionArea(*pMd,&motionData);
+						//LOGOUT("pMd=0x%x,u32Area=%d,u32X=%d,u32Y=%d,u32Width=%d,u32Height=%d",
+						//	    pMd,pMd->u32Area,pMd->u32X,pMd->u32Y,pMd->u32Width,pMd->u32Height);
 						switch(pMd->u32Area)
 						{
 							case 1:
@@ -779,7 +969,9 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* 句柄 */
 							default:
 								break;
 						}
+						
 					}
+					
 				}
 			}
 			else
@@ -808,6 +1000,7 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* 句柄 */
 					localTime+=CHINATIME;
 					joseph_mp4_config.m_overTime=localTime;
 					u32RecordCmd=RECORDSTOP;
+					g_motionFlag=0;
 					break;
 				}
 			}
@@ -826,6 +1019,7 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* 句柄 */
 				u32RecordCmd=RECORDSTOP;
 			else
 				u32RecordCmd=RECORDDELETE;
+			g_motionFlag=0;
 			break;
 		}
 		#if 0
@@ -950,7 +1144,8 @@ int InitHiSDKServer(HI_U32 *u32Handle,HI_U32 u32Stream)
 		LOGOUT("HI_NET_DEV_Login is failure 0x%x",s32Ret);
 		return -1;
     }
-	
+
+	#if 0
 	s32Ret=HI_NET_DEV_SetEventCallBack(*u32Handle, OnEventCallback, &a);
 	if(s32Ret != HI_SUCCESS)
 	{
@@ -963,6 +1158,7 @@ int InitHiSDKServer(HI_U32 *u32Handle,HI_U32 u32Stream)
 		*u32Handle = 0;
 		return -2;
 	}
+	#endif
 	
 	s32Ret=HI_NET_DEV_SetStreamCallBack(*u32Handle, OnStreamCallback, &a);
 	if(s32Ret != HI_SUCCESS)
@@ -1280,20 +1476,6 @@ int MakeKeyFrame(int channel)
 	
 }
 
-
-int stopVideoStream(HI_U32 *u32Handle)
-{
-	HI_S32 s32Ret = HI_SUCCESS;
-	s32Ret = HI_NET_DEV_StopStream(*u32Handle);
-	if (s32Ret != HI_SUCCESS)
-	{
-		LOGOUT("HI_NET_DEV_StopStream is failure handle:%u,failcode:0x%x",*u32Handle,s32Ret);	
-		*u32Handle=0;
-		return -1;
-	}
-    return 0;
-}
-
 int InitHiSDKVideoAllChannel()
 {
 	HI_NET_DEV_Init();
@@ -1304,6 +1486,18 @@ int InitHiSDKVideoAllChannel()
 	{
 		LOGOUT("InitHiSDKServer Hight is faliure,iRet=%d",iRet);
 		return -1;
+	}
+	g_motionString=malloc(MAX_MOTION_STRING);
+	if(!g_motionString)
+	{
+		LOGOUT("malloc g_motionString %d",MAX_MOTION_STRING);
+		return -4;
+	}
+	g_soundString=malloc(MAX_SOUND_STRING);
+	if(!g_soundString)
+	{
+		LOGOUT("malloc g_motionString %d",MAX_SOUND_STRING);
+		return -5;
 	}
 	g_quene = (Queue*)QueueListConstruction();
 	if(g_quene)
@@ -1327,6 +1521,24 @@ int InitHiSDKVideoAllChannel()
 		return -2;
 	}
 
+	memset(g_controlMd,0,sizeof(g_controlMd));
+	int i=0;
+	pthread_t m_controlMdTask[4];
+	for(i=0;i<sizeof(g_controlMd)/sizeof(HI_CONTROLMD_DATA);i++)
+	{
+		g_controlMd[i].m_channel=i;
+		g_controlMd[i].m_start=TRUE;
+		g_controlMd[i].m_u32Handle=0;
+		g_controlMd[i].m_vTime=DETECT_MAXTIME;
+		
+		iRet = pthread_create(&m_controlMdTask[i], NULL, controlMDTask, &g_controlMd[i]);
+		if(iRet != 0)
+		{
+			LOGOUT("can't create thread: %s",strerror(iRet));
+			return -2;
+		}
+
+	}
 	#if 0 //zss++
 	HI_S_Video_Ext sVideo;
 	iRet=GetMasterVideoStream(&sVideo);
@@ -1338,34 +1550,24 @@ int InitHiSDKVideoAllChannel()
 	sVideo.u32Iframe=g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg[0].m_wKeyFrameRate;
 	sVideo.blCbr=g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg[0].m_CodeType;
 	SetMasterVideoStream(&sVideo);
-	#endif
-	
-	#if 0
+
 	iRet=InitHiSDKServer(&u32HandleMid,1);
 	if(iRet!=0)
 		LOGOUT("InitHiSDKServer Mid is faliure,iRet=%d",iRet);
 	iRet=InitHiSDKServer(&u32HandleLow,2);
 	if(iRet!=0)
 		LOGOUT("InitHiSDKServer Low is faliure,iRet=%d",iRet);
-	#endif
+
 	LOGOUT("hight handle 0x%x=%d,mid handle 0x%x=%d,low handle 0x%x=%d",&u32HandleHight,u32HandleHight,
 			&u32HandleMid,u32HandleMid,&u32HandleLow,u32HandleLow);
-	
 	pthread_t m_controlMotionDetect;//实时播放，过程控制线程
-	#if 0
 	g_videoQuene=InitVideoQuene(VIDEOBUFFERSIZE);
 	if(g_videoQuene==NULL)
 	{
 		LOGOUT("InitVideoQuene %d failure",VIDEOBUFFERSIZE);
 	}
 	#endif
-	iRet = pthread_create(&m_controlMotionDetect, NULL, controlMotionDetect, NULL);
-	if(iRet != 0)
-	{
-		LOGOUT("can't create thread: %s",strerror(iRet));
-		return -4;
-	}
-	
+
 	return iRet;
 }  
 
@@ -1391,6 +1593,16 @@ int ReleaseHiSDKVideoAllChannel()
 		free(g_quene);
 		g_quene = NULL;
 	}
+	if(g_motionString)
+	{
+		free(g_motionString);
+		g_motionString=NULL;
+	}
+	if(g_soundString)
+	{
+		free(g_soundString);
+		g_soundString=NULL;
+	}	
 	return iRet;
 
 }

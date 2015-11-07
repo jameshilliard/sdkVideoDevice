@@ -27,15 +27,14 @@ CSRCS += $(wildcard ./Common/*.c)
 CSRCS += $(wildcard ./LogOut/*.c)
 CSRCS += $(wildcard ./hisdk/*.c)
 CSRCS += $(wildcard ./toolComm/*.c)
-#CSRCS += $(wildcard ./mp4v2/*.c)
+CSRCS += $(wildcard ./mp4v2/*.c)
 CSRCS += $(wildcard ./oss/*.c)
 CSRCS += $(wildcard ./mxml/*.c)
 CSRCS += $(wildcard ./controlServer/*.c)
 CSRCS += $(wildcard ./json/*.c)
 CSRCS += $(wildcard ./update/*.c)
 
-#VPATH = ./Common:./LogOut:./hisdk:./toolComm:./mxml:./mp4v2:./oss:./controlServer:./json:./update
-VPATH = ./Common:./LogOut:./hisdk:./toolComm:./mxml:./oss:./controlServer:./json:./update
+VPATH = ./Common:./LogOut:./hisdk:./toolComm:./mxml:./mp4v2:./oss:./controlServer:./json
 
 OBJDIR := ./objs
 DEPDIR := ./deps
