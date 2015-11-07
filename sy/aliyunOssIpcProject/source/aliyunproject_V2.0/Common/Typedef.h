@@ -98,11 +98,6 @@ typedef struct XmlData_
 
 typedef struct 
 {
-	int videoMotionTotal_Dist1; 
-	int videoMotionTotal_Dist2;
-	int videoMotionTotal_Dist3; 
-	int videoMotionTotal_Dist4;
-	int voiceAlarmTotal;
 	char *motionDetectInfo;
 	char *soundVolumeInfo;
 }Motion_Data;
