@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "cJSON.h"
+#include "json/cJSON.h"
 #include "curl/curl.h"
 #include <string.h>
 #include <sys/types.h>     
@@ -14,8 +14,8 @@
 #include <unistd.h>
 #include <signal.h>
 #include <pthread.h>
-#include "getPid.h"
-#include "update.h"
+#include "Common/getPid.h"
+#include "update/update.h"
 #include "LogOut/LogOut.h"
 #include "Common/configdef.h"
 

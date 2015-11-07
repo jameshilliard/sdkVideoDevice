@@ -1,53 +1,46 @@
-LIB = -L ./libarm -L./lib/  -L /usr/lib64/ -lcurl -ldl -lrt -lpthread  -lm 
+LIB = -L./liball/libarm -lcurl -ldl -lrt -lpthread -lm -Wl,--rpath=./liball/libarm
+#LIB = -L./liball/libarm -lNetLib -loss_c_sdk -lutf8proc  -laprutil-1 -lapr-1 -lcurl -lxml2 -lfaac -ldl -lrt -lpthread -lm -Wl,--rpath=./liball/libarm
 
-INCLUDES = -I./curl -I./tmlibghttp/ -I /usr/include/mysql
-
+INCLUDES =  -I./include \
+			-I./
 #关闭所有 未使用变量、printf格式化、警告 
-#FLAGS = -O3 -g -rdynamic -Wall -Wno-unused -Wno-format -O -fstrength-reduce -fPIC -fpermissive
-#FLAGS = -g -Ddebug -O3 -Wall -fpermissive
-#FLAGS += -g -rdynamic  -fpermissive
-FLAGS = -g -O3 -Wall 
+#FLAGS = -m32 -O2 -Wall -Wno-unused -Wno-format -fstrength-reduce -DHI_OS_LINUX
+FLAGS = -O2 -Wall -Wno-unused -Wno-format -fstrength-reduce -DHI_OS_LINUX -DCPU_ARM
+#FLAGS += -g -rdynamic
 
 #GXX = g++ $(INCLUDES) $(FLAGS)
 #GCC = gcc $(INCLUDES) $(FLAGS)
-GXX = /opt/hisi-linux-nptl/arm-hisiv100-linux/bin/arm-hisiv100-linux-uclibcgnueabi-gcc $(INCLUDES) $(FLAGS) $(LIB)
-GCC = /opt/hisi-linux-nptl/arm-hisiv100-linux/bin/arm-hisiv100-linux-uclibcgnueabi-gcc $(INCLUDES) $(FLAGS) $(LIB)
+
+#export PATH=$PATH:/opt/hisi-linux-nptl/arm-hisiv100-linux/target/bin
+GXX = arm-hisiv100nptl-linux-g++ $(INCLUDES) $(FLAGS) $(LIB)
+GCC = arm-hisiv100nptl-linux-gcc $(INCLUDES) $(FLAGS) $(LIB)
+//GXX = /opt/hisi-linux-nptl/arm-hisiv100-linux/bin/arm-hisiv100-linux-uclibcgnueabi-gcc $(INCLUDES) $(FLAGS) $(LIB)
+//GCC = /opt/hisi-linux-nptl/arm-hisiv100-linux/bin/arm-hisiv100-linux-uclibcgnueabi-gcc $(INCLUDES) $(FLAGS) $(LIB)
 
 CSRCS := $(wildcard ./*.c)
 CSRCS += $(wildcard ./Common/*.c)
 CSRCS += $(wildcard ./LogOut/*.c)
+CSRCS += $(wildcard ./json/*.c)
+CSRCS += $(wildcard ./update/*.c)
 
-CPPSRCS := $(wildcard ./*.cpp)
-CPPSRCS += $(wildcard ./Common/*.cpp)
-CPPSRCS += $(wildcard ./LogOut/*.cpp)
-
-
-#VPATH = ./serialAlarm/:./Con2Server/:./mxml/:./GlobalShare/:./UdpSearch:./TcpServer:./tmlibghttp:./communication:./tmMsgProc:./rtpsend:./LogOut:./update:./UploadLog:./
-VPATH = ./LogOut/:./Common/:./
-#./http/:
+VPATH = ./Common:./LogOut:./json:./update
 
 OBJDIR := ./objs
 DEPDIR := ./deps
-
 COBJS = $(addprefix $(OBJDIR)/,$(notdir $(patsubst %.c,%.o,$(CSRCS))))
 CPPOBJS = $(addprefix $(OBJDIR)/,$(notdir $(patsubst %.cpp,%.o,$(CPPSRCS))))
-
 DEPS = $(patsubst %.c,%.d,$(COBJS))
 DEPS += $(patsubst %.cpp,%.d,$(CPPOBJS))  
 
 
-ALL_OBJ = $(CS_O)
-
-CS_P = randTest
-
+CS_P = ipcUpdate.bin
 ALL_OUTPUT = $(CS_P)
-
 all: $(ALL_OUTPUT)
 
-#$(CDEPS) $(CPPDEPS)	
+#$(CDEPS) $(CPPDEPS)
 $(CS_P):  $(COBJS) $(CPPOBJS) 
-	$(GXX) -o $(CS_P) $(CPPOBJS) $(COBJS) $(LIB)
-	
+	$(GXX) -o $(CS_P) $(CPPOBJS) $(COBJS)  -D EXECINFO
+	#$(GXX) -shared -o $(CS_P) $(CPPOBJS) $(COBJS)  -D EXECINFO
 sinclude $(wildcard $(DEPDIR)/*.d)
 	
 $(OBJDIR)/%.o : %.c

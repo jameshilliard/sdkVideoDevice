@@ -1,9 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../json/cJSON.h"
-//#include "../include/curl/curl.h"
+#include "json/cJSON.h"
 #include "curl/curl.h"
-
 #include <string.h>
 #include <sys/types.h>     
 #include <sys/socket.h>
