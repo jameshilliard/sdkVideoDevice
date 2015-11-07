@@ -14,9 +14,9 @@
 #define  HTTPVESION 	"HTTP/1.1"
 #define  CURLFILENAME  	"/mnt/mtd/ipc/tmpfs/syflash/curlposttest.log"  
 //"cgtx.100memory.com"
-#define 	STRING_LOGIN_CONSERVER  	"http://%s/ipccmd.php?act=login"
-#define 	STRING_LOGOUT_CONSERVER		"http://%s/ipccmd.php?act=logout"
-#define 	STRING_DATARECORD_CONSERVER	"http://%s/ipccmd.php?act=dataRecord"
+#define 	STRING_LOGIN_CONSERVER  	"http://%s/ipccmd_1p4.php?act=login"
+#define 	STRING_LOGOUT_CONSERVER		"http://%s/ipccmd_1p4.php?act=logout"
+#define 	STRING_DATARECORD_CONSERVER	"http://%s/ipccmd_1p4.php?act=dataRecord"
 /*#define 	STRING_RECORD_CONSERVER		"ipc_id=%s&videoPath=%s&creatTimeInMilSecond=%lld&videoFileSize=%d&\
 jpgFilePath=%s&videoTimeLength=%d&videoMotionTotal_Dist1=%d&\
 videoMotionTotal_Dist2=%d&videoMotionTotal_Dist3=%d&videoMotionTotal_Dist4=%d&\
