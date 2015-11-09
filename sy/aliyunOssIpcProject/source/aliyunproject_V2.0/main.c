@@ -128,13 +128,13 @@ int main()
 		LOGOUT("error and return");
 		return -1;
 	}
-	/*iRet=InitTcpServer();
+	iRet=InitTcpServer();
 	LOGOUT("InitTcpServer iRet=%d over",iRet);
 	if(iRet!=0)
 	{
 		LOGOUT("error and return");
 		return -1;
-	}*/
+	}
 
 	/*iRet=InitUpdate();
 	LOGOUT("updateMoudle iRet=%d over",iRet);

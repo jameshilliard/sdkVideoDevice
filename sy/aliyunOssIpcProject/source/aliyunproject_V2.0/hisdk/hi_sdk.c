@@ -402,18 +402,26 @@ static HI_S32 creatRecordData(RecordData *v_pRD,JOSEPH_MP4_CONFIG *v_pJOSEPH_MP4
 	return 0;
 }
 
+#define   MAX_AUDIO_PACKETS		8000*2/5
 void * makeMp4Task(void* param)
 {
 	char *buf=malloc(512*1024);
+	{
+		LOGOUT("malloc 512*1024 is error");
+		exit(0);
+	}
 	DWORD length=0;
 	DWORD sym=0;
 	DWORD id=0;
 	int iRet=-1;
+	DWORD nextFlag=0;
+	char *audioBuffer=malloc(MAX_AUDIO_PACKETS);  //200ms 
 	if(buf==NULL)
 	{
-		LOGOUT("malloc is error");
+		LOGOUT("malloc 8000*2/5 is error");
 		exit(0);
 	}
+	
 	while(1)
 	{
 		//memset(buf,0,sizeof(buf));
@@ -490,6 +498,9 @@ void * makeMp4Task(void* param)
 				sprintf(joseph_mp4_config.nFifoEndName,"%s/%s.mp4",SYSTEM_MEDIA_SENDFILEPATH,timeString);	
 				sprintf(joseph_mp4_config.nPictureEndName,"%s/%s.jpg",SYSTEM_MEDIA_SENDFILEPATH,timeString);
 				sprintf(joseph_mp4_config.nDataEndName,"%s/%s.dat",SYSTEM_MEDIA_SENDFILEPATH,timeString);
+				sprintf(joseph_mp4_config.nMotionEndName,"%s/%s.mot",SYSTEM_MEDIA_SENDFILEPATH,timeString);
+				sprintf(joseph_mp4_config.nSoundEndName,"%s/%s.sou",SYSTEM_MEDIA_SENDFILEPATH,timeString);
+				nextFlag=0;
 				sprintf(joseph_mp4_config.nOssVideoName,"%s/%s/%s/%s.mp4",
 						g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szVideoPath,
 						g_szServerNO,day,timeString);
@@ -520,7 +531,22 @@ void * makeMp4Task(void* param)
 				break;
 			case RECORDAUDIO:
 			{
-				Mp4FileAudioEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)buf,length);
+				DWORD mLelf=0;
+				
+				if((nextFlag+length)>=MAX_AUDIO_PACKETS)
+				{
+					memcpy(audioBuffer+nextFlag,(unsigned char*)buf,MAX_AUDIO_PACKETS-nextFlag);
+					
+					
+					nextFlag+=length;
+					
+				}
+				else
+				{
+					memcpy(audioBuffer+nextFlag,(unsigned char*)buf,length);
+					nextFlag+=length;
+				}
+				Mp4FileAudioEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)buf,length);		
 			}
 				break;
 			case RECORDDELETE:
@@ -539,14 +565,22 @@ void * makeMp4Task(void* param)
 					LOGOUT("rename(%s)",joseph_mp4_config.nFifoEndName);
 					LOGOUT("rename(%s)",joseph_mp4_config.nPictureEndName);
 					RecordData mRecordData;
+					#if 0
 					iRet=creatRecordData(&mRecordData,&joseph_mp4_config,motionData.m_stSumMotionData);
 					if(iRet==0)
 					{
 						iRet=writeFile(joseph_mp4_config.nDataEndName,(LPCTSTR)(&mRecordData),sizeof(mRecordData));
 					}
+					#endif
+					iRet=writeFile(joseph_mp4_config.nMotionEndName,(LPCTSTR)(g_motionString),strlen(g_motionString));
 					if(g_motionString)
 					{
 						LOGOUT("%s",g_motionString);
+					}
+					iRet=writeFile(joseph_mp4_config.nAudioEndName,(LPCTSTR)(g_soundString),strlen(g_soundString));
+					if(g_soundString)
+					{
+						LOGOUT("%s",g_soundString);
 					}
 				}
 				else
@@ -830,7 +864,7 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 			break;
 		DWORD nowTime=getTickCountMs();
 		DWORD endTime=0;
-		if(motionData.m_u32MotionStatus==3 || motionData.m_u32MotionStatus==4)
+		if(motionData.m_u32MotionStatus==1 || motionData.m_u32MotionStatus==2)
 		{
 			DWORD notTick=getTickCountMs();
 			int   times=0;
@@ -838,7 +872,7 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 			{
 				times++;
 				DWORD diffTime=notTick-g_lastRecordTime;
-				if(diffTime>DETECT_MAXTIME)
+				if(diffTime>(DETECT_MAXTIME-20))
 				{
 					g_lastRecordTime=g_lastRecordTime+DETECT_MAXTIME;
 					char motionString[512]={0};

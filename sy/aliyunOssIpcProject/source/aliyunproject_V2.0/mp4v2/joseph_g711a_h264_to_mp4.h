@@ -63,6 +63,8 @@ typedef struct Joseph_Mp4_Config
 	char 	nFifoEndName[256];
 	char 	nPictureEndName[256];
 	char 	nDataEndName[256];
+	char 	nMotionEndName[256];
+	char 	nSoundEndName[256];
 	char 	nOssVideoName[256];
 	char 	nOssJpgName[256];
 }JOSEPH_MP4_CONFIG;
