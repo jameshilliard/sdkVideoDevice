@@ -58,12 +58,31 @@ watch_oss_bin()
 	
 }
 
+watch_ipcUpdate_bin()
+{
+##############watch ipcUpdate.bin	
+	ps | grep  ipcUpdate.bin | grep -v  grep >> /dev/null
+	if [ $? -eq 1 ]; then
+		tar zxvf /mnt/mtd/ipc/sykj/lib.tar.gz  -C /mnt/mtd/ipc/tmpfs/
+		cp /mnt/mtd/ipc/sykj/ipcUpdate.bin /mnt/mtd/ipc/tmpfs/ipcUpdate.bin
+		/mnt/mtd/ipc/tmpfs/ipcUpdate.bin & 
+		ps | grep  ipcUpdate.bin | grep -v  grep >> /dev/null
+		if [ $? -eq 1 ]; then
+			rm_libs
+			ln_libs
+		fi
+	fi
+	
+}
+
+
 killall aliyunOss.bin
 echo "killall aliyunOss.bin and sleep 2"
 sleep 2
 while [ 1 ]
 do
 watch_oss_bin
+watch_ipcUpdate_bin
 sleep 5
 done
 

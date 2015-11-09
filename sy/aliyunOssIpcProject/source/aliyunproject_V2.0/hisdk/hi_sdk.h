@@ -43,6 +43,13 @@
 #define 	DROPSTOP_FLAG	    4
 #define 	SAVESTOP_FLAG	    5
 
+
+#define 	MAX_MOTION_STRING		50*1024
+#define     MAX_SOUND_STRING		20*1024
+#define 	DETECT_MAXTIME			200
+#define   	MAX_AUDIO_PACKETS		8000*2/5
+
+
 typedef struct 
 {
 	HI_U32 m_u32MotionStatus;  //0Í£Ö¹ 1¿ªÊ¼

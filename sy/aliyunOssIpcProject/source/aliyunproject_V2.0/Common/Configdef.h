@@ -20,8 +20,8 @@
 // devtoolµƒxml¿‡–Õ
 #define CONNETTYPE 				"View-DeviceTool"
 
-//#define SDK_HARD_FWVERSION	"SYKJIPC-1.0.0"
-#define SDK_HARD_FWVERSION		"ASYKJIPC-1.0.0"
+//#define SDK_HARD_FWVERSION	"ASYKJIPC-1.0.0"
+#define SDK_HARD_FWVERSION		"SYKJIPC-1.0.0"
 
 #define SDK_PROCESS_NAME        "aliyunOss.bin"
 

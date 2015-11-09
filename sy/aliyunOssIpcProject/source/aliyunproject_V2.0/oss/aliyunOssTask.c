@@ -37,6 +37,7 @@ void * aliyunOssTask(void* param)
 	char fileName[MAX_PATH];
 	char fileDataName[MAX_PATH];
 	char filePath[MAX_PATH];
+	char file2Path[MAX_PATH];
 	char aliyunFilePath[MAX_PATH];
 	DWORD fileSize=0;
 	RecordData mRecordData;
@@ -50,6 +51,20 @@ void * aliyunOssTask(void* param)
 	time_t newTime;
 	time((time_t *)&oldTime);
 	newTime=oldTime;
+	char *motionString=NULL;
+	motionString=malloc(MAX_MOTION_STRING);
+	if(!motionString)
+	{
+		LOGOUT("malloc g_motionString %d",MAX_MOTION_STRING);
+		return -4;
+	}
+	char *soundString=NULL;
+	soundString=malloc(MAX_SOUND_STRING);
+	if(!soundString)
+	{
+		LOGOUT("malloc g_motionString %d",MAX_SOUND_STRING);
+		return -5;
+	}
 	while(1)
 	{
 		time((time_t *)&newTime);
@@ -74,6 +89,9 @@ void * aliyunOssTask(void* param)
 			continue;
 		memset(fileName,0,sizeof(fileName));
 		memset(filePath,0,sizeof(filePath));
+		memset(file2Path,0,sizeof(file2Path));
+		memset(motionString,0,MAX_MOTION_STRING);
+		memset(soundString,0,MAX_SOUND_STRING);
 		memset(aliyunFilePath,0,sizeof(aliyunFilePath));
 		iRet=readMediaFile(SYSTEM_MEDIA_SENDFILEPATH,fileName);
 		if(iRet==1 || iRet==2)
@@ -103,10 +121,14 @@ void * aliyunOssTask(void* param)
 							LOGOUT("upLoadFile %s %s is no mp4 file and unlink",filePath,aliyunFilePath);
 							memset(fileDataName,0,sizeof(fileDataName));
 							sscanf(fileName,"%[^.]",fileDataName);
-							sprintf(fileDataName,"%s.dat",fileDataName);
+							sprintf(fileDataName,"%s.mot",fileDataName);
 							sprintf(filePath,"%s/%s",SYSTEM_MEDIA_SENDFILEPATH,fileDataName);
 							unlink(filePath);
-							LOGOUT("error mp4 file unlink %s",filePath);
+							memset(fileDataName,0,sizeof(fileDataName));
+							sprintf(fileDataName,"%s.sou",fileDataName);
+							sprintf(file2Path,"%s/%s",SYSTEM_MEDIA_SENDFILEPATH,fileDataName);
+							unlink(file2Path);
+							LOGOUT("error mp4 file unlink %s and %s",filePath,file2Path);
 							continue;
 						}
 					}
@@ -129,26 +151,41 @@ void * aliyunOssTask(void* param)
 					{
 						memset(fileDataName,0,sizeof(fileDataName));
 						sscanf(fileName,"%[^.]",fileDataName);
-						sprintf(fileDataName,"%s.dat",fileDataName);
+						sprintf(fileDataName,"%s.mot",fileDataName);
 						LOGOUT("send %s",fileDataName);
 						sprintf(filePath,"%s/%s",SYSTEM_MEDIA_SENDFILEPATH,fileDataName);
 						memset(&mRecordData,0,sizeof(mRecordData));
-						iRet=readFile(filePath,(LPCTSTR)(&mRecordData),sizeof(mRecordData),&fileSize);
-						if(iRet==0)
+						memset(fileDataName,0,sizeof(fileDataName));
+						sscanf(fileName,"%[^.]",fileDataName);
+						sprintf(fileDataName,"%s.sou",fileDataName);
+						LOGOUT("send %s",fileDataName);
+						sprintf(file2Path,"%s/%s",SYSTEM_MEDIA_SENDFILEPATH,fileDataName);
+						fileSize=0;
+						iRet=readFile(filePath,(LPCTSTR)(motionString),MAX_MOTION_STRING,&fileSize);
+						if(iRet==0 && fileSize!=0)
 						{
-						   iRet=dataRecord(mRecordData.m_server,mRecordData.m_id,mRecordData.m_videoPath,
-										   mRecordData.m_creatTimeInMilSecond,mRecordData.m_videoFileSize,
-										   mRecordData.m_jpgPath,mRecordData.m_videoTimeLength,mRecordData.m_mMotionData);
-						   if(iRet==1)
-						   {
-								unlink(filePath);
-								LOGOUT("upLoadFile %s success and unlink",filePath);
-						   }
+							fileSize=0;
+							iRet=readFile(file2Path,(LPCTSTR)(soundString),MAX_SOUND_STRING,&fileSize);
+							if(iRet==0 && fileSize!=0)
+							{
+								mRecordData.m_mMotionData.motionDetectInfo=motionString;
+								mRecordData.m_mMotionData.soundVolumeInfo=soundString;
+								iRet=dataRecord(mRecordData.m_server,mRecordData.m_id,mRecordData.m_videoPath,
+													mRecordData.m_creatTimeInMilSecond,mRecordData.m_videoFileSize,
+													mRecordData.m_jpgPath,mRecordData.m_videoTimeLength,mRecordData.m_mMotionData);
+								if(iRet==1)
+								{
+									 unlink(filePath);
+									 unlink(file2Path);
+									 LOGOUT("upLoadFile %s and %s success and unlink",filePath,file2Path);
+								}
+							}
 						}
 						else
 						{
 							unlink(filePath);
-							LOGOUT("filePath %s was error and unlink iRet=%d",filePath,iRet);	
+							unlink(file2Path);
+							LOGOUT("filePath %s and %s was error and unlink iRet=%d",filePath,file2Path,iRet);	
 						}
 
 					}		

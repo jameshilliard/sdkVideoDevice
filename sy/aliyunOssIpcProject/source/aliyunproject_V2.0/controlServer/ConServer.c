@@ -420,7 +420,7 @@ int dataRecord(const char *server,const char *v_szId, char *videoPath,
 	}	
 
 	int result = 0;
-	char sendBuf[50480]={0};
+	char sendBuf[70480]={0};
 	char strUrl[1024]={0};
 	char strResponse[1024] = {0};
 	memset(sendBuf,0,sizeof(sendBuf));
@@ -435,7 +435,7 @@ int dataRecord(const char *server,const char *v_szId, char *videoPath,
 	int iRet=Post_head(strUrl, sendBuf, strResponse);
 	if(iRet!=0)
 	{
-		LOGOUT("%s %d failure",strUrl,sendBuf);
+		LOGOUT("%s %s failure",strUrl,sendBuf);
 		return -2;
 	}
 	printf("strResponse---%s---", strResponse);

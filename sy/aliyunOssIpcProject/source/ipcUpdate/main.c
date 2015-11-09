@@ -65,7 +65,7 @@ int main()
 	int ret = 0;
 	char timeBuf[20] = {0};
 	GetVersionCfg();
-	Init_LogOut(LOGSIZE,LOGDIR,TRUE,TEMPDIR);
+	Init_LogOut(LOGSIZE,LOGDIR,FALSE,TEMPDIR);
 	ret = InitUpdate();
 	if(ret != 0)
 	{

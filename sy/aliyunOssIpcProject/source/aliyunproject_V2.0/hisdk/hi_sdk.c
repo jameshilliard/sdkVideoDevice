@@ -10,11 +10,6 @@
 #include "../Common/Configdef.h"
 #include "../Common/Queue.h"
 
-#define 	MAX_MOTION_STRING		50*1024
-#define     MAX_SOUND_STRING		20*1024
-#define 	DETECT_MAXTIME			200
-#define   	MAX_AUDIO_PACKETS		8000*2/5
-
 
 static HI_U32 				u32HandleHight=0;
 static HI_U32 				u32HandleMid=0;
@@ -213,7 +208,7 @@ void * controlMDTask(void* param)
 	while(1)
 	{
 		nowTickCountMs=getTickCountMs();
-		if((getTickCountMs()-lastTickCountMs)>=DETECT_MAXTIME && g_motionFlag==2)
+		if((getTickCountMs()-lastTickCountMs)>=DETECT_MAXTIME && g_motionFlag==1)
 		{
 			lastTickCountMs = nowTickCountMs;
 			//LOGOUT("channel=%d nowTickCountMs=%d lastTickCountMs=%d",pHI_CONTROLMD_DATA->m_channel,nowTickCountMs,lastTickCountMs);
@@ -561,6 +556,7 @@ void * makeMp4Task(void* param)
 					strcat(g_soundString,tempString);
 					nextFlag=(nextFlag+length)-MAX_AUDIO_PACKETS;
 					memcpy(audioBuffer,(unsigned char*)buf+size,nextFlag);
+					
 				}
 				else
 				{
@@ -597,12 +593,12 @@ void * makeMp4Task(void* param)
 					iRet=writeFile(joseph_mp4_config.nMotionEndName,(LPCTSTR)(g_motionString),strlen(g_motionString));
 					if(g_motionString)
 					{
-						LOGOUT("%s",g_motionString);
+						LOGOUT("motion %s",g_motionString);
 					}
 					iRet=writeFile(joseph_mp4_config.nSoundEndName,(LPCTSTR)(g_soundString),strlen(g_soundString));
 					if(g_soundString)
 					{
-						LOGOUT("%s",g_soundString);
+						LOGOUT("sound %s",g_soundString);
 					}
 				}
 				else
