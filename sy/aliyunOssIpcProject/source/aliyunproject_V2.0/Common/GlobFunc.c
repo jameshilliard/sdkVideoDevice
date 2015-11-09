@@ -80,7 +80,7 @@ INT32S ReadConfigFile(char *v_szFilePath, char *v_szReadBuf, int v_iBufLen)
 	}
 	fread(v_szReadBuf, 1, v_iBufLen, fp);
 
-	LOGOUT("v_szReadBuf = %s", v_szReadBuf);
+	//LOGOUT("v_szReadBuf = %s", v_szReadBuf);
 	fclose(fp);
 	return 0;
 }

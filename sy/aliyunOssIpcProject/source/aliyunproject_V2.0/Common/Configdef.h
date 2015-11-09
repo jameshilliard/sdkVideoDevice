@@ -20,7 +20,9 @@
 // devtoolµƒxml¿‡–Õ
 #define CONNETTYPE 				"View-DeviceTool"
 
-#define SDK_HARD_FWVERSION		"SYKJIPC-1.0.0"
+//#define SDK_HARD_FWVERSION	"SYKJIPC-1.0.0"
+#define SDK_HARD_FWVERSION		"ASYKJIPC-1.0.0"
+
 #define SDK_PROCESS_NAME        "aliyunOss.bin"
 
 
@@ -62,6 +64,7 @@
 #define	LOGDIR					"/mnt/mtd/ipc/tmpfs/syflash"
 #define TEMPDIR 				"/mnt/mtd/ipc/tmpfs/sytmp"
 #define ENCODEFILE 				"/mnt/mtd/ipc/conf/config_encode.ini"
+#define CMDREBOOT 				"killall uipcam;sleep 3;/mnt/mtd/ipc/sykj/uipcam &"
 #define	DE_ROUTESERVERPORT		80
 
 

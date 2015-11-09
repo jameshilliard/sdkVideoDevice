@@ -64,23 +64,24 @@ int main()
 	int errorNumber = 0;
 	int ret = 0;
 	char timeBuf[20] = {0};
-	Init_LogOut(LOGSIZE,LOGDIR,TRUE,TEMPDIR);
 	GetVersionCfg();
+	Init_LogOut(LOGSIZE,LOGDIR,TRUE,TEMPDIR);
 	ret = InitUpdate();
 	if(ret != 0)
 	{
-		LOGOUT("InitUpdate failed ret:%s  \n", ret);
+		LOGOUT("InitUpdate failed ret:%d", ret);
 	}
 	else
 	{
-		LOGOUT("InitUpdate success ret:%s  \n", ret);
+		LOGOUT("InitUpdate success ret:%d", ret);
 	}
 	memset(timeBuf, 0, sizeof(timeBuf));
 	getStrTime(timeBuf);
 	ipcRestartReportImageUpdateResult(timeBuf);
 	while(1)
 	{
-		sleep(5);
+		sleep(10);
+		GetVersionCfg();
 		pid_t pid = GetPIDbyName_Wrapper(SDK_PROCESS_NAME); // If -1 = not found, if -2 = proc fs access error
 		if(pid != -1)
 		{
@@ -90,13 +91,11 @@ int main()
 		{
 			errorNumber ++;
 		}
-
-		if(errorNumber >20)
+		if(errorNumber >10)
 		{
 			errorNumber = 0;
 			updateVersion();
 		}
-	    printf("PID %d\n", pid);
 	}
 	return 0;
 }
