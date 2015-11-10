@@ -20,8 +20,8 @@
 //#include "../Common/DeviceConfig.h"
 //#define LOGOUT printf
 
-extern char g_szHardVersion[20];
-extern char g_szSoftVersion[20];
+extern char g_szHardVersion[128];
+extern char g_szSoftVersion[128];
 extern char g_szOtherServerNO[80];
 
 //g_szOtherServerNO
@@ -297,9 +297,9 @@ int Get_head(char *strUrl, char *strPost, char *strResponse)
 //
 int getServiceVersion(SERVICEVERSION *returnInfo)
 {
-	char sendBuf[256] = {0};
-	sprintf(sendBuf, "ipc_id=%s&HwVersion=%s&SwVersion=%s",g_szOtherServerNO,g_szHardVersion,g_szSoftVersion);
-	//char sendBuf[] = "ipc_id=LB1GB29HYM3M8HJ7111C&HwVersion=S0&SwVersion=123456";
+	//char sendBuf[256] = {0};
+	//sprintf(sendBuf, "ipc_id=%s&HwVersion=%s&SwVersion=%s",g_szOtherServerNO,g_szHardVersion,g_szSoftVersion);
+	char sendBuf[] = "ipc_id=LB1GB29HYM3M8HJ7111C&HwVersion=S0&SwVersion=123456";
 	char strUrl[] = "http://ipc.100memory.com/ipccmd_1p4.php?act=checkTheLatestSwVersion";
 	char strResponse[4096] = {0};
 	Post_head1(strUrl, sendBuf, strResponse);
@@ -438,14 +438,43 @@ int updateFun(char *version, SERVICEVERSION *returnInfo)
 	int ret = 0;
 	char *package = NULL;
 	getServiceVersion(returnInfo);
+	char ipcHardVersion[128]={0};
+	char serverHardVersion[128]={0};
+	char *ptr=strchr(version,'_');
+	if(ptr)
+	{	
+		int flag=ptr-version;
+		memcpy(ipcHardVersion,version,MIN(flag,sizeof(ipcHardVersion)));
+	}
+	else
+	{
+		LOGOUT("IPC version is error %s",version);
+		return -1;
+	}
+	ptr=strchr(returnInfo->SwVersion,'_');
+	if(ptr)
+	{	
+		int flag=ptr-returnInfo->SwVersion;
+		memcpy(serverHardVersion,returnInfo->SwVersion,MIN(flag,sizeof(serverHardVersion)));
+	}
+	else
+	{
+		LOGOUT("server version is error %s",version);
+		return -1;
+	}		
+	if(strcmp(ipcHardVersion,serverHardVersion) != 0)//服务器版本<=IPC当前版本
+	{
+		LOGOUT("IPC hardversion:%s != server hardversion:%s",ipcHardVersion,serverHardVersion);
+		return -1;
+	}
 	if(strcmp(returnInfo->SwVersion, version) <= 0)//服务器版本<=IPC当前版本
 	{
-		LOGOUT("service version <= IPC version, not update");
+		LOGOUT("service version:%s <= IPC version:%s, not update",returnInfo->SwVersion, version);
 		return -1;
 	}
 	else
 	{
-		LOGOUT("service version > IPC version, must update");
+		LOGOUT("service version:%s > IPC version:%s, must update",returnInfo->SwVersion, version);
 	}
 	//
 	if(returnInfo->result != 1 || returnInfo->imageFileBytes < 1 || returnInfo->imageFileUrl == NULL)
@@ -544,7 +573,7 @@ int updateVersion()
 		sleep(5);
 		memset(&returnInfo, 0, sizeof(returnInfo));
 		memset(version, 0, sizeof(version));
-		sprintf(version, "%s-%s", g_szHardVersion, g_szSoftVersion);
+		sprintf(version, "%s_%s", g_szHardVersion, g_szSoftVersion);
 		printf("version:%s---\n", version);
 		ret = updateFun(version, &returnInfo);
 		if(ret == 1)

@@ -20,34 +20,40 @@
 #include "Common/configdef.h"
 
 //
-char g_szHardVersion[20] = {0};
-char g_szSoftVersion[20] = {0};
+char g_szHardVersion[128] = {0};
+char g_szSoftVersion[128] = {0};
 char g_szOtherServerNO[80] = {0};
 
 
-void GetVersionCfg()
+int GetVersionCfg()
 {
-	int ret = 0;
-	ret = GetHardVersion(DEVICECONFIGDIR, g_szHardVersion, sizeof(g_szHardVersion));
+	char softVersion[256]={0};
+	char *ptr=NULL;
+	int ret = GetSoftVersion(DEVICECONFIGDIR, softVersion, sizeof(softVersion));
 	if(ret == 0)
 	{
-		LOGOUT("GetHardVersion success over iRet=%d, hardVersion:%s", ret, g_szHardVersion);
+		LOGOUT("GetSoftVersion success over iRet=%d, allVersion:%s", ret, softVersion);
+		ptr=strchr(softVersion,'_');
+		if(ptr)
+		{	
+			int flag=ptr-softVersion;
+			memset(g_szHardVersion,0,sizeof(g_szHardVersion));
+			memset(g_szSoftVersion,0,sizeof(g_szSoftVersion));
+			memcpy(g_szHardVersion,softVersion,MIN(flag,sizeof(g_szHardVersion)));
+			memcpy(g_szSoftVersion,softVersion+(flag+1),MIN(strlen(softVersion)-flag-1,sizeof(g_szSoftVersion)));
+			LOGOUT("GetSoftVersion success over iRet=%d,hardVersion:%s,softVersion:%s", ret, g_szHardVersion,g_szSoftVersion);
+		}
+		else
+		{
+			LOGOUT("GetSoftVersion failed over iRet=%d, allVersion:%s", ret, softVersion);
+			return -3;
+		}
 	}
 	else
 	{
-		LOGOUT("GetHardVersion failed over iRet=%d, hardVersion:%s", ret, g_szHardVersion);
+
+		LOGOUT("GetSoftVersion failure over iRet=%d, allVersion:%s", ret, softVersion);
 	}
-	//
-	ret = GetSoftVersion(DEVICECONFIGDIR, g_szSoftVersion, sizeof(g_szSoftVersion));
-	if(ret == 0)
-	{
-		LOGOUT("GetSoftVersion success over iRet=%d, hardVersion:%s", ret, g_szSoftVersion);
-	}
-	else
-	{
-		LOGOUT("GetSoftVersion failed over iRet=%d, hardVersion:%s", ret, g_szSoftVersion);
-	}
-	//
 	ret = GetServerNo(DEVICECONFIGDIR, g_szOtherServerNO, sizeof(g_szOtherServerNO));
 	if(ret == 0)
 	{
@@ -57,6 +63,7 @@ void GetVersionCfg()
 	{
 		LOGOUT("GetSoftVersion failed over iRet=%d, hardVersion:%s", ret, g_szOtherServerNO);
 	}
+	return ret;
 }
 //
 int main()
@@ -64,8 +71,8 @@ int main()
 	int errorNumber = 0;
 	int ret = 0;
 	char timeBuf[20] = {0};
+	Init_LogOut(LOGSIZE,LOGUPDATEDIR,FALSE,TEMPDIR);
 	GetVersionCfg();
-	Init_LogOut(LOGSIZE,LOGDIR,FALSE,TEMPDIR);
 	ret = InitUpdate();
 	if(ret != 0)
 	{
@@ -91,7 +98,7 @@ int main()
 		{
 			errorNumber ++;
 		}
-		if(errorNumber >10)
+		if(errorNumber >0)
 		{
 			errorNumber = 0;
 			updateVersion();

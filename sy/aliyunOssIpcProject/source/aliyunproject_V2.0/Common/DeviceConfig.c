@@ -35,21 +35,6 @@ INT32S GetHardVersion(const char *v_szFlashPath,char *v_szHdVersion,INT32U lengt
 	INT32S iRet=ReadConfigFile(szPath, v_szHdVersion, length);
 	return iRet;
 }
-//设置版本号
-INT32S SetSoftVersion(const char *v_szFlashPath,char *v_szSfServer,INT32U length)
-{
-	if(NULL==v_szFlashPath || 0==strlen(v_szFlashPath) || NULL==v_szSfServer)
-	{
-		LOGOUT("v_szFlashPath or v_szServerNo is NULL or strlen = 0");
-		return -1;
-	}
-	char szPath[256] = {0};
-	memset(szPath, 0, sizeof(szPath));
-	sprintf(szPath, "%s/%s",v_szFlashPath, SFVERSIONFILENAME);
-	INT32S iRet=CreateConfigFile(szPath, v_szSfServer, length);
-	LOGOUT("set serverNo %s,iRet=%d",v_szSfServer,iRet);
-	return iRet;
-}
 //获取软件版本号
 INT32S GetSoftVersion(const char *v_szFlashPath,char *v_szSfServer,INT32U length)
 {
@@ -65,6 +50,37 @@ INT32S GetSoftVersion(const char *v_szFlashPath,char *v_szSfServer,INT32U length
 	INT32S iRet=ReadConfigFile(szPath, v_szSfServer, length);
 	return iRet;
 }
+
+//设置版本号
+INT32S SetSoftVersion(const char *v_szFlashPath,char *v_szSfServer,INT32U length)
+{
+	if(NULL==v_szFlashPath || 0==strlen(v_szFlashPath) || NULL==v_szSfServer)
+	{
+		LOGOUT("v_szFlashPath or v_szServerNo is NULL or strlen = 0");
+		return -1;
+	}
+	char softVersion[256]={0};
+	int ret = GetSoftVersion(DEVICECONFIGDIR, softVersion, sizeof(softVersion));
+	if(ret == 0)
+	{
+		LOGOUT("GetSoftVersion success over iRet=%d, softVersion:%s", ret, softVersion);
+	}
+	else
+	{
+		LOGOUT("GetSoftVersion failed over iRet=%d, softVersion:%s", ret, softVersion);
+	}
+	if(strcmp(softVersion,v_szSfServer)==0)
+	{
+		return 0;
+	}
+	char szPath[256] = {0};
+	memset(szPath, 0, sizeof(szPath));
+	sprintf(szPath, "%s/%s",v_szFlashPath, SFVERSIONFILENAME);
+	INT32S iRet=CreateConfigFile(szPath, v_szSfServer, length);
+	LOGOUT("set serverNo %s,iRet=%d",v_szSfServer,iRet);
+	return iRet;
+}
+
 
 //
 INT32S SetServerNo(const char *v_szFlashPath,char *v_szServerNo,INT32U length)

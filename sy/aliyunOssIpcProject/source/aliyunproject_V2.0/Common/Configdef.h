@@ -62,6 +62,7 @@
 #define CMDBUFFER				256*1024
 #define DEVICECONFIGDIR			"/mnt/mtd/ipc/sykj"
 #define	LOGDIR					"/mnt/mtd/ipc/tmpfs/syflash"
+#define	LOGUPDATEDIR			"/mnt/mtd/ipc/tmpfs/syflash/updateLog"
 #define TEMPDIR 				"/mnt/mtd/ipc/tmpfs/sytmp"
 #define ENCODEFILE 				"/mnt/mtd/ipc/conf/config_encode.ini"
 #define CMDREBOOT 				"killall uipcam;sleep 3;/mnt/mtd/ipc/sykj/uipcam &"

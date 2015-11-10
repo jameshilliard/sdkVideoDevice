@@ -30,42 +30,14 @@ void InitAllConfig()
 	{
 		LOGOUT("GetServerNo %s over iRet=%d",g_szServerNO,iRet);
 	}	
-	iRet=GetProductId(DEVICECONFIGDIR,g_szProductId,sizeof(g_szProductId));
-	if(0==strlen(g_szProductId))
-	{
-		LOGOUT("GetProductId over iRet=%d",iRet);
-	}
-	else
-	{
-		LOGOUT("GetProductId %s over iRet=%d",g_szProductId,iRet);
-	}
-	//设置硬件版本信息
-	iRet= SetHardVersion(DEVICECONFIGDIR, SDK_HARD_FWVERSION, strlen(SDK_HARD_FWVERSION));//zmt
-	if(0==iRet)
-	{
-		LOGOUT("SetHardVersion success over iRet=%d",iRet);
-	}
-	else
-	{
-		LOGOUT("SetHardVersion failed over iRet=%d",iRet);
-	}
-	//设置软件版本信息
-	iRet= SetSoftVersion(DEVICECONFIGDIR, SDK_SYSTEM_FWVERSION, strlen(SDK_SYSTEM_FWVERSION));//zmt
-	if(0==iRet)
-	{
-		LOGOUT("SetSoftVersion success over iRet=%d",iRet);
-	}
-	else
-	{
-		LOGOUT("SetSoftVersion failed over iRet=%d",iRet);
-	}
+
 }
 
 void ReleaseAllConfig()
 {
 	ReleaseDeviceConfig();
 }
-//
+
 void GetVersionCfg()
 {
 	int ret = 0;
@@ -79,16 +51,6 @@ void GetVersionCfg()
 	else
 	{
 		LOGOUT("GetHardVersion failed over iRet=%d, hardVersion:%s", ret, hardVersion);
-	}
-	//
-	ret = GetSoftVersion(DEVICECONFIGDIR, softVersion, sizeof(softVersion));
-	if(ret == 0)
-	{
-		LOGOUT("GetSoftVersion success over iRet=%d, hardVersion:%s", ret, hardVersion);
-	}
-	else
-	{
-		LOGOUT("GetSoftVersion failed over iRet=%d, hardVersion:%s", ret, hardVersion);
 	}
 }
 int main()

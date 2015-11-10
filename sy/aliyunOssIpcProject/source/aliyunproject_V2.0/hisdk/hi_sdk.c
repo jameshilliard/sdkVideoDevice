@@ -1196,6 +1196,31 @@ int InitHiSDKServer(HI_U32 *u32Handle,HI_U32 u32Stream)
 		LOGOUT("HI_NET_DEV_Login is failure 0x%x",s32Ret);
 		return -1;
     }
+	
+	HI_DEVICE_INFO sDeviceInfo;
+	s32Ret = HI_NET_DEV_GetConfig(*u32Handle,HI_NET_DEV_CMD_DEVICE_INFO,&sDeviceInfo,sizeof(HI_DEVICE_INFO));
+    if(s32Ret != HI_SUCCESS)
+    {
+		*u32Handle=0;
+		LOGOUT("HI_NET_DEV_GetConfig is failure 0x%x",s32Ret);
+		return -1;
+    }
+	else
+	{
+		char softwareVersion[256]={0};
+		sprintf(softwareVersion,"%s_%s_%s",SDK_HARD_FWVERSION,sDeviceInfo.aszServerSoftVersion,SDK_SYSTEM_FWVERSION);
+		//设置软件版本信息
+		iRet= SetSoftVersion(DEVICECONFIGDIR, softwareVersion, strlen(softwareVersion));//zmt
+		if(0==iRet)
+		{
+			LOGOUT("SetSoftVersion success over iRet=%d %s",iRet,softwareVersion);
+		}
+		else
+		{
+			LOGOUT("SetSoftVersion failed over iRet=%d",iRet);
+		}
+		LOGOUT("software is %s",sDeviceInfo.aszServerSoftVersion);
+	}
 
 	#if 0
 	s32Ret=HI_NET_DEV_SetEventCallBack(*u32Handle, OnEventCallback, &a);
