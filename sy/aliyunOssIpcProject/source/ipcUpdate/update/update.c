@@ -297,9 +297,9 @@ int Get_head(char *strUrl, char *strPost, char *strResponse)
 //
 int getServiceVersion(SERVICEVERSION *returnInfo)
 {
-	//char sendBuf[256] = {0};
-	//sprintf(sendBuf, "ipc_id=%s&HwVersion=%s&SwVersion=%s",g_szOtherServerNO,g_szHardVersion,g_szSoftVersion);
-	char sendBuf[] = "ipc_id=LB1GB29HYM3M8HJ7111C&HwVersion=S0&SwVersion=123456";
+	char sendBuf[256] = {0};
+	sprintf(sendBuf, "ipc_id=%s&HwVersion=%s&SwVersion=%s",g_szOtherServerNO,g_szHardVersion,g_szSoftVersion);
+	//char sendBuf[] = "ipc_id=LB1GB29HYM3M8HJ7111C&HwVersion=S0&SwVersion=123456";
 	char strUrl[] = "http://ipc.100memory.com/ipccmd_1p4.php?act=checkTheLatestSwVersion";
 	char strResponse[4096] = {0};
 	Post_head1(strUrl, sendBuf, strResponse);
@@ -516,8 +516,6 @@ int getTime()
 //
 void *P_UpdateThread()
 {
-	
-
 	int isUpdate = 1;
 	int ret  = 0;
 	char version[80] = {0};

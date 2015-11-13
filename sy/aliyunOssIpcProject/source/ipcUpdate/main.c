@@ -98,7 +98,7 @@ int main()
 		{
 			errorNumber ++;
 		}
-		if(errorNumber >0)
+		if(errorNumber >10)
 		{
 			errorNumber = 0;
 			updateVersion();
