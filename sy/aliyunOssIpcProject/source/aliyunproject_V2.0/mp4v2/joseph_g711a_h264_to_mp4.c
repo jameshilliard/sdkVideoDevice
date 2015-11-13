@@ -255,6 +255,9 @@ static const int8_t alaw_encode[2049] =
     0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0x2A
 }; 
 
+static int g711Length=0;
+static int pcmAver=0;
+
 int g711a_decode(void *pout_buf, int *pout_len, const void *pin_buf, const int  in_len)
 {
     int16_t *dst = (int16_t *)pout_buf;
@@ -633,6 +636,8 @@ int InitMp4Module(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *joseph
 		LOGOUT("init mp4 failed %d",nRet);
 		return -2;
 	}	
+	g711Length=0;
+	pcmAver=0;
 	return 0;
 }
 
@@ -651,22 +656,54 @@ static void SaveRecordFile(char* pPath, unsigned char* pu8Buffer, unsigned int u
 	fwrite(pu8Buffer, 1, u32Length, fp);
 	fclose(fp);
 }
-int Mp4FileAudioEncode(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *joseph_mp4_config,unsigned char* nBuffer,unsigned int length)
+
+#define   	MAX_AUDIO_PACKETS		8000/5
+
+int Mp4FileAudioEncode(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *joseph_mp4_config,unsigned char* nBuffer,unsigned int length,unsigned int *power)
 {
 	if(joseph_aac_config==NULL || joseph_mp4_config==NULL || nBuffer==NULL)
 		return -1;
 	if(length<0)
 		return -2;
+	if(joseph_aac_config->nPCMBitSize==0)
+		return -3;
 	int nPCMSize = 320;
 	int nPCMWrite = 0;
 	int nRet=0;
+	int avr=0;
+	int i=0;
+	DWORD sum=0;
+	signed short int oneData=0;
+	signed short int *ptr=NULL;
 	unsigned char pbPCMTmpBuffer[320];
-
+	*power=0;
 	if((nPCMSize = g711a_decode(pbPCMTmpBuffer,&nPCMSize,nBuffer,length)) < 0)
 	{
 		LOGOUT(" G711A -> PCM  fail %d",nPCMSize);
 		nRet=-2;
 		return nRet;
+	}
+	ptr=pbPCMTmpBuffer;
+	for(i=0;i<length;i++)
+	{
+		oneData=*(ptr+i);
+		if(oneData<0)
+			oneData=-oneData;
+		sum+=oneData;
+	}
+	int aver=sum/length;
+	if(pcmAver!=0)
+		pcmAver=(pcmAver+aver)/2;
+	else
+		pcmAver=aver;
+	g711Length+=length;
+	if(g711Length==1600)
+	{
+		*power=pcmAver;
+		g711Length=0;
+		//printf("---pcmAver=%d==time=%d==\n",pcmAver,getTickCountMs());
+		pcmAver=0;
+		
 	}
 	do
 	{

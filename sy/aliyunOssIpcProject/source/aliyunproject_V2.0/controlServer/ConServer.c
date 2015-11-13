@@ -420,7 +420,11 @@ int dataRecord(const char *server,const char *v_szId, char *videoPath,
 	}	
 
 	int result = 0;
-	char sendBuf[70480]={0};
+	char *sendBuf=malloc(20480);
+	if(!sendBuf)
+	{
+		LOGOUT("malloc is error");
+	}
 	char strUrl[1024]={0};
 	char strResponse[1024] = {0};
 	memset(sendBuf,0,sizeof(sendBuf));
@@ -430,7 +434,6 @@ int dataRecord(const char *server,const char *v_szId, char *videoPath,
 		             mMotionData.videoMotionTotal_Dist3, mMotionData.videoMotionTotal_Dist4,mMotionData.voiceAlarmTotal);*/
 	sprintf(sendBuf,STRING_RECORD_CONSERVER, v_szId, videoPath, creatTimeInMilSecond, videoFileSize,jpgFilePath, videoTimeLength,
 					 mMotionData.motionDetectInfo, mMotionData.soundVolumeInfo);
-	
 	sprintf(strUrl,STRING_DATARECORD_CONSERVER,server);
 	int iRet=Post_head(strUrl, sendBuf, strResponse);
 	if(iRet!=0)

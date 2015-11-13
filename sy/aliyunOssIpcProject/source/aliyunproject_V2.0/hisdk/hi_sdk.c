@@ -135,6 +135,8 @@ int stopVideoStream(HI_U32 *u32Handle)
 }
 
 #endif
+int ReleaseSimpleHiSDKServer(HI_U32 *u32Handle);
+HI_S32 InitSimpleHiSDKServer(HI_U32 *u32Handle);
 
 
 static int  controlMD(HI_U32 u32Handle,DWORD vTime,int i)
@@ -195,17 +197,16 @@ void * controlMDTask(void* param)
 	sigemptyset(&set);
 	sigaddset(&set, SIGPIPE);
 	sigprocmask(SIG_BLOCK, &set, NULL); 
-	s32Ret=InitHiSDKServer(&pHI_CONTROLMD_DATA->m_u32Handle);
+	s32Ret=InitSimpleHiSDKServer(&pHI_CONTROLMD_DATA->m_u32Handle);
 	if (s32Ret != HI_SUCCESS)
 	{
-		printf("InitHiSDKServer is failcode:0x%x",s32Ret);	
+		LOGOUT("InitHiSDKServer is failcode:0x%x",s32Ret);	
 	}	
 	else
 	{
-
 		LOGOUT("chanel=%d,handle=%d",pHI_CONTROLMD_DATA->m_channel,pHI_CONTROLMD_DATA->m_u32Handle);
 	}
-	while(1)
+	while(pHI_CONTROLMD_DATA->m_start)
 	{
 		nowTickCountMs=getTickCountMs();
 		if((getTickCountMs()-lastTickCountMs)>=DETECT_MAXTIME && g_motionFlag==1)
@@ -220,11 +221,18 @@ void * controlMDTask(void* param)
 			usleep(20*1000);
 		}
 	}
+	s32Ret=ReleaseSimpleHiSDKServer(&pHI_CONTROLMD_DATA->m_u32Handle);
+	if (s32Ret != HI_SUCCESS)
+	{
+		LOGOUT("ReleaseSimpleHiSDKServer is failcode:0x%x",s32Ret);	
+	}	
+	else
+	{
+		LOGOUT("ReleaseSimpleHiSDKServer chanel=%d,handle=%d",pHI_CONTROLMD_DATA->m_channel,pHI_CONTROLMD_DATA->m_u32Handle);
+	}
 	return 0;
 
-
 }
-
 
 static void getTimeNameString(int timeStamp,char *timeStr,int size)
 {
@@ -343,21 +351,6 @@ static int reloveMotionArea(HI_S_ALARM_MD v_stHI_S_ALARM_MD,HI_Motion_Data *pv_H
 	return 0;
 }
 
-static int sumSound(char *v_soundString,DWORD v_length)
-{
-	unsigned short int power=0;
-	unsigned short int *ptr=v_soundString;
-	DWORD i=0;
-	DWORD  sum=0;
-	
-	for(i=0;i<v_length/2;i++)
-	{
-		sum+=(unsigned short int)*(v_soundString+i);
-	}
-	power=(unsigned short int)(sum*2/v_length);
-	return power;
-}
-
 static HI_S32 takePicture(HI_U32 u32Handle,char fileName[256])
 {
 	char *sData = (char*)malloc(1024*1024);
@@ -427,6 +420,7 @@ void * makeMp4Task(void* param)
 	DWORD sym=0;
 	DWORD id=0;
 	int iRet=-1;
+	int successFlag=0;
 	DWORD nextFlag=0;
 	char *audioBuffer=malloc(MAX_AUDIO_PACKETS);  //200ms 
 	if(buf==NULL)
@@ -527,43 +521,41 @@ void * makeMp4Task(void* param)
 				if(iRet!=0)
 				{
 					LOGOUT("InitMp4Module is failure %d",iRet);
+					successFlag=0;
 				}
 				else
 				{
 					
 					LOGOUT("InitMp4Module is success %d",iRet);
+					successFlag=1;
 				}
 
 			}
 				break;
 			case RECORDVIDEO:
 			{
-				int iRet=Mp4FileVideoEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)buf,length);
-				if(iRet<0)
-					s32Mp4FailFlag=-1;
+				if(successFlag==1)
+				{
+					int iRet=Mp4FileVideoEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)buf,length);
+					if(iRet<0)
+						s32Mp4FailFlag=-1;
+				}
+
 			}
 				break;
 			case RECORDAUDIO:
 			{
-				DWORD mLelf=0;
-				if((nextFlag+length)>=MAX_AUDIO_PACKETS)
+				if(successFlag==1)
 				{
-					DWORD size=MAX_AUDIO_PACKETS-nextFlag;
-					memcpy(audioBuffer+nextFlag,(unsigned char*)buf,size);
-					DWORD avr=sumSound(audioBuffer,MAX_AUDIO_PACKETS);
-					char tempString[32]={0};
-					sprintf(tempString,"%d,",avr);
-					strcat(g_soundString,tempString);
-					nextFlag=(nextFlag+length)-MAX_AUDIO_PACKETS;
-					memcpy(audioBuffer,(unsigned char*)buf+size,nextFlag);
-					
+					unsigned int power=0;
+					Mp4FileAudioEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)buf,length,&power);		
+					if(power!=0)
+					{
+						char tempString[32]={0};
+						sprintf(tempString,"%d,",power);
+						strcat(g_soundString,tempString);
+					}
 				}
-				else
-				{
-					memcpy(audioBuffer+nextFlag,(unsigned char*)buf,length);
-					nextFlag+=length;
-				}
-				Mp4FileAudioEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)buf,length);		
 			}
 				break;
 			case RECORDDELETE:
@@ -583,13 +575,11 @@ void * makeMp4Task(void* param)
 					LOGOUT("rename(%s)",joseph_mp4_config.nFifoEndName);
 					LOGOUT("rename(%s)",joseph_mp4_config.nPictureEndName);
 					RecordData mRecordData;
-					#if 0
 					iRet=creatRecordData(&mRecordData,&joseph_mp4_config,motionData.m_stSumMotionData);
 					if(iRet==0)
 					{
 						iRet=writeFile(joseph_mp4_config.nDataEndName,(LPCTSTR)(&mRecordData),sizeof(mRecordData));
 					}
-					#endif
 					iRet=writeFile(joseph_mp4_config.nMotionEndName,(LPCTSTR)(g_motionString),strlen(g_motionString));
 					if(g_motionString)
 					{
@@ -615,6 +605,7 @@ void * makeMp4Task(void* param)
 				}
 				motionData.m_u32MotionStatus=0;
 				SetMasterVideoStream(&lastVideoParam);
+				successFlag=0;
 			}
 				break;
 			default:
@@ -675,7 +666,8 @@ static HI_S32 onRecordTask(HI_U32 u32Handle, /* 句柄 */
 				int ret=g_quene->pushData(g_quene->_this,(void *)&test,sizeof(test),RECORDSTART,0);
 				if(ret!=0)
 				{
-					LOGOUT("pushData is error");
+					LOGOUT("pushData is error is %d!",ret);
+					*u32Status=RECORDSTART;
 				}
 			}
 		}
@@ -809,7 +801,7 @@ HI_S32 OnStreamCallback(HI_U32 u32Handle, /* 句柄 */
 		pstruSys = (HI_S_SysHeader*)pu8Buffer;
 		u32Width=pstruSys->struVHeader.u32Width;
 		u32Height=pstruSys->struVHeader.u32Height;
-		LOGOUT("Video W:%u H:%u Audio: %u \n", pstruSys->struVHeader.u32Width, pstruSys->struVHeader.u32Height, pstruSys->struAHeader.u32Format);
+		LOGOUT("Video W:%u H:%u Audio: %u", pstruSys->struVHeader.u32Width, pstruSys->struVHeader.u32Height, pstruSys->struAHeader.u32Format);
 	} 
 
 	return HI_SUCCESS;
@@ -889,7 +881,7 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* 句柄 */
 			while(times<100)
 			{
 				times++;
-				DWORD diffTime=notTick-g_lastRecordTime;
+				long diffTime=notTick-g_lastRecordTime;
 				if(diffTime>(DETECT_MAXTIME-20))
 				{
 					g_lastRecordTime=g_lastRecordTime+DETECT_MAXTIME;
@@ -913,7 +905,7 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* 句柄 */
 						*(g_motionString+strlen(g_motionString)-1)=0;
 					}
 					strcat(g_motionString,"#");
-					//LOGOUT("%s",g_motionString);
+					//LOGOUT("notTick=%d,g_lastRecordTime=%d,%s",notTick,g_lastRecordTime,g_motionString);
 					memset(motionData.m_u32AreaTimes,0,sizeof(motionData.m_u32AreaTimes));
 				}
 				else
@@ -1284,6 +1276,90 @@ int InitHiSDKServer(HI_U32 *u32Handle,HI_U32 u32Stream)
 	return 0;
 }
 
+HI_S32 InitSimpleHiSDKServer(HI_U32 *u32Handle)
+{
+    HI_S32 s32Ret = HI_SUCCESS;
+	HI_U32 a;
+	HI_S_STREAM_INFO_EXT struStreamInfo;
+	
+	char uname[64]={0,};
+	char password[64]={0,};
+	memset(uname,0,sizeof(uname));
+	memset(password,0,sizeof(password));
+	int iRet=getUnameAndPassWord(UNAMEFILE,uname,password);
+	printf("iRet=%d uname %s password %s\n",iRet,uname,password);
+	if(iRet!=0)
+	{
+		memcpy(uname,UNAME,MIN(sizeof(uname),strlen(UNAME)));
+		memcpy(password,PWORD,MIN(sizeof(password),strlen(PWORD)));
+	}
+	if(strlen(uname)==0)
+		memcpy(uname,UNAME,MIN(sizeof(uname),strlen(UNAME)));
+
+	char ip[64]={0,};
+	char port[64]={0,};
+	memset(ip,0,sizeof(ip));
+	memset(port,0,sizeof(port));
+	iRet=getIPAndPort(NETFILE,ip,port);
+	if(iRet!=0)
+	{
+		memset(ip,0,sizeof(ip));
+		memcpy(ip,IPHOST,MIN(sizeof(ip),strlen(IPHOST)));
+		memset(port,0,sizeof(port));
+		memcpy(port,IPPORT,MIN(sizeof(port),strlen(IPPORT)));
+	}
+	else
+	{
+		memset(ip,0,sizeof(ip));
+		memcpy(ip,IPHOST,MIN(sizeof(ip),strlen(IPHOST)));
+	}
+	printf("iRet=%d ip %s port %s\n",iRet,ip,port);
+	if(strlen(ip)==0)
+	{
+		memset(ip,0,sizeof(ip));
+		memcpy(ip,IPHOST,MIN(sizeof(ip),strlen(IPHOST)));
+	}
+	if(strlen(port)==0)
+	{
+		memset(port,0,sizeof(port));
+		memcpy(port,IPPORT,MIN(sizeof(port),strlen(IPPORT)));
+	}
+	
+	HI_U16 u16Port=atoi(port);
+	if(*u32Handle!=0)
+	{
+		s32Ret = HI_NET_DEV_Logout(*u32Handle);
+		if (s32Ret != HI_SUCCESS)
+		{
+			printf("HI_NET_DEV_Logout is failure handle:%u,failcode:0x%x\n",*u32Handle,s32Ret);	
+		}	
+	}
+    s32Ret = HI_NET_DEV_Login(u32Handle,uname,password,ip,u16Port);
+    if(s32Ret != HI_SUCCESS)
+    {
+		*u32Handle=0;
+		printf("HI_NET_DEV_Login is failure 0x%x\n",s32Ret);
+		return -1;
+    }
+	return 0;
+}
+
+int ReleaseSimpleHiSDKServer(HI_U32 *u32Handle)
+{
+	
+	HI_S32 s32Ret = HI_SUCCESS;
+	if(*u32Handle != 0)
+	{
+		s32Ret = HI_NET_DEV_Logout(*u32Handle);
+		if (s32Ret != HI_SUCCESS)
+		{
+			printf("HI_NET_DEV_Logout is failure handle:%u,failcode:0x%x\n",*u32Handle,s32Ret);	
+		}	
+		*u32Handle=0;
+	}
+	return 0;
+}
+
 int ReleaseHiSDKServer(HI_U32 *u32Handle)
 {
 	
@@ -1555,9 +1631,23 @@ int MakeKeyFrame(int channel)
 
 int InitHiSDKVideoAllChannel()
 {
+	int iRet=-1;
+	g_quene = (Queue*)QueueListConstruction();
+	if(g_quene)
+	{	
+		iRet=g_quene->initQueue(g_quene->_this,3*1024*1024);
+		if(iRet!=0)
+		{
+			LOGOUT("InitNetwork initqueue error\n");
+		}
+	}
+	else
+	{
+		LOGOUT("InitNetwork QueueListConstruction error\n");
+		return -3;
+	}	
 	HI_NET_DEV_Init();
 	memset(&curVideoParam,0,sizeof(curVideoParam));
-	int iRet=-1;
 	iRet=InitHiSDKServer(&u32HandleHight,0);
 	if(iRet!=0)
 	{
@@ -1576,20 +1666,7 @@ int InitHiSDKVideoAllChannel()
 		LOGOUT("malloc g_motionString %d",MAX_SOUND_STRING);
 		return -5;
 	}
-	g_quene = (Queue*)QueueListConstruction();
-	if(g_quene)
-	{	
-		iRet=g_quene->initQueue(g_quene->_this,3*1024*1024);
-		if(iRet!=0)
-		{
-			LOGOUT("InitNetwork initqueue error\n");
-		}
-	}
-	else
-	{
-		LOGOUT("InitNetwork QueueListConstruction error\n");
-		return -3;
-	}	
+
 	pthread_t m_makeMp4Task;//实时播放，过程控制线程
 	iRet = pthread_create(&m_makeMp4Task, NULL, makeMp4Task, NULL);
 	if(iRet != 0)
@@ -1597,7 +1674,6 @@ int InitHiSDKVideoAllChannel()
 		LOGOUT("can't create thread: %s",strerror(iRet));
 		return -2;
 	}
-
 	memset(g_controlMd,0,sizeof(g_controlMd));
 	int i=0;
 	pthread_t m_controlMdTask[4];
@@ -1614,7 +1690,6 @@ int InitHiSDKVideoAllChannel()
 			LOGOUT("can't create thread: %s",strerror(iRet));
 			return -2;
 		}
-
 	}
 	#if 0 //zss++
 	HI_S_Video_Ext sVideo;
@@ -1651,6 +1726,11 @@ int InitHiSDKVideoAllChannel()
 
 int ReleaseHiSDKVideoAllChannel()
 {
+	int i=0;
+	for(i=0;i<sizeof(g_controlMd)/sizeof(HI_CONTROLMD_DATA);i++)
+	{
+		g_controlMd[i].m_start=FALSE;
+	}
 	int iRet=ReleaseHiSDKServer(&u32HandleHight);
 	if(iRet!=0)
 		LOGOUT("ReleaseHiSDKServer Hight is faliure,iRet=%d",iRet);
