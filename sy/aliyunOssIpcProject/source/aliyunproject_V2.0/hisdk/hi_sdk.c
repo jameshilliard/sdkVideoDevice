@@ -139,49 +139,49 @@ int ReleaseSimpleHiSDKServer(HI_U32 *u32Handle);
 HI_S32 InitSimpleHiSDKServer(HI_U32 *u32Handle);
 
 
-static int  controlMD(HI_U32 u32Handle,DWORD vTime,int i)
+static int  controlMD(HI_U32 u32Handle,int i,HI_U32 *j)
 {		
-	static HI_S32 j=0;
-	static DWORD  lastTickCountMs=0;
-	DWORD  nowTickCountMs=getTickCountMs();
-	if((nowTickCountMs-lastTickCountMs)>=vTime)
-	{
-		lastTickCountMs=nowTickCountMs;
-	}
-	else
-	{
-		return -1;
-	}
 	static HI_S_MD_PARAM mHI_S_MD_PARAM[4]=
 	{
-	 {HI_NET_DEV_CHANNEL_1,1,HI_TRUE,50,0			,DE_HEIGHT/8   ,DE_WIDTH/10,DE_HEIGHT/8},
-	 {HI_NET_DEV_CHANNEL_1,2,HI_TRUE,50,DE_WIDTH*1/5,DE_HEIGHT*5/16,DE_WIDTH/10,DE_HEIGHT/8},
-	 {HI_NET_DEV_CHANNEL_1,3,HI_TRUE,50,DE_WIDTH*2/5,DE_HEIGHT*9/16,DE_WIDTH/10,DE_HEIGHT/8},
-	 {HI_NET_DEV_CHANNEL_1,4,HI_TRUE,50,DE_WIDTH*3/5,DE_HEIGHT*3/4 ,DE_WIDTH/10,DE_HEIGHT/8}
+	 {HI_NET_DEV_CHANNEL_1,1,HI_TRUE,50,DE_WIDTH*0  ,DE_HEIGHT*1/8  ,DE_WIDTH/8,DE_HEIGHT*3/8},
+	 {HI_NET_DEV_CHANNEL_1,2,HI_TRUE,50,DE_WIDTH*0  ,DE_HEIGHT*9/16 ,DE_WIDTH/8,DE_HEIGHT*3/8},
+	 {HI_NET_DEV_CHANNEL_1,3,HI_TRUE,50,DE_WIDTH*7/8,DE_HEIGHT*1/8  ,DE_WIDTH/8,DE_HEIGHT*3/8},
+	 {HI_NET_DEV_CHANNEL_1,4,HI_TRUE,50,DE_WIDTH*7/8,DE_HEIGHT*9/16 ,DE_WIDTH/8,DE_HEIGHT*3/8}
 	};
 	HI_S32 s32Ret=0;
 	//HI_S32 i=0;
 	//for(i=0;i<4;i++)
+	if(i==0 || i==1)
 	{
-		mHI_S_MD_PARAM[i].u32X=mHI_S_MD_PARAM[i].u32X+DE_WIDTH*1/5;
-		if(mHI_S_MD_PARAM[i].u32X>=DE_WIDTH)
-		{
-			mHI_S_MD_PARAM[i].u32X=0;
-			j=0;
-		}
-		HI_NET_DEV_SetConfig(u32Handle,HI_NET_DEV_CMD_MD_PARAM,&mHI_S_MD_PARAM[i],sizeof(HI_S_MD_PARAM));
-		if(s32Ret != HI_SUCCESS)
-		{
-			printf("HI_NET_DEV_SetConfig is failure 0x%x\n",s32Ret);
-		}
+		mHI_S_MD_PARAM[i].u32X=mHI_S_MD_PARAM[i].u32X+DE_WIDTH*1/8;
 		//printf("area=%d,x=%d,y=%d\n",mHI_S_MD_PARAM[i].u32Area,mHI_S_MD_PARAM[i].u32X,mHI_S_MD_PARAM[i].u32Y);
+		if(mHI_S_MD_PARAM[i].u32X>=DE_WIDTH*1/2)
+		{
+			mHI_S_MD_PARAM[i].u32X=DE_WIDTH*0;
+			*j=0;
+		}
 	}
+	if(i==2 || i==3)
+	{
+		mHI_S_MD_PARAM[i].u32X=mHI_S_MD_PARAM[i].u32X-DE_WIDTH*1/8;
+		if(mHI_S_MD_PARAM[i].u32X<DE_WIDTH*1/2)
+		{
+			mHI_S_MD_PARAM[i].u32X=DE_WIDTH*7/8;
+			*j=0;
+		}
+	}
+	HI_NET_DEV_SetConfig(u32Handle,HI_NET_DEV_CMD_MD_PARAM,&mHI_S_MD_PARAM[i],sizeof(HI_S_MD_PARAM));
+	if(s32Ret != HI_SUCCESS)
+	{
+		printf("HI_NET_DEV_SetConfig is failure 0x%x\n",s32Ret);
+	}
+
 	//LOGOUT("time=%010ld area=%d,x=%04d,y=%03d    area=%d,x=%04d,y=%03d    area=%d,x=%04d,y=%03d    area=%d,x=%04d,y=%03d"
 	//,getTickCountMs(),mHI_S_MD_PARAM[0].u32Area,mHI_S_MD_PARAM[0].u32X,mHI_S_MD_PARAM[0].u32Y
 	//,mHI_S_MD_PARAM[1].u32Area,mHI_S_MD_PARAM[1].u32X,mHI_S_MD_PARAM[1].u32Y
 	//,mHI_S_MD_PARAM[2].u32Area,mHI_S_MD_PARAM[2].u32X,mHI_S_MD_PARAM[2].u32Y
 	//,mHI_S_MD_PARAM[3].u32Area,mHI_S_MD_PARAM[3].u32X,mHI_S_MD_PARAM[3].u32Y);
-	j++;
+	*j++;
 	return 0;
 }
 
@@ -209,11 +209,12 @@ void * controlMDTask(void* param)
 	while(pHI_CONTROLMD_DATA->m_start)
 	{
 		nowTickCountMs=getTickCountMs();
+		//if((getTickCountMs()-lastTickCountMs)>=DETECT_MAXTIME)
 		if((getTickCountMs()-lastTickCountMs)>=DETECT_MAXTIME && g_motionFlag==1)
 		{
 			lastTickCountMs = nowTickCountMs;
 			//LOGOUT("channel=%d nowTickCountMs=%d lastTickCountMs=%d",pHI_CONTROLMD_DATA->m_channel,nowTickCountMs,lastTickCountMs);
-			controlMD(pHI_CONTROLMD_DATA->m_u32Handle,pHI_CONTROLMD_DATA->m_vTime,pHI_CONTROLMD_DATA->m_channel);
+			controlMD(pHI_CONTROLMD_DATA->m_u32Handle,pHI_CONTROLMD_DATA->m_channel,&pHI_CONTROLMD_DATA->m_uFlag);
 		}
 		else
 		{
@@ -237,9 +238,12 @@ void * controlMDTask(void* param)
 static void getTimeNameString(int timeStamp,char *timeStr,int size)
 {
 	struct tm * timeinfo;
-	struct tm utc_tm;;
+	struct tm utc_tm;
+	srand((int) time(0)); 
 	timeinfo = gmtime_r( (time_t *)&timeStamp,&utc_tm );
 	strftime(timeStr,size,("%Y%m%d%H%M%S"),timeinfo);
+	sprintf(timeStr,"%s_%08x",timeStr,rand());
+	printf("timeStr=%s-----\n",timeStr);
 	return;
 }
 
@@ -251,20 +255,17 @@ static int reloveMotionArea(HI_S_ALARM_MD v_stHI_S_ALARM_MD,HI_Motion_Data *pv_H
 			{
 				switch(v_stHI_S_ALARM_MD.u32X)
 				{
-					case DE_WIDTH*0/5:
+					case DE_WIDTH*0/8:
 						pv_HI_Motion_Data->m_u32AreaTimes[0]++;
 						break;
-					case DE_WIDTH*1/5:
+					case DE_WIDTH*1/8:
 						pv_HI_Motion_Data->m_u32AreaTimes[4]++;
 						break;
-					case DE_WIDTH*2/5:
+					case DE_WIDTH*2/8:
 						pv_HI_Motion_Data->m_u32AreaTimes[8]++;
 						break;
-					case DE_WIDTH*3/5:
+					case DE_WIDTH*3/8:
 						pv_HI_Motion_Data->m_u32AreaTimes[12]++;
-						break;
-					case DE_WIDTH*4/5:
-						pv_HI_Motion_Data->m_u32AreaTimes[16]++;
 						break;
 					default:
 						break;
@@ -275,20 +276,17 @@ static int reloveMotionArea(HI_S_ALARM_MD v_stHI_S_ALARM_MD,HI_Motion_Data *pv_H
 			{
 				switch(v_stHI_S_ALARM_MD.u32X)
 				{
-					case DE_WIDTH*0/5:
+					case DE_WIDTH*0/8:
 						pv_HI_Motion_Data->m_u32AreaTimes[1]++;
 						break;
-					case DE_WIDTH*1/5:
+					case DE_WIDTH*1/8:
 						pv_HI_Motion_Data->m_u32AreaTimes[5]++;
 						break;
-					case DE_WIDTH*2/5:
+					case DE_WIDTH*2/8:
 						pv_HI_Motion_Data->m_u32AreaTimes[9]++;
 						break;
-					case DE_WIDTH*3/5:
+					case DE_WIDTH*3/8:
 						pv_HI_Motion_Data->m_u32AreaTimes[13]++;
-						break;
-					case DE_WIDTH*4/5:
-						pv_HI_Motion_Data->m_u32AreaTimes[17]++;
 						break;
 					default:
 						break;
@@ -300,20 +298,17 @@ static int reloveMotionArea(HI_S_ALARM_MD v_stHI_S_ALARM_MD,HI_Motion_Data *pv_H
 			{
 				switch(v_stHI_S_ALARM_MD.u32X)
 				{
-					case DE_WIDTH*0/5:
+					case DE_WIDTH*7/8:
 						pv_HI_Motion_Data->m_u32AreaTimes[2]++;
 						break;
-					case DE_WIDTH*1/5:
+					case DE_WIDTH*6/8:
 						pv_HI_Motion_Data->m_u32AreaTimes[6]++;
 						break;
-					case DE_WIDTH*2/5:
+					case DE_WIDTH*5/8:
 						pv_HI_Motion_Data->m_u32AreaTimes[10]++;
 						break;
-					case DE_WIDTH*3/5:
+					case DE_WIDTH*4/8:
 						pv_HI_Motion_Data->m_u32AreaTimes[14]++;
-						break;
-					case DE_WIDTH*4/5:
-						pv_HI_Motion_Data->m_u32AreaTimes[18]++;
 						break;
 					default:
 						break;
@@ -325,20 +320,17 @@ static int reloveMotionArea(HI_S_ALARM_MD v_stHI_S_ALARM_MD,HI_Motion_Data *pv_H
 			{
 				switch(v_stHI_S_ALARM_MD.u32X)
 				{
-					case DE_WIDTH*0/5:
+					case DE_WIDTH*7/8:
 						pv_HI_Motion_Data->m_u32AreaTimes[3]++;
 						break;
-					case DE_WIDTH*1/5:
+					case DE_WIDTH*6/8:
 						pv_HI_Motion_Data->m_u32AreaTimes[7]++;
 						break;
-					case DE_WIDTH*2/5:
+					case DE_WIDTH*5/8:
 						pv_HI_Motion_Data->m_u32AreaTimes[11]++;
 						break;
-					case DE_WIDTH*3/5:
+					case DE_WIDTH*4/8:
 						pv_HI_Motion_Data->m_u32AreaTimes[15]++;
-						break;
-					case DE_WIDTH*4/5:
-						pv_HI_Motion_Data->m_u32AreaTimes[19]++;
 						break;
 					default:
 						break;
@@ -552,7 +544,7 @@ void * makeMp4Task(void* param)
 					if(power!=0)
 					{
 						char tempString[32]={0};
-						sprintf(tempString,"%d,",power);
+						sprintf(tempString,"%x,",power);
 						strcat(g_soundString,tempString);
 					}
 				}
@@ -1680,15 +1672,19 @@ int InitHiSDKVideoAllChannel()
 	for(i=0;i<sizeof(g_controlMd)/sizeof(HI_CONTROLMD_DATA);i++)
 	{
 		g_controlMd[i].m_channel=i;
-		g_controlMd[i].m_start=TRUE;
+		g_controlMd[i].m_start=TRUE;                                        
 		g_controlMd[i].m_u32Handle=0;
-		g_controlMd[i].m_vTime=DETECT_MAXTIME;
+		g_controlMd[i].m_uFlag=0;
 		
 		iRet = pthread_create(&m_controlMdTask[i], NULL, controlMDTask, &g_controlMd[i]);
 		if(iRet != 0)
 		{
 			LOGOUT("can't create thread: %s",strerror(iRet));
 			return -2;
+		}
+		else
+		{
+			LOGOUT("channel %d create thread",i);
 		}
 	}
 	#if 0 //zss++

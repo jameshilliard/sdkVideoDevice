@@ -46,7 +46,7 @@
 
 #define 	MAX_MOTION_STRING		50*1024
 #define     MAX_SOUND_STRING		20*1024
-#define 	DETECT_MAXTIME			200
+#define 	DETECT_MAXTIME			400
 #define   	MAX_AUDIO_PACKETS		8000/5
 
 
@@ -58,7 +58,7 @@ typedef struct
 	DWORD  m_u32MotionStartTime;
 	DWORD  m_u32MotionLastSecond;
 	DWORD  m_u32MotionTimesIsValid;
-	HI_U32 m_u32AreaTimes[20];
+	HI_U32 m_u32AreaTimes[16];
 	Motion_Data m_stMotionData;
 	Motion_Data m_stSumMotionData;
 } HI_Motion_Data;
@@ -68,7 +68,7 @@ typedef struct
 {
 	INT32S m_channel;
 	HI_U32 m_u32Handle;
-	DWORD  m_vTime;
+	HI_U32 m_uFlag;
 	BOOL   m_start;
 } HI_CONTROLMD_DATA;
 

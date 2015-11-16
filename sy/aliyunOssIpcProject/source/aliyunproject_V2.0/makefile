@@ -10,7 +10,7 @@ INCLUDES = -I./include\
 		   -I./include/openssl
 #关闭所有 未使用变量、printf格式化、警告 
 #FLAGS = -m32 -O2 -Wall -Wno-unused -Wno-format -fstrength-reduce -DHI_OS_LINUX
-FLAGS = -O2 -Wall -Wno-unused -Wno-format -fstrength-reduce -DHI_OS_LINUX -DCPU_ARM
+FLAGS = -O3 -Wall -Wno-unused -Wno-format -fstrength-reduce -DHI_OS_LINUX -DCPU_ARM
 #FLAGS += -g -rdynamic
 
 #GXX = g++ $(INCLUDES) $(FLAGS)

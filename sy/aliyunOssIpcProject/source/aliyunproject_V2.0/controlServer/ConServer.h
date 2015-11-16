@@ -21,8 +21,7 @@
 jpgFilePath=%s&videoTimeLength=%d&videoMotionTotal_Dist1=%d&\
 videoMotionTotal_Dist2=%d&videoMotionTotal_Dist3=%d&videoMotionTotal_Dist4=%d&\
 voiceAlarmTotal=%d"*/
-#define 	STRING_RECORD_CONSERVER		"ipc_id=%s&videoPath=%s&creatTimeInMilSecond=%lld&videoFileSize=%d&\
-	jpgFilePath=%s&videoTimeLength=%d&motionDetectInfo=%s&soundVolumeInfo=%s"
+#define 	STRING_RECORD_CONSERVER		"ipc_id=%s&videoPath=%s&creatTimeInMilSecond=%lld&videoFileSize=%d&jpgFilePath=%s&videoTimeLength=%d&motionDetectInfo=%s&soundVolumeInfo=%s"
 
 
 

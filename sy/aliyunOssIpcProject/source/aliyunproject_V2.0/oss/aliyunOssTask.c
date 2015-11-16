@@ -189,8 +189,7 @@ void * aliyunOssTask(void* param)
 								unlink(file1Path);
 								unlink(file2Path);
 								unlink(file3Path);
-								LOGOUT("filePath %s and %s and %s was error and unlink iRet=%d",file1Path,file2Path,file3Path,iRet);	
-
+								LOGOUT("filePath %s and %s and %s was error and unlink iRet=%d",file1Path,file2Path,file3Path,iRet);
 							}
 						}
 						else

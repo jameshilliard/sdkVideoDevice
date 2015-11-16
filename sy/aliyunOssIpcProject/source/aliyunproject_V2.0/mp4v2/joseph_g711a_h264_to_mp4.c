@@ -592,6 +592,7 @@ int InitAccEncoder(JOSEPH_ACC_CONFIG *joseph_aac_config)
 	#if 0
 	//zss++joseph_aac_config->fpIn = fopen(JOSEPH_G711A_LOCATION, "rb");
 	//open FAAC engine
+	LOGOUT("joseph_aac_config->nInputSamples is %d",joseph_aac_config->nInputSamples);
 	joseph_aac_config->hEncoder = faacEncOpen(joseph_aac_config->nSampleRate, joseph_aac_config->nChannels, \
 								&joseph_aac_config->nInputSamples, &joseph_aac_config->nMaxOutputBytes);
 	if(joseph_aac_config->hEncoder == NULL)
@@ -612,9 +613,17 @@ int InitAccEncoder(JOSEPH_ACC_CONFIG *joseph_aac_config)
 	pConfiguration->inputFormat = FAAC_INPUT_16BIT;
 	pConfiguration->outputFormat = 0;
     pConfiguration->aacObjectType = LOW;
+	
+	pConfiguration->version = 1;
+	pConfiguration->aacObjectType = 2;
+	pConfiguration->useTns = 0;
+	pConfiguration->shortctl =  0;
+	pConfiguration->allowMidside = 0 ;
+	pConfiguration->quantqual=0;
+    pConfiguration->bandWidth=0;
+    pConfiguration->bitRate=0;
 #else
 	pConfiguration->inputFormat = FAAC_INPUT_16BIT;
-
 	/*0 - raw; 1 - ADTS*/
 	pConfiguration->outputFormat = 0;
     pConfiguration->useTns = 0;

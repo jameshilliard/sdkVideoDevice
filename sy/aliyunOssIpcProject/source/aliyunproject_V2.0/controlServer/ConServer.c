@@ -436,6 +436,7 @@ int dataRecord(const char *server,const char *v_szId, char *videoPath,
 					 mMotionData.motionDetectInfo, mMotionData.soundVolumeInfo);
 	sprintf(strUrl,STRING_DATARECORD_CONSERVER,server);
 	int iRet=Post_head(strUrl, sendBuf, strResponse);
+	printf("-sendBuf=%s strUrl=%s---\n",sendBuf,strUrl);
 	if(iRet!=0)
 	{
 		LOGOUT("%s %s failure",strUrl,sendBuf);
