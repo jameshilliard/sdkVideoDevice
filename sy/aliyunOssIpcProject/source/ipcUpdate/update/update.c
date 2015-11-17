@@ -1,9 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../json/cJSON.h"
-//#include "../include/curl/curl.h"
+#include "json/cJSON.h"
 #include "curl/curl.h"
-
 #include <string.h>
 #include <sys/types.h>     
 #include <sys/socket.h>
@@ -15,16 +13,18 @@
 #include <errno.h>
 #include "update.h"
 #include "LogOut/LogOut.h"
+#include "Common/DeviceConfig.h"
+
 
 //#include "../LogOut/LogOut.h"
 //#include "../Common/DeviceConfig.h"
 //#define LOGOUT printf
 
-extern char g_szHardVersion[20];
-extern char g_szSoftVersion[20];
-extern char g_szServerNO[80];
+extern char g_szHardVersion[128];
+extern char g_szSoftVersion[128];
+extern char g_szOtherServerNO[80];
 
-//g_szServerNO
+//g_szOtherServerNO
 //
 int pos = 0;
 //
@@ -81,25 +81,20 @@ int getStrTime(char *buf)
 			nowTime.tm_year + 1900, nowTime.tm_mon+1, nowTime.tm_mday, nowTime.tm_hour, nowTime.tm_min, nowTime.tm_sec);
 	return 1;
 }
-//
-int getSeconds()
-{
-	int seconds = time(NULL);
-	return seconds;
-}
+
 //
 int getServiceInfo(const char *strResponse, SERVICEVERSION *returnInfo)
 {
 	if(NULL == strResponse)
 	{
-		LOGOUT("pMsg null\n");
+		LOGOUT("pMsg null");
 		return -1;
 	}
 	cJSON * pJson = cJSON_Parse(strResponse);
 	if(NULL == pJson)																						 
 	{
 		// parse faild, return
-		LOGOUT("pJson null\n");
+		LOGOUT("pJson null");
 		return -1;
 	}
 
@@ -108,54 +103,49 @@ int getServiceInfo(const char *strResponse, SERVICEVERSION *returnInfo)
 	if(NULL == pSub)
 	{
 	   //get object named "hello" faild
-	   LOGOUT("result null\n");
+	   LOGOUT("result null");
 	   return -1;
 	}
 	else
 	{
 		returnInfo->result = pSub->valueint;
-		LOGOUT("result : %d\n", pSub->valueint);
+		LOGOUT("result : %d", pSub->valueint);
 	}
 	// get string from json
 	pSub = cJSON_GetObjectItem(pJson, "SwVersion");
 	if(NULL == pSub)
 	{
 		//get object named "hello" faild
-		 LOGOUT("IPCCmdServerURL null\n");
+		 LOGOUT("SwVersion null");
 	}
 	else
 	{
 		sprintf(returnInfo->SwVersion, "%s", pSub->valuestring);
-		LOGOUT("IPCCmdServerURL : %s\n", pSub->valuestring);
+		LOGOUT("SwVersion : %s", pSub->valuestring);
 	}
 	// get OSSbucketName string from json
 	pSub = cJSON_GetObjectItem(pJson, "imageFileBytes");
 	if(NULL == pSub)
 	{
 		//get object named "hello" faild
-		 LOGOUT("OSSbucketName null\n");
+		 LOGOUT("imageFileBytes null");
 	}
 	else
 	{
 		//sprintf(returnInfo->OSSbucketName, "%s", pSub->valuestring);
 		returnInfo->imageFileBytes = atoi(pSub->valuestring);
-		LOGOUT("imageFileBytes : %s\n", pSub->valuestring);
+		LOGOUT("imageFileBytes : %s", pSub->valuestring);
 	}
 	// get OSSEndpoint string from json
-	printf("test imageFileUrl-----------1\n");
 	pSub = cJSON_GetObjectItem(pJson, "imageFileUrl");
 	if(NULL == pSub)
 	{
-		//get object named "hello" faild
-		printf("test imageFileUrl-----------1.1\n");
-		 LOGOUT("OSSEndpoint null\n");
+		LOGOUT("imageFileUrl null");
 	}
 	else
 	{
-		printf("test imageFileUrl----------2\n");
 		sprintf(returnInfo->imageFileUrl, "%s", pSub->valuestring);
-		printf("test imageFileUrl----%s------2.1\n", returnInfo->imageFileUrl);
-		LOGOUT("OSSEndpoint : %s\n", pSub->valuestring);
+		LOGOUT("imageFileUrl : %s", returnInfo->imageFileUrl);
 	}
 	
 	cJSON_Delete(pJson);
@@ -307,12 +297,11 @@ int Get_head(char *strUrl, char *strPost, char *strResponse)
 //
 int getServiceVersion(SERVICEVERSION *returnInfo)
 {
-	//char sendBuf[] = {0};
-	//sprintf(sendBuf, "ipc_id=%s&HwVersion=S0&SwVersion=%s", g_szServerNO, SDK_SYSTEM_FWVERSION) ;
-	
-	char sendBuf[] = "ipc_id=LB1GB29HYM3M8HJ7111C&HwVersion=S0&SwVersion=123456";
+	char sendBuf[256] = {0};
+	sprintf(sendBuf, "ipc_id=%s&HwVersion=%s&SwVersion=%s",g_szOtherServerNO,g_szHardVersion,g_szSoftVersion);
+	//char sendBuf[] = "ipc_id=LB1GB29HYM3M8HJ7111C&HwVersion=S0&SwVersion=123456";
 	char strUrl[] = "http://ipc.100memory.com/ipccmd_1p4.php?act=checkTheLatestSwVersion";
-	char strResponse[1024] = {0};
+	char strResponse[4096] = {0};
 	Post_head1(strUrl, sendBuf, strResponse);
 	if(strResponse == NULL)
 	{
@@ -320,21 +309,19 @@ int getServiceVersion(SERVICEVERSION *returnInfo)
 		return -1;
 	}
 	//LOGINRETURNINFO returnInfo;
-	LOGOUT("--------------%s------\n", strResponse);
+	printf("strResponse=%s-", strResponse);
 	getServiceInfo(strResponse, returnInfo);
-	printf("----------tst---1\n");
-	LOGOUT("result:%d, SwVersion:%s, imageFileBytes:%d, imageFileUrl:%s",returnInfo->result, returnInfo->SwVersion, returnInfo->imageFileBytes, returnInfo->imageFileUrl);
-	printf("----------tst---2\n");
+	printf("result:%d, SwVersion:%s, imageFileBytes:%d, imageFileUrl:%s\n",returnInfo->result, returnInfo->SwVersion, returnInfo->imageFileBytes, returnInfo->imageFileUrl);
 	return 1;
 }
 //
-int reportImageUpdateResult(SERVICEVERSION returnInfo, int operTime)
+int reportImageUpdateResult(SERVICEVERSION returnInfo, char *operTime)
 {
-	//g_szServerNO,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword
+	//g_szOtherServerNO,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword
 	//
 	int result = 0;
 	char sendBuf[1024] = {0};//"id=LB1GB29HYM3M8HJ7111C&pwd=123456";
-	sprintf(sendBuf, "ipc_id=%s&result=%d&HwVersion=%s&SwVersionBeforeUpgrade=%s&SwVersionAfterUpgrade=%s&updateTime=%d",g_szServerNO, returnInfo.result, g_szHardVersion, g_szSoftVersion, returnInfo.SwVersion, operTime);
+	sprintf(sendBuf, "ipc_id=%s&result=%d&HwVersion=%s&SwVersion=%s&updateTime=%s",g_szOtherServerNO, returnInfo.result, g_szHardVersion, g_szSoftVersion, operTime);
 	char strUrl[] = "http://ipc.100memory.com/ipccmd_1p4.php?act=reportImageUpdateResult";
 	char strResponse[1024] = {0};
 	Post_head1(strUrl, sendBuf, strResponse);
@@ -348,11 +335,11 @@ int reportImageUpdateResult(SERVICEVERSION returnInfo, int operTime)
 //
 int ipcRestartReportImageUpdateResult(char *operTime)
 {
-	//g_szServerNO,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword
+	//g_szOtherServerNO,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword
 	//
 	int result = 0;
 	char sendBuf[1024] = {0};//"id=LB1GB29HYM3M8HJ7111C&pwd=123456";
-	sprintf(sendBuf, "ipc_id=%s&result=%d&HwVersion=%s&SwVersionBeforeUpgrade=%s&SwVersionAfterUpgrade=%s&updateTime=%s",g_szServerNO, 1, g_szHardVersion, g_szSoftVersion, operTime);
+	sprintf(sendBuf, "ipc_id=%s&result=%d&HwVersion=%s&SwVersion=%s&updateTime=%s",g_szOtherServerNO, 1, g_szHardVersion, g_szSoftVersion, operTime);
 	char strUrl[] = "http://ipc.100memory.com/ipccmd_1p4.php?act=reportImageUpdateResult";
 	char strResponse[1024] = {0};
 	Post_head1(strUrl, sendBuf, strResponse);
@@ -451,20 +438,49 @@ int updateFun(char *version, SERVICEVERSION *returnInfo)
 	int ret = 0;
 	char *package = NULL;
 	getServiceVersion(returnInfo);
+	char ipcHardVersion[128]={0};
+	char serverHardVersion[128]={0};
+	char *ptr=strchr(version,'_');
+	if(ptr)
+	{	
+		int flag=ptr-version;
+		memcpy(ipcHardVersion,version,MIN(flag,sizeof(ipcHardVersion)));
+	}
+	else
+	{
+		LOGOUT("IPC version is error %s",version);
+		return -1;
+	}
+	ptr=strchr(returnInfo->SwVersion,'_');
+	if(ptr)
+	{	
+		int flag=ptr-returnInfo->SwVersion;
+		memcpy(serverHardVersion,returnInfo->SwVersion,MIN(flag,sizeof(serverHardVersion)));
+	}
+	else
+	{
+		LOGOUT("server version is error %s",version);
+		return -1;
+	}		
+	if(strcmp(ipcHardVersion,serverHardVersion) != 0)//服务器版本<=IPC当前版本
+	{
+		LOGOUT("IPC hardversion:%s != server hardversion:%s",ipcHardVersion,serverHardVersion);
+		return -1;
+	}
 	if(strcmp(returnInfo->SwVersion, version) <= 0)//服务器版本<=IPC当前版本
 	{
-		LOGOUT("service version <= IPC version, not update\n");
+		LOGOUT("service version:%s <= IPC version:%s, not update",returnInfo->SwVersion, version);
 		return -1;
 	}
 	else
 	{
-		LOGOUT("service version > IPC version, must update\n");
+		LOGOUT("service version:%s > IPC version:%s, must update",returnInfo->SwVersion, version);
 	}
 	//
 	if(returnInfo->result != 1 || returnInfo->imageFileBytes < 1 || returnInfo->imageFileUrl == NULL)
 	{
 		LOGOUT("returnInfo.result:%d, returnInfo.imageFileBytes:%d, returnInfo.imageFileUrl:%s\
-		,returnInfo.SwVersion:%s--\n", returnInfo->result, returnInfo->imageFileBytes, returnInfo->imageFileUrl, returnInfo->SwVersion);
+		,returnInfo.SwVersion:%s--", returnInfo->result, returnInfo->imageFileBytes, returnInfo->imageFileUrl, returnInfo->SwVersion);
 		return -1;
 	}
 	package = (char*)malloc(returnInfo->imageFileBytes);
@@ -472,7 +488,7 @@ int updateFun(char *version, SERVICEVERSION *returnInfo)
 	if(1 != ret)
 	{
 		free(package);
-		LOGOUT("getIpcVersionPackage failed\n");
+		LOGOUT("getIpcVersionPackage failed");
 		return -1;
 	}
 	ret = updateFile(package, returnInfo->imageFileBytes, "/mnt/mtd/ipc/tmpfs/syflash/updateVersionFile.zip", "/");
@@ -493,15 +509,13 @@ int getTime()
 	time_t   now;         
 	time(&now);
 	localtime_r(&now, &nowTime);
-	LOGOUT("%04d-%02d-%02d %02d:%02d:%02d\n", 
-			nowTime.tm_year + 1900, nowTime.tm_mon+1, nowTime.tm_mday, nowTime.tm_hour, nowTime.tm_min, nowTime.tm_sec);
+	//LOGOUT("%04d-%02d-%02d %02d:%02d:%02d\n", 
+	//		nowTime.tm_year + 1900, nowTime.tm_mon+1, nowTime.tm_mday, nowTime.tm_hour, nowTime.tm_min, nowTime.tm_sec);
 	return nowTime.tm_hour;
 }
 //
 void *P_UpdateThread()
 {
-	
-
 	int isUpdate = 1;
 	int ret  = 0;
 	char version[80] = {0};
@@ -510,7 +524,7 @@ void *P_UpdateThread()
 	int updateSecond = 0;
 	while(1)
 	{
-		sleep(1);
+		sleep(5);
 		int hour = getTime();
 		if(hour == 3 && isUpdate == 1)
 		{
@@ -519,16 +533,16 @@ void *P_UpdateThread()
 			{
 				memset(&returnInfo, 0, sizeof(returnInfo));
 				memset(version, 0, sizeof(version));
-				sprintf(version, "%s-%s", g_szHardVersion, g_szSoftVersion);
+				sprintf(version, "%s_%s", g_szHardVersion, g_szSoftVersion);
 				LOGOUT("version:%s---\n", version);
-				printf("version:%s---\n", version);
 				ret = updateFun(version, &returnInfo);
 				if(ret == 1)
 				{
 					memset(timeBuf, 0, sizeof(timeBuf));
 					getStrTime(timeBuf);
 					reportImageUpdateResult(returnInfo, timeBuf);
-					system("reboot");
+					LOGOUT("execute %s",CMDREBOOT)
+					system(CMDREBOOT);
 				}
 				updateSecond ++;
 				if(ret == 1 || updateSecond>3)
@@ -548,31 +562,26 @@ void *P_UpdateThread()
 int updateVersion()
 {
 	char version[80] = {0};
-	//char timeBuf[50] = {0};
-	int timeBuf = 0;
+	char timeBuf[50] = {0};
 	SERVICEVERSION returnInfo;
 	int ret = 0;
 	int updateSecond = 0;
 	while(1)
 	{
+		sleep(5);
 		memset(&returnInfo, 0, sizeof(returnInfo));
 		memset(version, 0, sizeof(version));
-		sprintf(version, "%s-%s", g_szHardVersion, g_szSoftVersion);
+		sprintf(version, "%s_%s", g_szHardVersion, g_szSoftVersion);
 		printf("version:%s---\n", version);
 		ret = updateFun(version, &returnInfo);
 		if(ret == 1)
 		{
-			//memset(timeBuf, 0, sizeof(timeBuf));
-			//getStrTime(timeBuf);
-			timeBuf = getSeconds();
+			memset(timeBuf, 0, sizeof(timeBuf));
+			getStrTime(timeBuf);
 			reportImageUpdateResult(returnInfo, timeBuf);
-			system("reboot");
-		}
-		else
-		{
-			timeBuf = getSeconds();
-			returnInfo.result = 0;
-			reportImageUpdateResult(returnInfo, timeBuf);
+			LOGOUT("execute %s",CMDREBOOT)
+			system(CMDREBOOT);
+			break;
 		}
 		updateSecond ++;
 		if(ret == 1 || updateSecond>3)
