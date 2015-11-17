@@ -75,7 +75,7 @@ int main()
 	if(iRet!=0)
 	{
 		LOGOUT("error and return");
-		return -1;
+		//return -1;
 	}
 	//test
 	//	devInfo_test();
@@ -88,14 +88,14 @@ int main()
 	if(iRet!=0)
 	{
 		LOGOUT("error and return");
-		return -1;
+		//return -1;
 	}
 	iRet=InitTcpServer();
 	LOGOUT("InitTcpServer iRet=%d over",iRet);
 	if(iRet!=0)
 	{
 		LOGOUT("error and return");
-		return -1;
+		//return -1;
 	}
 
 	/*iRet=InitUpdate();

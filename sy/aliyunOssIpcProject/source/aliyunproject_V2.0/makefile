@@ -1,4 +1,4 @@
-LIB = -L./liball/libarm -lNetLib -loss_c_sdk -lutf8proc  -laprutil-1 -lapr-1 -lcurl -lxml2 -lfaac -lmp4v2 -ldl -lrt -lpthread -lm -Wl,--rpath=./liball/libarm
+LIB = -L./liball/libarm -lNetLib -loss_c_sdk -lvo-aacenc -lutf8proc  -laprutil-1 -lapr-1 -lcurl -lxml2 -lfaac -lmp4v2 -ldl -lrt -lpthread -lm -Wl,--rpath=./liball/libarm
 #LIB = -L./liball/libarm -lNetLib -loss_c_sdk -lutf8proc  -laprutil-1 -lapr-1 -lcurl -lxml2 -lfaac -ldl -lrt -lpthread -lm -Wl,--rpath=./liball/libarm
 
 INCLUDES = -I./include\
@@ -7,7 +7,8 @@ INCLUDES = -I./include\
 		   -I./include/ossSDK\
 		   -I./include/mp4v2\
 		   -I./include/curl\
-		   -I./include/openssl
+		   -I./include/openssl\
+		   -I./include/vo-aacenc
 #关闭所有 未使用变量、printf格式化、警告 
 #FLAGS = -m32 -O2 -Wall -Wno-unused -Wno-format -fstrength-reduce -DHI_OS_LINUX
 FLAGS = -O3 -Wall -Wno-unused -Wno-format -fstrength-reduce -DHI_OS_LINUX -DCPU_ARM
