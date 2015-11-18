@@ -13,7 +13,7 @@
 #include <errno.h>
 #include "update.h"
 #include "LogOut/LogOut.h"
-#include "Common/DeviceConfig.h"
+#include "../aliyunproject_V2.0/Common/DeviceConfig.h"
 
 
 //#include "../LogOut/LogOut.h"
@@ -23,6 +23,8 @@
 extern char g_szHardVersion[128];
 extern char g_szSoftVersion[128];
 extern char g_szOtherServerNO[80];
+extern char 		 g_szServerNO[80];
+extern char 		 g_szProductId[80];
 
 //g_szOtherServerNO
 //
@@ -315,13 +317,13 @@ int getServiceVersion(SERVICEVERSION *returnInfo)
 	return 1;
 }
 //
-int reportImageUpdateResult(SERVICEVERSION returnInfo, char *operTime)
+int reportImageUpdateResult(SERVICEVERSION returnInfo, int operTime)
 {
-	//g_szOtherServerNO,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword
+	//g_szServerNO,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword
 	//
 	int result = 0;
 	char sendBuf[1024] = {0};//"id=LB1GB29HYM3M8HJ7111C&pwd=123456";
-	sprintf(sendBuf, "ipc_id=%s&result=%d&HwVersion=%s&SwVersion=%s&updateTime=%s",g_szOtherServerNO, returnInfo.result, g_szHardVersion, g_szSoftVersion, operTime);
+	sprintf(sendBuf, "ipc_id=%s&result=%d&HwVersion=%s&SwVersionBeforeUpgrade=%s&SwVersionAfterUpgrade=%s&updateTime=%d",g_szServerNO, returnInfo.result, g_szHardVersion, g_szSoftVersion, returnInfo.SwVersion, operTime);
 	char strUrl[] = "http://ipc.100memory.com/ipccmd_1p4.php?act=reportImageUpdateResult";
 	char strResponse[1024] = {0};
 	Post_head1(strUrl, sendBuf, strResponse);
@@ -332,6 +334,7 @@ int reportImageUpdateResult(SERVICEVERSION returnInfo, char *operTime)
 	}
 	return 1;
 }
+
 //
 int ipcRestartReportImageUpdateResult(char *operTime)
 {
@@ -502,6 +505,14 @@ int updateFun(char *version, SERVICEVERSION *returnInfo)
 	return 1;
 }
 //
+//
+int getSeconds()
+{
+	int seconds = time(NULL);
+	return seconds;
+}
+
+//
 int getTime()
 {
 	static int getTime = 0;
@@ -522,6 +533,7 @@ void *P_UpdateThread()
 	char timeBuf[50] = {0};
 	SERVICEVERSION returnInfo;
 	int updateSecond = 0;
+	int timeSeconds = 0;
 	while(1)
 	{
 		sleep(5);
@@ -538,11 +550,16 @@ void *P_UpdateThread()
 				ret = updateFun(version, &returnInfo);
 				if(ret == 1)
 				{
-					memset(timeBuf, 0, sizeof(timeBuf));
-					getStrTime(timeBuf);
-					reportImageUpdateResult(returnInfo, timeBuf);
+					timeSeconds = getSeconds();
+					reportImageUpdateResult(returnInfo, timeSeconds);
 					LOGOUT("execute %s",CMDREBOOT)
-					system(CMDREBOOT);
+					system("CMDREBOOT");
+				}
+				else
+				{
+					timeSeconds = getSeconds();
+					returnInfo.result = 0;
+					reportImageUpdateResult(returnInfo, timeSeconds);
 				}
 				updateSecond ++;
 				if(ret == 1 || updateSecond>3)
@@ -566,6 +583,7 @@ int updateVersion()
 	SERVICEVERSION returnInfo;
 	int ret = 0;
 	int updateSecond = 0;
+	int timeSeconds = 0;
 	while(1)
 	{
 		sleep(5);
@@ -576,12 +594,16 @@ int updateVersion()
 		ret = updateFun(version, &returnInfo);
 		if(ret == 1)
 		{
-			memset(timeBuf, 0, sizeof(timeBuf));
-			getStrTime(timeBuf);
-			reportImageUpdateResult(returnInfo, timeBuf);
+			timeSeconds = getSeconds();
+			reportImageUpdateResult(returnInfo, timeSeconds);
 			LOGOUT("execute %s",CMDREBOOT)
-			system(CMDREBOOT);
-			break;
+			system("CMDREBOOT");
+		}
+		else
+		{
+			timeSeconds = getSeconds();
+			returnInfo.result = 0;
+			reportImageUpdateResult(returnInfo, timeSeconds);
 		}
 		updateSecond ++;
 		if(ret == 1 || updateSecond>3)

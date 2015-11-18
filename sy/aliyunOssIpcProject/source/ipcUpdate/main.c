@@ -82,9 +82,9 @@ int main()
 	{
 		LOGOUT("InitUpdate success ret:%d", ret);
 	}
-	memset(timeBuf, 0, sizeof(timeBuf));
+	/*memset(timeBuf, 0, sizeof(timeBuf));
 	getStrTime(timeBuf);
-	ipcRestartReportImageUpdateResult(timeBuf);
+	ipcRestartReportImageUpdateResult(timeBuf);*/
 	while(1)
 	{
 		sleep(10);
@@ -102,6 +102,7 @@ int main()
 		{
 			errorNumber = 0;
 			updateVersion();
+			system(CMDREBOOT);
 		}
 	}
 	return 0;
