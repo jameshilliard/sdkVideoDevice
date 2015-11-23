@@ -32,7 +32,7 @@
 
 #if   SDKVERSION == COMMVER1
 
-#define SDK_SYSTEM_FWVERSION	"1.0.0019"	// SDK°æ±¾ºÅ
+#define SDK_SYSTEM_FWVERSION	"1.0.0022"	// SDK°æ±¾ºÅ
 #define DE_ROUTESERVER			"ipc.100memory.com"
 #define	DE_ALBUCKETNAME			"memory100"	
 #define	DE_ALENDPOINT			"oss-cn-qingdao.aliyuncs.com"

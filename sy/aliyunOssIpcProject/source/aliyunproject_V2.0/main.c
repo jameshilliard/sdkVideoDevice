@@ -67,7 +67,7 @@ int main()
 				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szOssEndPoint,
 				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeyId,
 				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeySecret);
-	Init_LogOut(LOGSIZE,LOGDIR,TRUE,TEMPDIR);	
+	Init_LogOut(LOGSIZE,LOGDIR,FALSE,TEMPDIR);	
 	LOGOUT("Init_LogOut %s %s", SDK_HARD_FWVERSION, SDK_SYSTEM_FWVERSION);
 	//InitConServer();
 	iRet=InitHiSDKVideoAllChannel();
@@ -75,7 +75,7 @@ int main()
 	if(iRet!=0)
 	{
 		LOGOUT("error and return");
-		//return -1;
+		return -1;
 	}
 	//test
 	//	devInfo_test();
@@ -88,14 +88,14 @@ int main()
 	if(iRet!=0)
 	{
 		LOGOUT("error and return");
-		//return -1;
+		return -1;
 	}
 	iRet=InitTcpServer();
 	LOGOUT("InitTcpServer iRet=%d over",iRet);
 	if(iRet!=0)
 	{
 		LOGOUT("error and return");
-		//return -1;
+		return -1;
 	}
 
 	/*iRet=InitUpdate();

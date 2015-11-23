@@ -143,10 +143,10 @@ static int  controlMD(HI_U32 u32Handle,int i,HI_U32 *j)
 {		
 	static HI_S_MD_PARAM mHI_S_MD_PARAM[4]=
 	{
-	 {HI_NET_DEV_CHANNEL_1,1,HI_TRUE,50,DE_WIDTH*0  ,DE_HEIGHT*1/8  ,DE_WIDTH/8,DE_HEIGHT*3/8},
-	 {HI_NET_DEV_CHANNEL_1,2,HI_TRUE,50,DE_WIDTH*0  ,DE_HEIGHT*9/16 ,DE_WIDTH/8,DE_HEIGHT*3/8},
-	 {HI_NET_DEV_CHANNEL_1,3,HI_TRUE,50,DE_WIDTH*7/8,DE_HEIGHT*1/8  ,DE_WIDTH/8,DE_HEIGHT*3/8},
-	 {HI_NET_DEV_CHANNEL_1,4,HI_TRUE,50,DE_WIDTH*7/8,DE_HEIGHT*9/16 ,DE_WIDTH/8,DE_HEIGHT*3/8}
+	 {HI_NET_DEV_CHANNEL_1,1,HI_TRUE,80,DE_WIDTH*0  ,DE_HEIGHT*1/8  ,DE_WIDTH/8,DE_HEIGHT*3/8},
+	 {HI_NET_DEV_CHANNEL_1,2,HI_TRUE,80,DE_WIDTH*0  ,DE_HEIGHT*9/16 ,DE_WIDTH/8,DE_HEIGHT*3/8},
+	 {HI_NET_DEV_CHANNEL_1,3,HI_TRUE,80,DE_WIDTH*7/8,DE_HEIGHT*1/8  ,DE_WIDTH/8,DE_HEIGHT*3/8},
+	 {HI_NET_DEV_CHANNEL_1,4,HI_TRUE,80,DE_WIDTH*7/8,DE_HEIGHT*9/16 ,DE_WIDTH/8,DE_HEIGHT*3/8}
 	};
 	HI_S32 s32Ret=0;
 	//HI_S32 i=0;
@@ -210,7 +210,7 @@ void * controlMDTask(void* param)
 	{
 		nowTickCountMs=getTickCountMs();
 		//if((getTickCountMs()-lastTickCountMs)>=DETECT_MAXTIME)
-		if((getTickCountMs()-lastTickCountMs)>=DETECT_MAXTIME && g_motionFlag==1)
+		if((getTickCountMs()-lastTickCountMs)>=DETECT_MAXTIME)
 		{
 			lastTickCountMs = nowTickCountMs;
 			//LOGOUT("channel=%d nowTickCountMs=%d lastTickCountMs=%d",pHI_CONTROLMD_DATA->m_channel,nowTickCountMs,lastTickCountMs);
@@ -521,9 +521,7 @@ void * makeMp4Task(void* param)
 					LOGOUT("InitMp4Module is success %d",iRet);
 					successFlag=1;
 				}
-				unsigned int power=0;
-				Mp4FileAudioEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)buf,length,&power);
-				
+
 			}
 				break;
 			case RECORDVIDEO:
@@ -1629,7 +1627,7 @@ int InitHiSDKVideoAllChannel()
 	g_quene = (Queue*)QueueListConstruction();
 	if(g_quene)
 	{	
-		iRet=g_quene->initQueue(g_quene->_this,3*1024*1024);
+		iRet=g_quene->initQueue(g_quene->_this,5*1024*1024);
 		if(iRet!=0)
 		{
 			LOGOUT("InitNetwork initqueue error\n");
@@ -1638,7 +1636,7 @@ int InitHiSDKVideoAllChannel()
 	else
 	{
 		LOGOUT("InitNetwork QueueListConstruction error\n");
-		//return -3;
+		return -3;
 	}	
 	HI_NET_DEV_Init();
 	memset(&curVideoParam,0,sizeof(curVideoParam));
@@ -1646,19 +1644,19 @@ int InitHiSDKVideoAllChannel()
 	if(iRet!=0)
 	{
 		LOGOUT("InitHiSDKServer Hight is faliure,iRet=%d",iRet);
-		//return -1;
+		return -1;
 	}
 	g_motionString=malloc(MAX_MOTION_STRING);
 	if(!g_motionString)
 	{
 		LOGOUT("malloc g_motionString %d",MAX_MOTION_STRING);
-		//return -4;
+		return -4;
 	}
 	g_soundString=malloc(MAX_SOUND_STRING);
 	if(!g_soundString)
 	{
 		LOGOUT("malloc g_motionString %d",MAX_SOUND_STRING);
-		//return -5;
+		return -5;
 	}
 
 	pthread_t m_makeMp4Task;//实时播放，过程控制线程
@@ -1666,7 +1664,7 @@ int InitHiSDKVideoAllChannel()
 	if(iRet != 0)
 	{
 		LOGOUT("can't create thread: %s",strerror(iRet));
-		//return -2;
+		return -2;
 	}
 	memset(g_controlMd,0,sizeof(g_controlMd));
 	int i=0;
@@ -1717,14 +1715,6 @@ int InitHiSDKVideoAllChannel()
 		LOGOUT("InitVideoQuene %d failure",VIDEOBUFFERSIZE);
 	}
 	#endif
-
-	int test=0;
-	int ret=g_quene->pushData(g_quene->_this,(void *)&test,sizeof(test),RECORDSTART,0);
-	if(ret!=0)
-	{
-		LOGOUT("pushData is error is %d!",ret);
-	}
-
 
 	return iRet;
 }  

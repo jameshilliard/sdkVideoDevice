@@ -29,9 +29,9 @@
 #define 	VIDEOBUFFERSIZE						1024*1024*4
 
 #ifndef DEBUG_CPU_X86
-#define     SYSTEM_SD_SAVEFILEPATH			    "/mnt/nfs/samba/ipc/tmpfs/sd"
-#define     SYSTEM_MEDIA_SAVEFILEPATH			"/mnt/nfs/samba/ipc/tmpfs/sd/mediaSave"
-#define     SYSTEM_MEDIA_SENDFILEPATH			"/mnt/nfs/samba/ipc/tmpfs/sd/mediaSend"
+#define     SYSTEM_SD_SAVEFILEPATH			    "/mnt/mtd/ipc/tmpfs/sd"
+#define     SYSTEM_MEDIA_SAVEFILEPATH			"/mnt/mtd/ipc/tmpfs/sd/mediaSave"
+#define     SYSTEM_MEDIA_SENDFILEPATH			"/mnt/mtd/ipc/tmpfs/sd/mediaSend"
 #else
 #define     SYSTEM_MEDIA_SAVEFILEPATH			"mediaSave"
 #define     SYSTEM_MEDIA_SENDFILEPATH			"mediaSend"
