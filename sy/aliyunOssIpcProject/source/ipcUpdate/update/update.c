@@ -323,7 +323,7 @@ int reportImageUpdateResult(SERVICEVERSION returnInfo, int operTime)
 	//
 	int result = 0;
 	char sendBuf[1024] = {0};//"id=LB1GB29HYM3M8HJ7111C&pwd=123456";
-	sprintf(sendBuf, "ipc_id=%s&result=%d&HwVersion=%s&SwVersionBeforeUpgrade=%s&SwVersionAfterUpgrade=%s&updateTime=%d",g_szServerNO, returnInfo.result, g_szHardVersion, g_szSoftVersion, returnInfo.SwVersion, operTime);
+	sprintf(sendBuf, "ipc_id=%s&result=%d&HwVersion=%s&SwVersionBeforeUpgrade=%s&SwVersionAfterUpgrade=%s&updateTime=%d",g_szOtherServerNO, returnInfo.result, g_szHardVersion, g_szSoftVersion, returnInfo.SwVersion, operTime);
 	char strUrl[] = "http://ipc.100memory.com/ipccmd_1p4.php?act=reportImageUpdateResult";
 	char strResponse[1024] = {0};
 	Post_head1(strUrl, sendBuf, strResponse);
@@ -470,6 +470,7 @@ int updateFun(char *version, SERVICEVERSION *returnInfo)
 		LOGOUT("IPC hardversion:%s != server hardversion:%s",ipcHardVersion,serverHardVersion);
 		return -1;
 	}
+	printf("returnInfo->SwVersion:%s--version:%s--\n", returnInfo->SwVersion, version);
 	if(strcmp(returnInfo->SwVersion, version) <= 0)//服务器版本<=IPC当前版本
 	{
 		LOGOUT("service version:%s <= IPC version:%s, not update",returnInfo->SwVersion, version);
@@ -543,6 +544,7 @@ void *P_UpdateThread()
 			updateSecond = 0;
 			while(1)
 			{
+				sleep(5);
 				memset(&returnInfo, 0, sizeof(returnInfo));
 				memset(version, 0, sizeof(version));
 				sprintf(version, "%s_%s", g_szHardVersion, g_szSoftVersion);
@@ -553,7 +555,7 @@ void *P_UpdateThread()
 					timeSeconds = getSeconds();
 					reportImageUpdateResult(returnInfo, timeSeconds);
 					LOGOUT("execute %s",CMDREBOOT)
-					system("CMDREBOOT");
+					system(CMDREBOOT);
 				}
 				else
 				{
@@ -569,7 +571,7 @@ void *P_UpdateThread()
 			}
 			isUpdate = 0;
 		}
-		else if(hour != 1)
+		else if(hour != 3)
 		{
 			isUpdate = 1;
 		}
