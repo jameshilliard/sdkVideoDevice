@@ -71,6 +71,29 @@ aos_status_t *oss_list_object(const oss_request_options_t *options,
         const aos_string_t *bucket, oss_list_object_params_t *params, aos_table_t **resp_headers);
 
 /**
+  * @brief  oss put bucket lifycycle
+  * @param[in]  lifecycle_rule_list  the lifecycle to put
+  * @return AOSE_OK success, other failure
+**/
+aos_status_t *oss_put_bucket_lifecycle(const oss_request_options_t *options,
+        const aos_string_t *bucket, aos_list_t *lifecycle_rule_list, aos_table_t **resp_headers);
+
+/**
+  * @brief  oss get bucket lifecycle
+  * @param[out] lifecycle rule list
+  * @return AOSE_OK success, other failure
+**/
+aos_status_t *oss_get_bucket_lifecycle(const oss_request_options_t *options,
+        const aos_string_t *bucket, aos_list_t *lifecycle_rule_list, aos_table_t **resp_headers);
+
+/**
+  * @brief  oss delete bucket lifecycle
+  * @return AOSE_OK success, other failure
+**/
+aos_status_t *oss_delete_bucket_lifecycle(const oss_request_options_t *options,
+        const aos_string_t *bucket, aos_table_t **resp_headers);
+
+/**
   * @brief  oss put object from buffer
   * @param[in]  buffer  the buffer containing object content
   * @return AOSE_OK success, other failure

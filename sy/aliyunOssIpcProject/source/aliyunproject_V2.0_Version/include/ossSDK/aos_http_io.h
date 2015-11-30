@@ -14,6 +14,9 @@ static inline const char *aos_http_controller_get_reason(aos_http_controller_t *
     return ctle->reason;
 }
 
+CURL *aos_request_get();
+void request_release(CURL *request);
+
 int aos_http_io_initialize(const char *user_agent_info, int flag);
 void aos_http_io_deinitialize();
 

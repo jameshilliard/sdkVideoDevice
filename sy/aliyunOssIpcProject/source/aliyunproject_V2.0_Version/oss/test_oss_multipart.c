@@ -213,13 +213,13 @@ int upLoadFile(char *filePath,char *fileName)
 					for(i=0;i<10;i++)
 					{
 						upResult=test_oss_local_from_buf(object_name, data, size, filePos);
-						if(upResult==0)
+						if(upResult==0 || upResult==409)//zss++
 						{
 							break;
 						}
 						usleep(100);
 					}
-				    if(upResult!=0)
+				    if(upResult!=0 && upResult!=409)
 					{
 						LOGOUT("the file send oss failure %d",upResult);
 						break;

@@ -21,6 +21,11 @@ OSS_CPP_START
 int is_oss_domain(const aos_string_t *str);
 
 /**
+  * @brief  check hostname is ip.
+**/
+int is_valid_ip(const aos_string_t *str);
+
+/**
   * @brief  get oss acl str according oss_acl
   * @param[in]  oss_acl the oss bucket acl
   * @return oss acl str
@@ -126,6 +131,7 @@ int oss_init_read_response_body_to_file(aos_pool_t *p, const aos_string_t *filen
 **/
 void *oss_create_api_result_content(aos_pool_t *p, size_t size);
 oss_list_object_content_t *oss_create_list_object_content(aos_pool_t *p);
+oss_list_object_common_prefix_t *oss_create_list_object_common_prefix(aos_pool_t *p);
 oss_list_part_content_t *oss_create_list_part_content(aos_pool_t *p);
 oss_list_multipart_upload_content_t *oss_create_list_multipart_upload_content(aos_pool_t *p);
 oss_complete_part_content_t *oss_create_complete_part_content(aos_pool_t *p);
@@ -155,6 +161,12 @@ oss_upload_file_t *oss_create_upload_file(aos_pool_t *p);
   * @return content-type for HTTP_POST request
 **/
 void oss_set_multipart_content_type(aos_table_t *headers);
+
+/**
+  * @brief  create lifecycle rule content
+  * @return lifecycle rule content
+**/
+oss_lifecycle_rule_content_t *oss_create_lifecycle_rule_content(aos_pool_t *p);
 
 OSS_CPP_END
 
