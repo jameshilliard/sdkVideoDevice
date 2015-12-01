@@ -80,7 +80,7 @@ int main()
 	}
 	else
 	{
-		LOGOUT("InitUpdate success ret:%d", ret);
+		LOGOUT("InitUpdate success ret:%d %s", ret,CMDREBOOT);
 	}
 	/*memset(timeBuf, 0, sizeof(timeBuf));
 	getStrTime(timeBuf);

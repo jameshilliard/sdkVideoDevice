@@ -13,7 +13,7 @@
 #include <errno.h>
 #include "update.h"
 #include "LogOut/LogOut.h"
-#include "../aliyunproject_V2.0/Common/DeviceConfig.h"
+#include "Common/DeviceConfig.h"
 
 
 //#include "../LogOut/LogOut.h"
