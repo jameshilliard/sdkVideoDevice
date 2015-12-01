@@ -485,7 +485,7 @@ int updateFun(char *version, SERVICEVERSION *returnInfo)
 	{
 		LOGOUT("returnInfo.result:%d, returnInfo.imageFileBytes:%d, returnInfo.imageFileUrl:%s\
 		,returnInfo.SwVersion:%s--", returnInfo->result, returnInfo->imageFileBytes, returnInfo->imageFileUrl, returnInfo->SwVersion);
-		return -1;
+		return -2;
 	}
 	package = (char*)malloc(returnInfo->imageFileBytes);
 	ret = getIpcVersionPackage(returnInfo->imageFileUrl, returnInfo->imageFileBytes, package);
@@ -493,14 +493,14 @@ int updateFun(char *version, SERVICEVERSION *returnInfo)
 	{
 		free(package);
 		LOGOUT("getIpcVersionPackage failed");
-		return -1;
+		return -2;
 	}
 	ret = updateFile(package, returnInfo->imageFileBytes, "/mnt/mtd/ipc/tmpfs/syflash/updateVersionFile.zip", "/");
 	free(package);// Õ∑≈ø’º‰
 	if(ret != 1)
 	{
 		LOGOUT("--------getIpcVersionPackage,updateFile failed %d ---\n", ret);
-		return -1;
+		return -2;
 	}
 	system("chmod -R 777 /mnt/mtd/ipc/sykj");
 	return 1;
@@ -557,7 +557,7 @@ void *P_UpdateThread()
 					LOGOUT("execute %s",CMDREBOOT)
 					system(CMDREBOOT);
 				}
-				else
+				else if(ret == -2)
 				{
 					timeSeconds = getSeconds();
 					returnInfo.result = 0;
@@ -601,7 +601,7 @@ int updateVersion()
 			LOGOUT("execute %s",CMDREBOOT)
 			system("CMDREBOOT");
 		}
-		else
+		else if(ret == -2)
 		{
 			timeSeconds = getSeconds();
 			returnInfo.result = 0;
