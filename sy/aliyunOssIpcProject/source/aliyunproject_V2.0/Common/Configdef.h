@@ -32,7 +32,7 @@
 
 #if   SDKVERSION == COMMVER1
 
-#define SDK_SYSTEM_FWVERSION	"1.0.0022"	// SDK°æ±¾ºÅ
+#define SDK_SYSTEM_FWVERSION	"1.0.0026"	// SDK°æ±¾ºÅ
 #define DE_ROUTESERVER			"ipc.100memory.com"
 #define	DE_ALBUCKETNAME			"memory100"	
 #define	DE_ALENDPOINT			"oss-cn-qingdao.aliyuncs.com"
@@ -41,7 +41,7 @@
 
 #elif SDKVERSION == COMMVER2 
 
-#define SDK_SYSTEM_FWVERSION	"2.0.0017"	// SDK°æ±¾ºÅ
+#define SDK_SYSTEM_FWVERSION	"2.0.0026"	// SDK°æ±¾ºÅ
 #define DE_ROUTESERVER			"ipc.355fun.com"
 #define	DE_ALBUCKETNAME			"cyq-fyws"	
 #define	DE_ALENDPOINT			"oss-cn-qingdao.aliyuncs.com"
@@ -65,7 +65,7 @@
 #define	LOGUPDATEDIR			"/mnt/mtd/ipc/tmpfs/syflash/updateLog"
 #define TEMPDIR 				"/mnt/mtd/ipc/tmpfs/sytmp"
 #define ENCODEFILE 				"/mnt/mtd/ipc/conf/config_encode.ini"
-#define CMDREBOOT 				"killall uipcam;sleep 3;/mnt/mtd/ipc/sykj/uipcam &"
+#define CMDREBOOT 				"killall uipcam;killall aliyunOss.bin;sleep 3;/mnt/mtd/ipc/sykj/uipcam &"
 #define	DE_ROUTESERVERPORT		80
 
 

@@ -63,7 +63,6 @@ typedef struct Joseph_Mp4_Config
 	MP4FileHandle hFile;           //mp4文件描述符
 	MP4TrackId video;              //视频轨道标志符
 	MP4TrackId audio;              //音频轨道标志符
-	
 	int m_vFrameDur;               //帧间隔时间
 	unsigned int timeScale;        //视频每秒的ticks数,如90000
 	unsigned int fps;              //视频帧率

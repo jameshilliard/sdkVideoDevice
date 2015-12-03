@@ -11,6 +11,7 @@ struct aos_status_s {
     int code; // > 0 http code
     char *error_code; // can't modify
     char *error_msg; // can't modify
+    char *req_id;   // can't modify
 };
 
 static inline int aos_status_is_ok(aos_status_t *s)

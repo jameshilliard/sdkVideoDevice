@@ -52,6 +52,7 @@ extern const char OSS_MULTIPART_CONTENT_TYPE[];
 extern const char OSS_COPY_SOURCE[];
 extern const char OSS_COPY_SOURCE_RANGE[];
 extern const char OSS_STS_SECURITY_TOKEN[];
+extern const char OSS_LIFECYCLE[];
 
 typedef struct oss_lib_curl_initializer_s oss_lib_curl_initializer_t;
 
@@ -99,6 +100,11 @@ typedef struct {
 
 typedef struct {
     aos_list_t node;
+    aos_string_t prefix;
+} oss_list_object_common_prefix_t;
+
+typedef struct {
+    aos_list_t node;
     aos_string_t key;
     aos_string_t upload_id;
     aos_string_t initiated;
@@ -126,6 +132,7 @@ typedef struct {
     int truncated;
     aos_string_t next_marker;
     aos_list_t object_list;
+    aos_list_t common_prefix_list;
 } oss_list_object_params_t;
 
 typedef struct {
@@ -164,5 +171,14 @@ typedef struct {
     int64_t file_pos;   /**< file range read start position */
     int64_t file_last;  /**< file range read last position */
 } oss_upload_file_t;
+
+typedef struct {
+    aos_list_t node;
+    aos_string_t id;
+    aos_string_t prefix;
+    aos_string_t status;
+    int days;
+    aos_string_t date;
+} oss_lifecycle_rule_content_t;
 
 #endif

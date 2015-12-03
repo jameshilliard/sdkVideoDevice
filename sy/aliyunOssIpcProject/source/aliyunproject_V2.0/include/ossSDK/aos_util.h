@@ -17,6 +17,7 @@ int aos_parse_xml_body(aos_list_t *bc, xmlDoc **doc, xmlNode **root);
 
 void aos_gnome_sort(const char **headers, int size);
 
+int aos_convert_to_gmt_time(char* date, const char* format, apr_time_exp_t *tm);
 int aos_get_gmt_str_time(char datestr[AOS_MAX_GMT_TIME_LEN]);
 
 /**

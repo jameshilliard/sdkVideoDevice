@@ -36,28 +36,28 @@ typedef enum {
 typedef enum {
     AOSE_OK = 0,
     AOSE_OUT_MEMORY = -1000,
-    AOSE_OVER_MEMORY,
-    AOSE_FAILED_CONNECT,
-    AOSE_ABORT_CALLBACK,
-    AOSE_INTERNAL_ERROR,
-    AOSE_REQUEST_TIMEOUT,
-    AOSE_INVALID_ARGUMENT,
-    AOSE_INVALID_OPERATION,
-    AOSE_CONNECTION_FAILED,
-    AOSE_FAILED_INITIALIZE,
-    AOSE_NAME_LOOKUP_ERROR,
-    AOSE_FAILED_VERIFICATION,
-    AOSE_WRITE_BODY_ERROR,
-    AOSE_READ_BODY_ERROR,
-    AOSE_SERVICE_ERROR,
-    AOSE_OPEN_FILE_ERROR,
-    AOSE_FILE_SEEK_ERROR,
-    AOSE_FILE_INFO_ERROR,
-    AOSE_FILE_READ_ERROR,
-    AOSE_FILE_WRITE_ERROR,
-    AOSE_XML_PARSE_ERROR,
-    AOSE_UTF8_ENCODE_ERROR,
-    AOSE_UNKNOWN_ERROR,
+    AOSE_OVER_MEMORY = -999,
+    AOSE_FAILED_CONNECT = -998,
+    AOSE_ABORT_CALLBACK = -997,
+    AOSE_INTERNAL_ERROR = -996,
+    AOSE_REQUEST_TIMEOUT = -995,
+    AOSE_INVALID_ARGUMENT = -994,
+    AOSE_INVALID_OPERATION = -993,
+    AOSE_CONNECTION_FAILED = -992,
+    AOSE_FAILED_INITIALIZE = -991,
+    AOSE_NAME_LOOKUP_ERROR = -990,
+    AOSE_FAILED_VERIFICATION = -989,
+    AOSE_WRITE_BODY_ERROR = -988,
+    AOSE_READ_BODY_ERROR = -987,
+    AOSE_SERVICE_ERROR = -986,
+    AOSE_OPEN_FILE_ERROR = -985,
+    AOSE_FILE_SEEK_ERROR = -984,
+    AOSE_FILE_INFO_ERROR = -983,
+    AOSE_FILE_READ_ERROR = -982,
+    AOSE_FILE_WRITE_ERROR = -981,
+    AOSE_XML_PARSE_ERROR = -980,
+    AOSE_UTF8_ENCODE_ERROR = -979,
+    AOSE_UNKNOWN_ERROR = -978
 } aos_error_code_e;
 
 typedef apr_pool_t aos_pool_t;
@@ -94,7 +94,7 @@ typedef apr_array_header_t aos_array_header_t;
 #define AOS_INIT_WINSOCK 1
 #define AOS_MD5_STRING_LEN 32
 #define AOS_MAX_URI_LEN 2048
-#define AOS_MAX_HEADER_LEN 1024
+#define AOS_MAX_HEADER_LEN 4096
 #define AOS_MAX_QUERY_ARG_LEN 1024
 #define AOS_MAX_GMT_TIME_LEN 128
 
@@ -103,6 +103,8 @@ typedef apr_array_header_t aos_array_header_t;
 #define AOS_MIN_SPEED_LIMIT 1024
 #define AOS_MIN_SPEED_TIME 15
 #define AOS_MAX_MEMORY_SIZE 1024*1024*1024L;
+
+#define AOS_REQUEST_STACK_SIZE 32
 
 #define aos_abs(value)       (((value) >= 0) ? (value) : - (value))
 #define aos_max(val1, val2)  (((val1) < (val2)) ? (val2) : (val1))
@@ -113,7 +115,7 @@ typedef apr_array_header_t aos_array_header_t;
 #define CRLF   "\x0d\x0a"
 
 #define aos_version    0000001
-#define AOS_VERSION    "0.0.3"
-#define AOS_VER        "libaos_" AOS_VERSION
+#define AOS_VERSION    "0.0.7"
+#define AOS_VER        "aliyun-sdk-c/" AOS_VERSION
 
 #endif

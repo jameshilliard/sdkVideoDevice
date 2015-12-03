@@ -29,6 +29,16 @@ char *build_complete_multipart_upload_xml(aos_pool_t *p, aos_list_t *bc);
 void build_complete_multipart_upload_body(aos_pool_t *p, aos_list_t *part_list, aos_list_t *body);
 
 /**
+  * @brief  build xml body for put lifecycle
+  **/
+char *build_lifecycle_xml(aos_pool_t *p, aos_list_t *lifecycle_rule_list);
+
+/**
+  * @brief  build body for put lifecycle
+  **/
+void build_lifecycle_body(aos_pool_t *p, aos_list_t *lifecycle_rule_list, aos_list_t *body);
+
+/**
   * @bried  pares acl from xml body for get_bucket_acl
 **/
 int oss_acl_parse_from_body(aos_pool_t *p, aos_list_t *bc, aos_string_t *oss_acl);
@@ -45,8 +55,12 @@ void oss_list_objects_owner_parse(aos_pool_t *p, xmlNodePtr cur_node, oss_list_o
 void oss_list_objects_content_parse(aos_pool_t *p, xmlNodePtr xml_node, oss_list_object_content_t *content);
 void oss_list_objects_contents_parse(aos_pool_t *p, xmlDocPtr doc, const char *xml_path,
             aos_list_t *object_list);
+void oss_list_objects_prefix_parse(aos_pool_t *p, xmlNodePtr prefix_node, 
+            oss_list_object_common_prefix_t *common_prefix);
+void oss_list_objects_common_prefix_parse(aos_pool_t *p, xmlDocPtr doc, const char *xml_path,
+            aos_list_t *common_prefix_list);
 int oss_list_objects_parse_from_body(aos_pool_t *p, aos_list_t *bc, aos_list_t *object_list, 
-            aos_string_t *marker, int *truncated);
+            aos_list_t *common_prefix_list, aos_string_t *marker, int *truncated);
 
 /**
   * @brief parse parts from xml body for list upload part
@@ -67,6 +81,17 @@ void oss_list_multipart_uploads_content_parse(aos_pool_t *p, xmlNodePtr xml_node
 int oss_list_multipart_uploads_parse_from_body(aos_pool_t *p, aos_list_t *bc,
             aos_list_t *upload_list, aos_string_t *key_marker,
             aos_string_t *upload_id_marker, int *truncated);
+
+/**
+  * @brief parse lifecycle rules from xml body
+**/
+void oss_lifecycle_rule_expire_parse(aos_pool_t *p, xmlNodePtr xml_node, 
+    oss_lifecycle_rule_content_t *content);
+void oss_lifecycle_rule_content_parse(aos_pool_t *p, xmlNodePtr xml_node, 
+    oss_lifecycle_rule_content_t *content);
+void oss_lifecycle_rule_contents_parse(aos_pool_t *p, xmlDocPtr doc, const char *xml_path,
+    aos_list_t *lifecycle_rule_list);
+int oss_lifecycle_rules_parse_from_body(aos_pool_t *p, aos_list_t *bc, aos_list_t *lifecycle_rule_list);
 
 OSS_CPP_END
 
