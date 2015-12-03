@@ -4,6 +4,9 @@
 #include <unistd.h>
 #include "faac.h"
 #include "mp4v2/mp4v2.h"  
+#include "voAAC.h"
+#include "cmnMemory.h"
+
 
 #define  JOSEPH_G711A_LOCATION  "./av_file/test1.g711a"
 #define  JOSEPH_H264_LOCALTION "./av_file/"
@@ -42,6 +45,16 @@ typedef struct Joseph_Acc_Config
 	unsigned char* 	pbAACBuffer;       //aac数据
 	unsigned int   	valid;
 
+	VO_AUDIO_CODECAPI codec_api;
+	VO_HANDLE handle;
+	VO_MEM_OPERATOR mem_operator;
+	VO_CODEC_INIT_USERDATA user_data;
+	AACENC_PARAM params;
+
+	VO_CODECBUFFER input;
+	VO_CODECBUFFER output;
+	VO_AUDIO_OUTPUTINFO output_info;
+
 }JOSEPH_ACC_CONFIG;
 
 typedef struct Joseph_Mp4_Config
@@ -50,6 +63,7 @@ typedef struct Joseph_Mp4_Config
 	MP4FileHandle hFile;           //mp4文件描述符
 	MP4TrackId video;              //视频轨道标志符
 	MP4TrackId audio;              //音频轨道标志符
+	
 	int m_vFrameDur;               //帧间隔时间
 	unsigned int timeScale;        //视频每秒的ticks数,如90000
 	unsigned int fps;              //视频帧率
