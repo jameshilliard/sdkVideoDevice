@@ -1,4 +1,4 @@
-1.openssl
+﻿1.openssl
 ./config --prefix=/home/samba/share/sourceOpen/AliYun/arm/libarmOs no-asm shared  --cross-compile-prefix=arm-hisiv100nptl-linux-
 2.xml2
 ./configure --prefix=/home/samba/share/sourceOpen/AliYun/arm/libarmOs --host=arm-hisiv100nptl-linux CC=arm-hisiv100nptl-linux-gcc --with-minimum --with-xpath --with-tree --with-writer
@@ -15,6 +15,13 @@ make -j4 CC=arm-hisiv100nptl-linux-gcc
 1../configure --host=arm-hisiv100nptl-linux --prefix=/home/samba/share/sourceOpen/AliYun/arm/libarmOs
 2.make
 3.make install
+8.liboss_sdk
+./configure --host=arm-hisiv100nptl-linux CC=arm-hisiv100nptl-linux-g++ --prefix=/home/erreur/workSpace/workSource/AliYun/arm/libarmOs
+
+    -I/home/erreur/workSpace/workSource/AliYun/arm/libarmOs/include\
+    -I/home/erreur/workSpace/workSource/AliYun/arm/libarmOs/include/libxml2\
+    -I/home/erreur/workSpace/workSource/AliYun/arm/libarmOs/include/apr-1
+
 优化
 在不修改源码的情况下，faac的内存占用非常高，每路音频在13M左右。如果多路音频的话，内存将很快耗尽。
 搜索MAX_CHANNELS的定义，默认是6 和64，全部改成1（一般都是单声道）。

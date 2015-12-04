@@ -261,10 +261,11 @@ static int pcmAver=0;
 int g711a_decode(void *pout_buf, int *pout_len, const void *pin_buf, const int  in_len)
 {
     int16_t *dst = (int16_t *)pout_buf;
+	uint8_t *dst8 = (uint8_t *)pin_buf;
     uint8_t *src = (uint8_t *)pin_buf;
     uint32_t i = 0;
 	int Ret = 0;
-	
+	int16_t temp=0;
     if ( (NULL == pout_buf)
         || (NULL == pout_len)
         || (NULL == pin_buf)
@@ -280,7 +281,10 @@ int g711a_decode(void *pout_buf, int *pout_len, const void *pin_buf, const int  
     
     for( i = 0; i < in_len; i++ )
     {
-        *(dst++) = alawtos16[*(src++)];
+        temp = alawtos16[*(src++)];
+		*(dst++)=temp; 
+		//*(dst8++)=temp;
+		//*(dst8++)=temp>>8;
     }
     
 	Ret = 2 * in_len;
@@ -586,7 +590,7 @@ int InitAccEncoder(JOSEPH_ACC_CONFIG *joseph_aac_config)
 	joseph_aac_config->nSampleRate = 8000;
 	joseph_aac_config->nChannels = 1;
 	joseph_aac_config->nPCMBitSize = 16;
-	joseph_aac_config->nInputSamples = 0;
+	joseph_aac_config->nInputSamples = 1024;
 	joseph_aac_config->nMaxOutputBytes = 0;
 
 	#if 0
@@ -611,7 +615,7 @@ int InitAccEncoder(JOSEPH_ACC_CONFIG *joseph_aac_config)
 	pConfiguration = faacEncGetCurrentConfiguration(joseph_aac_config->hEncoder);
 #if 1
 	pConfiguration->inputFormat = FAAC_INPUT_16BIT;
-	pConfiguration->outputFormat = 0;
+	pConfiguration->outputFormat = 1;
     pConfiguration->aacObjectType = LOW;
 #else
 	pConfiguration->inputFormat = FAAC_INPUT_16BIT;
@@ -653,7 +657,7 @@ int InitAccEncoder(JOSEPH_ACC_CONFIG *joseph_aac_config)
 	joseph_aac_config->params.sampleRate = joseph_aac_config->nSampleRate;
 	joseph_aac_config->params.bitRate = joseph_aac_config->nSampleRate*joseph_aac_config->nPCMBitSize;
 	joseph_aac_config->params.nChannels = joseph_aac_config->nChannels;
-	joseph_aac_config->params.adtsUsed = 1;
+	joseph_aac_config->params.adtsUsed = VOAAC_RAWDATA;
 	if (joseph_aac_config->codec_api.SetParam(joseph_aac_config->handle, VO_PID_AAC_ENCPARAM, &joseph_aac_config->params) != VO_ERR_NONE)
 	{
 		LOGOUT("Unable to set encoding parameters\n");
@@ -801,7 +805,7 @@ int Mp4FileAudioEncode(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *j
 		else
 		{
 			//LOGOUT("GetOutputData datas is %d",joseph_aac_config->output.Length);
-			nRet=1;
+			nRet=joseph_aac_config->output.Length;
 		}
 		#endif
 		//LOGOUT("nRet  %d  joseph_aac_config->nInputSamples %d",nRet,joseph_aac_config->nInputSamples);
@@ -812,6 +816,7 @@ int Mp4FileAudioEncode(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *j
 			joseph_aac_config->nPcmBufferLelf=0;
 			continue;
 		}
+		//SaveRecordFile("my.aac",joseph_aac_config->pbAACBuffer, nRet);
 		/*write audio frame to mp4*/
 		if((nRet=Mp4AEncode(joseph_mp4_config, joseph_aac_config->pbAACBuffer, nRet)) < 0)
 		{
