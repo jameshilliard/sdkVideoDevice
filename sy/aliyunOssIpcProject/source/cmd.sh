@@ -1,0 +1,1 @@
+export PATH=$PATH:/opt/hisi-linux-nptl/arm-hisiv100-linux/target/bin
