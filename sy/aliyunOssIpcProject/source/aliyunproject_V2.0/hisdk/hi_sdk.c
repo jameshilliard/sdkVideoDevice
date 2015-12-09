@@ -424,7 +424,7 @@ void * makeMp4Task(void* param)
 	while(1)
 	{
 		//memset(buf,0,sizeof(buf));
-		/*sym=0;
+		sym=0;
 		int ret = g_quene->popData(g_quene->_this, (void*)buf,512*1024, &length, &sym, &id);
 		if(ret==0)
 		{
@@ -605,7 +605,7 @@ void * makeMp4Task(void* param)
 			}
 			//usleep(10*1000);
 		}
-		else*/
+		else
 		{
 			usleep(10*1000);
 		}
@@ -1761,20 +1761,4 @@ int ReleaseHiSDKVideoAllChannel()
 	return iRet;
 
 }
-//
-int devInfo_test()
-{
-	printf("abc-------1\n");
-	//HI_U32 u32Handle = 0;
-	HI_U32 *u32Handle=&u32HandleHight;;
-	//int iRet=InitHiSDKServer(&u32Handle);
-	printf("abc-------1.1\n");
-	HI_DEVICE_INFO s_deviceInfo;
-	int ret = HI_NET_DEV_GetConfig(u32Handle, HI_NET_DEV_CMD_DEVICE_INFO, &s_deviceInfo, sizeof(HI_DEVICE_INFO));
-	printf("abc--%d--2\n", ret);
-	printf("sdk number:%s-%s--\n", s_deviceInfo.aszServerSoftVersion, s_deviceInfo.aszServerName);
-	return 1;
-}
-
-//
 

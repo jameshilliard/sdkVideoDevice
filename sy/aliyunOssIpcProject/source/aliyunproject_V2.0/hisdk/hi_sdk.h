@@ -85,7 +85,6 @@ extern "C" {
 	int GetMasterVideoStream(HI_S_Video_Ext *sVideo);
 	int SetMasterVideoStream(HI_S_Video_Ext *sVideo);
 	int MakeKeyFrame();
-	int devInfo_test();//test
 	//int stopVideoStream(HI_U32 *u32Handle);
 	//int setVideoParam(HI_U32 *u32Handle,HI_S_Video_Ext sVideo);
 	//int getVideoParam(HI_U32 *u32Handle,HI_S_Video_Ext *sVideo);
