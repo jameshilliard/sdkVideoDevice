@@ -479,8 +479,8 @@ int updateFun(char *version, SERVICEVERSION *returnInfo)
 	getServiceVersion(returnInfo);
 	char ipcHardVersion[128]={0};
 	char serverHardVersion[128]={0};
-	char serverSoftVersion[10] = {0};
-	char localSoftVersion[10] = {0};
+	char serverSoftVersion[32] = {0};
+	char localSoftVersion[32] = {0};
 	char *ptr=strchr(version,'_');
 	if(ptr)
 	{	
