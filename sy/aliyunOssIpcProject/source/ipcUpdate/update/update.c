@@ -436,6 +436,42 @@ int getIpcVersionPackage(char *url, int fileSize, char *package)
 	return 1;
 }
 //
+int getChar(const char *src, char *dest, char *str, int number)
+{
+	int i = 0;
+	if(dest == NULL || src == NULL || str == NULL)
+	{
+		return -1;
+	}
+	char *pstr = src;
+	char *pstr1 = NULL;
+	for(i=0; i<number; i++)
+	{
+		pstr1 = strstr(pstr, str);
+		if(pstr1 == NULL)
+		{
+			return -1;
+		}
+		else
+		{
+			pstr = pstr1+1;
+		}
+
+		if(i == number-1)
+		{
+			//dest = pstr;
+			strcpy(dest, pstr);
+		}
+		
+	}
+	printf("pstr---%s---\n", pstr);
+	printf("dest---%s---\n", dest);
+	return 1;
+}
+
+
+
+//
 int updateFun(char *version, SERVICEVERSION *returnInfo)
 {
 	int ret = 0;
@@ -443,6 +479,8 @@ int updateFun(char *version, SERVICEVERSION *returnInfo)
 	getServiceVersion(returnInfo);
 	char ipcHardVersion[128]={0};
 	char serverHardVersion[128]={0};
+	char serverSoftVersion[10] = {0};
+	char localSoftVersion[10] = {0};
 	char *ptr=strchr(version,'_');
 	if(ptr)
 	{	
@@ -470,15 +508,29 @@ int updateFun(char *version, SERVICEVERSION *returnInfo)
 		LOGOUT("IPC hardversion:%s != server hardversion:%s",ipcHardVersion,serverHardVersion);
 		return -1;
 	}
-	printf("returnInfo->SwVersion:%s--version:%s--\n", returnInfo->SwVersion, version);
-	if(strcmp(returnInfo->SwVersion, version) <= 0)//服务器版本<=IPC当前版本
+	ret = getChar(version, localSoftVersion, "_", 2);
+	if(ret != 1)
 	{
-		LOGOUT("service version:%s <= IPC version:%s, not update",returnInfo->SwVersion, version);
+		LOGOUT("IPC version:%s--localSoftVersion:%s",version,localSoftVersion);
+		return -1;
+	}
+	printf("localSoftVersion:%s----1\n", localSoftVersion);
+	ret = getChar(returnInfo->SwVersion, serverSoftVersion, "_", 2);
+	if(ret != 1)
+	{
+		LOGOUT("IPC returnInfo->SwVersion:%s--serverSoftVersion:%s", returnInfo->SwVersion, serverSoftVersion);
+		return -1;
+	}
+	printf("serverSoftVersion:%s----2\n", serverSoftVersion);
+	printf("returnInfo->SwVersion:%s--version:%s--\n", returnInfo->SwVersion, version);
+	if(strcmp(serverSoftVersion, localSoftVersion) <= 0)//服务器版本<=IPC当前版本
+	{
+		LOGOUT("service version:%s <= IPC version:%s, not update",serverSoftVersion, localSoftVersion);
 		return -1;
 	}
 	else
 	{
-		LOGOUT("service version:%s > IPC version:%s, must update",returnInfo->SwVersion, version);
+		LOGOUT("service version:%s > IPC version:%s, must update",serverSoftVersion, localSoftVersion);
 	}
 	//
 	if(returnInfo->result != 1 || returnInfo->imageFileBytes < 1 || returnInfo->imageFileUrl == NULL)
