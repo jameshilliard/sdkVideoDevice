@@ -5,8 +5,6 @@
 #include <CString>
 #include <Map>
 #include "./Utility/xml/tinyxml/xmlparser.h"
-#include "./Utility/httpClient/httpClient.h"
-
 
 
 

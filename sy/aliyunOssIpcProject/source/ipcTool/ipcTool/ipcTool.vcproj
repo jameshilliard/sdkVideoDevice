@@ -125,6 +125,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="./"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG; "
 				MinimalRebuild="false"
 				RuntimeLibrary="2"
@@ -384,22 +385,6 @@
 			<Filter
 				Name="httpClient"
 				>
-				<File
-					RelativePath=".\Utility\httpClient\httpClient.cpp"
-					>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath=".\Utility\httpClient\httpClient.h"
-					>
-				</File>
 				<File
 					RelativePath=".\Utility\httpClient\SyTcpClient.cpp"
 					>

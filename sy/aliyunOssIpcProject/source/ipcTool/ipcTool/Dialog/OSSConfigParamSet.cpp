@@ -1,7 +1,7 @@
 // OSSConfigParamSet.cpp : 实现文件
 //
 
-#include "../stdafx.h"
+#include "stdafx.h"
 #include "../ipcTool.h"
 #include "OSSConfigParamSet.h"
 
