@@ -113,6 +113,21 @@
 #define	DE_END_RECORD_MOTION_TIME				100
 #define	DE_ENABLE								1
 
+
+#define DE_START_PREIOD							1
+#define DE_START_SUM_DETECT						15
+#define DE_START_SUM_AREA						8
+#define DE_START_SOUND_SIZE						0x300
+
+#define DE_OVER_PREIOD							5
+#define DE_OVER_SUM_DETECT						2
+#define DE_OVER_SUM_AREA						1
+#define DE_OVER_SOUND_SIZE						0x300
+
+#define DE_URGENCY_REC_TIME						60
+
+
+
 #define LCM_80(x) ((0==(x)%80) ? (x) : (80*(((x)+80)/80)))   //80的最小整数倍
 
 typedef struct __attribute__((packed, aligned(8))) tagMasterServerCfg_
@@ -162,7 +177,37 @@ typedef struct __attribute__((packed, aligned(8))) tagMotionCfg_
 	char		m_bEnable;
 	char 		m_szReserver[59];
 }tagMotionCfg;
-//
+
+typedef struct __attribute__((packed, aligned(8))) tagUrgencyMotionCfg_
+{
+	INT32U		m_iStartPeriod;				
+	INT32U		m_iStartSumDetect;		
+	INT32U		m_iStartSumArea;		
+	INT32U		m_iStartSoundSize;
+
+	INT32U		m_iOverPeriod;				
+	INT32U		m_iOverSumDetect;		
+	INT32U		m_iOverSumArea;		
+	INT32U		m_iOverSoundSize;
+	
+	INT32U		m_iEndRecTime;
+	char		m_bEnable;
+	char 		m_szReserver[43];
+}tagUrgencyMotionCfg;
+
+typedef struct __attribute__((packed, aligned(8))) tagSoundEableCfg_
+{
+	char		m_bStartUpEnable;
+	char		m_bServerSuccessEnable;
+	char		m_bServerFailureEnable;
+	char		m_bUpgradeEnable;
+	char		m_bLoginInEnable;
+	char		m_bUrgencyStartEnable;
+	char		m_bUrgencyOverEnable;
+	char		m_bEnable;
+	char 		m_szReserver[72];
+}tagSoundEableCfg;
+
 /*typedef struct __attribute__((packed, aligned(8))) tagVersionCfg_
 {
 	char 		m_szHardVerion[80];
@@ -207,6 +252,18 @@ typedef struct __attribute__((packed, aligned(8))) tagConfigCfg_
 		char		m_szReserved[LCM_80(sizeof(tagMotionCfg))];
 		tagMotionCfg 	m_objMotionCfg;
 	} m_unMotionCfg;
+
+	union
+	{
+		char		m_szReserved[LCM_80(sizeof(tagUrgencyMotionCfg))];
+		tagUrgencyMotionCfg 	m_objUrgencyMotionCfg;
+	} m_unUrgencyMotionCfg;
+
+	union
+	{
+		char		m_szReserved[LCM_80(sizeof(tagSoundEableCfg))];
+		tagSoundEableCfg 	m_objSoundEableCfg;
+	} m_unSoundEableCfg;
 
 	/*union
 	{

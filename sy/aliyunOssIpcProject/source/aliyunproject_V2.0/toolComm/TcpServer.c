@@ -533,6 +533,101 @@ void SetVideoParam(int v_iSocket, S_Data *v_pSData)
 }
 
 
+void GetUrgencyMotionParam(int v_iSocket, S_Data *v_stDeCodeData)
+{
+	if(-1 == v_iSocket || NULL == v_stDeCodeData)
+	{
+		return ;
+	}
+	S_Data stDataEnCode;
+	memset(&stDataEnCode, 0, sizeof(stDataEnCode));
+	stDataEnCode.szCommandId = v_stDeCodeData->szCommandId;
+	strncpy(stDataEnCode.szCommandName,v_stDeCodeData->szCommandName,sizeof(stDataEnCode.szCommandName));
+	strcpy(stDataEnCode.szType , CONNETTYPE);
+	
+	SetXmlIntValue(&stDataEnCode, "StartPeriod", g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartPeriod);
+	SetXmlIntValue(&stDataEnCode, "StartSumDetect",g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSumDetect);
+	SetXmlIntValue(&stDataEnCode, "StartSumArea",g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSumArea);
+	SetXmlIntValue(&stDataEnCode, "StartSoundSize",g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSoundSize);
+	SetXmlIntValue(&stDataEnCode, "OverPeriod", g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverPeriod);
+	SetXmlIntValue(&stDataEnCode, "OverSumDetect",g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverSumDetect);
+	SetXmlIntValue(&stDataEnCode, "OverSumArea",g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverSumArea);
+	SetXmlIntValue(&stDataEnCode, "OverSoundSize",g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverSoundSize);
+	SetXmlIntValue(&stDataEnCode, "EndRecTime",g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iEndRecTime);
+	SetXmlIntValue(&stDataEnCode, "Enable",g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_bEnable);
+	SetXmlValue(&stDataEnCode, "result","10000");
+	TcpSendCmdData(v_iSocket, &stDataEnCode);
+	FreeXmlValue(&stDataEnCode);
+}
+
+void SetUrgencyMotionParam(int v_iSocket, S_Data *v_pSData)
+{
+	#if 0
+	if(-1 == v_iSocket || NULL == v_pSData)
+	{
+		return ;
+	}
+	S_Data stDataEnCode;
+	memset(&stDataEnCode, 0, sizeof(stDataEnCode));
+	stDataEnCode.szCommandId = v_pSData->szCommandId;
+	strncpy(stDataEnCode.szCommandName,v_pSData->szCommandName,sizeof(stDataEnCode.szCommandName));
+	strcpy(stDataEnCode.szType , CONNETTYPE);
+	int i=0;
+	tagUrgencyMotionCfg objUrgencyMotionCfg;
+	memset(&objUrgencyMotionCfg,0,sizeof(tagUrgencyMotionCfg));
+	for(i=0;i<v_pSData->iParamCount;i++)
+	{
+		if(strcmp(v_pSData->params[i].szKey,"BuctetName")==0)
+		{
+			strncpy(objUrgencyMotionCfg.m_szBuctetName,v_pSData->params[i].szValue,sizeof(objUrgencyMotionCfg.m_szBuctetName));
+		}
+		if(strcmp(v_pSData->params[i].szKey,"OssEndPoint")==0)
+		{
+			strncpy(objUrgencyMotionCfg.m_szOssEndPoint,v_pSData->params[i].szValue,sizeof(objUrgencyMotionCfg.m_szOssEndPoint));
+		}
+		if(strcmp(v_pSData->params[i].szKey,"AccessKeyId")==0)
+		{
+			strncpy(objUrgencyMotionCfg.m_szAccessKeyId,v_pSData->params[i].szValue,sizeof(objUrgencyMotionCfg.m_szAccessKeyId));
+		}
+		if(strcmp(v_pSData->params[i].szKey,"AccessKeySecret")==0)
+		{
+			strncpy(objUrgencyMotionCfg.m_szAccessKeySecret,v_pSData->params[i].szValue,sizeof(objUrgencyMotionCfg.m_szAccessKeySecret));
+		}
+		if(strcmp(v_pSData->params[i].szKey,"VideoPath")==0)
+		{
+			strncpy(objUrgencyMotionCfg.m_szVideoPath,v_pSData->params[i].szValue,sizeof(objUrgencyMotionCfg.m_szVideoPath));
+		}
+		if(strcmp(v_pSData->params[i].szKey,"JpgPath")==0)
+		{
+			strncpy(objUrgencyMotionCfg.m_szJPGPath,v_pSData->params[i].szValue,sizeof(objUrgencyMotionCfg.m_szJPGPath));
+		}
+	}
+	if(0!=memcmp(&objUrgencyMotionCfg,&g_stConfigCfg.m_unAliyunOssCfg.m_objUrgencyMotionCfg,sizeof(objUrgencyMotionCfg)))
+	{
+		SetUrgencyMotionCfg(DEVICECONFIGDIR,objUrgencyMotionCfg);
+		memcpy(&g_stConfigCfg.m_unAliyunOssCfg.m_objUrgencyMotionCfg,&objUrgencyMotionCfg,sizeof(objUrgencyMotionCfg));
+	}
+	SetXmlValue(&stDataEnCode, "result","10000");
+	TcpSendCmdData(v_iSocket, &stDataEnCode);
+	FreeXmlValue(&stDataEnCode);
+
+	
+	SetXmlValue(&stDataEnCode, "StartPeriod", g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartPeriod);
+	SetXmlValue(&stDataEnCode, "StartSumDetect",g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSumDetect);
+	SetXmlValue(&stDataEnCode, "StartSumArea",g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSumArea);
+	SetXmlValue(&stDataEnCode, "StartSoundSize",g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSoundSize);
+	SetXmlValue(&stDataEnCode, "OverPeriod", g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverPeriod);
+	SetXmlValue(&stDataEnCode, "OverSumDetect",g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverSumDetect);
+	SetXmlValue(&stDataEnCode, "OverSumArea",g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverSumArea);
+	SetXmlValue(&stDataEnCode, "OverSoundSize",g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverSoundSize);
+	SetXmlValue(&stDataEnCode, "EndRecTime",g_stConfigCfg..m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iEndRecTime);
+	SetXmlValue(&stDataEnCode, "Enable",g_stConfigCfg..m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_bEnable);
+	SetXmlValue(&stDataEnCode, "result","10000");
+	TcpSendCmdData(v_iSocket, &stDataEnCode);
+	FreeXmlValue(&stDataEnCode);
+	#endif
+}
+
 // ÷ÿ∆ÙœµÕ≥
 void RebootSystem(int v_iSocket, S_Data *v_stDeCodeData)
 {
@@ -624,7 +719,27 @@ void *P_TcpServerSendThread()
 				{	
 					SetVideoParam(dwPushSym, &stDataDe);
 				}
-				break; 
+				break;
+			case 4006:
+				{	
+					GetVideoParam(dwPushSym, &stDataDe);
+				}
+				break;
+			case 4007:
+				{	
+					SetVideoParam(dwPushSym, &stDataDe);
+				}
+				break;
+			case 4008:
+				{	
+					GetVideoParam(dwPushSym, &stDataDe);
+				}
+				break;
+			case 4009:
+				{	
+					SetVideoParam(dwPushSym, &stDataDe);
+				}
+				break;
 			case 4040:
 				{	
 					RebootSystem(dwPushSym, &stDataDe);

@@ -5,6 +5,9 @@ const char b64_alphabet[65] = {
     "abcdefghijklmnopqrstuvwxyz"
     "0123456789+/=" };
 
+#define KEYVALLEN 100
+
+
 INT32U getFreeMemory(void)
 {
     struct sysinfo s_info;
@@ -491,6 +494,7 @@ INT32S readFile(LPCTSTR filePath,LPCTSTR fileBuffer,DWORD bufferSize,DWORD *file
 	INT32S iRet = -2;
 	FILE *fp=NULL;
 	*fileSize=getFileSize(filePath);
+	printf("fileSize is %d------",*fileSize);
 	if(bufferSize<*fileSize)
 	{
 		return -3;
@@ -529,6 +533,38 @@ INT32S readFile(LPCTSTR filePath,LPCTSTR fileBuffer,DWORD bufferSize,DWORD *file
 	}
 	return iRet;
 }
+
+INT32S readOrgFile(LPCTSTR filePath,LPCTSTR fileBuffer,DWORD bufferSize,DWORD *fileSize)
+{
+	if(NULL==filePath || NULL==fileBuffer)
+		return -1;
+	INT32S iRet = -2;
+	FILE *fp=NULL;
+	if ((fp = fopen(filePath, "r")) != NULL)
+	{   
+		DWORD numRead = 0;
+		numRead = fread((void *)(fileBuffer), sizeof(char), bufferSize, fp);   
+		if (numRead>0) 
+		{   
+			*fileSize=numRead;
+			iRet=0;
+		}  
+		else
+		{
+			iRet=-3;
+		}
+		if(fclose(fp) != 0)
+		{
+			iRet=-5;
+		}	
+	} 
+	else
+	{
+		LOGOUT("  %s open failure",filePath)		
+	}
+	return iRet;
+}
+
 
 char * SY_base64Encode(const char *text) 
 {
@@ -584,8 +620,137 @@ char * SY_base64Encode(const char *text)
   	  return buffer;
 }
 
+//#define 	PATH_MAX	256
+int find_pid_by_name( char* ProcName, int* foundpid)
+{
+    DIR             *dir;
+    struct dirent   *d;
+    int             pid, i;
+    char            *s;
+    int pnlen;
+	if(ProcName==NULL || foundpid==NULL)
+	{
+	    printf("param is error\n");
+        return -2;	
+	}
+    i = 0;
+    foundpid[0] = 0;
+    pnlen = strlen(ProcName);
+    /* Open the /proc directory. */
+    dir = opendir("/proc");
+    if (!dir)
+    {
+        printf("cannot open /proc");
+        return -1;
+    }
+    /* Walk through the directory. */
+    while ((d = readdir(dir)) != NULL) 
+	{
+        char exe [PATH_MAX+1];
+        char path[PATH_MAX+1];
+        int len;
+        int namelen;
+        /* See if this is a process */
+        if ((pid = atoi(d->d_name)) == 0)       continue;
+        snprintf(exe, sizeof(exe), "/proc/%s/exe", d->d_name);
+        if ((len = readlink(exe, path, PATH_MAX)) < 0)
+                continue;
+        path[len] = '\0';
+        /* Find ProcName */
+        s = strrchr(path, '/');
+        if(s == NULL) continue;
+        s++;
+        /* we don't need small name len */
+        namelen = strlen(s);
+        if(namelen < pnlen)     continue;
+        if(!strncmp(ProcName, s, pnlen)) 
+		{
+            /* to avoid subname like search proc tao but proc taolinke matched */
+            if(s[pnlen] == ' ' || s[pnlen] == '\0') 
+			{
+                foundpid[i] = pid;
+                i++;
+            }
+        }
+    }
+    foundpid[i] = 0;
+    closedir(dir);
+    return  0;
+}
 
-#define KEYVALLEN 100
+int GetSendSocketTraffic(char* ProcName, unsigned long long* socketNums)
+{
+	int iRet=0;
+	unsigned long long socketNum=0;
+	int foundPid=0;
+	char path[PATH_MAX+1]={0,};
+	char data[4096]={0,};
+	char buffer[4096]={0,};
+	char networkName[32]={0,};
+	DWORD fileSize=0;
+	*socketNums=0;
+	if(ProcName==NULL || socketNums==NULL)
+	{
+	    printf("param is error\n");
+        return -1;	
+	}
+	iRet=find_pid_by_name(ProcName,&foundPid);
+	if(iRet < 0)
+	{
+		printf("find_pid_by_name is error %d\n",iRet);
+        return -2;	
+	}
+	memset(path,0,sizeof(path));
+	sprintf(path,"/proc/%d/net/dev",foundPid);
+	iRet=isDeviceAccess(path);
+	if(iRet < 0)
+	{
+		printf("path is no access %d\n",path,iRet);
+        return -3;	
+	}
+	iRet=readOrgFile(path,data,sizeof(data),&fileSize);
+	if(iRet < 0)
+	{
+		printf("read %s File is error %d\n",path,iRet);
+        return -3;	
+	}
+	char *ptrStart=data;
+	char *ptrEnd=NULL;
+	char *ptrMaoHao=NULL;
+	int  loop=0;
+	unsigned long long test=0;
+	while(loop<10)
+	{
+		ptrEnd=memchr(ptrStart,0x0A,sizeof(data)-(ptrStart-data));
+		if(ptrEnd!=NULL)
+		{
+			ptrMaoHao=memchr(ptrStart,':',ptrEnd-ptrStart);
+			if(ptrMaoHao)
+			{
+				memset(buffer,0,sizeof(buffer));
+				memcpy(buffer,ptrStart,ptrEnd-ptrStart);
+				memset(networkName,0,sizeof(networkName));
+				printf("buffer is %s---\n",buffer);
+				iRet = sscanf(buffer,"%s %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu"
+						,networkName,&test,&test,&test,&test,&test,&test,&test,&test
+						,&socketNum,&test,&test,&test,&test,&test,&test,&test);
+				if(strstr(buffer,"eth0")!=NULL || strstr(buffer,"ra0")!=NULL)
+				{
+					printf("iRet=%d network=%s packetNum=%llu--\n",iRet,networkName,socketNum);
+					*socketNums+=socketNum;
+				}
+			}
+			ptrStart=ptrEnd+1;
+		}
+		else
+		{
+			break;
+		}
+		loop++;
+	}
+	return 0;
+}
+
 /*   É¾³ý×ó±ßµÄ¿Õ¸ñ   */
 static char * l_trim(char * szOutput, const char *szInput)
 {
@@ -632,7 +797,7 @@ static char * a_trim(char * szOutput, const char * szInput)
  
 //char ip[16];
 //GetProfileString("./cls.conf", "cls_server", "ip", ip);
-INT32S GetProfileString(char *profile, char *AppName, char *KeyName, char *KeyVal )
+INT32S GetProfileString(char *profile, char *AppName, char *KeyName, char *KeyVal)
 {
 	char appname[32],keyname[32];
 	char *buf,*c;
@@ -713,4 +878,6 @@ INT32S GetProfileString(char *profile, char *AppName, char *KeyName, char *KeyVa
 	else
 		return(-1);
 }
+
+
 

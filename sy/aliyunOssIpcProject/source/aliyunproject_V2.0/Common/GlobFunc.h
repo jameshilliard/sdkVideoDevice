@@ -25,6 +25,8 @@ extern "C" {
 	INT32S  rmDirFile(const char *pszDir);
 	INT32S  GetProfileString(char *profile, char *AppName, char *KeyName, char *KeyVal);
 	INT32S 	usSleep(long us);
+	int 	find_pid_by_name(char* ProcName, int* foundpid);
+	int 	GetSendSocketTraffic(char* ProcName, unsigned long long* socketNums);
 #  ifdef __cplusplus
 }
 #  endif /* __cplusplus */

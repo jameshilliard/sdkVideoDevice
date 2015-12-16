@@ -184,7 +184,22 @@ INT32S SetAliyunOssCfg(const char *v_szFlashPath,tagAliyunOssCfg v_stAliyunOssCf
 	LOGOUT("SetAliyunOssCfg iRet=%d",iRet);
 	return iRet;
 }
-//tagVersionCfg
+
+#if 0
+INT32S SetUrgencyMotionCfg(const char *v_szFlashPath,tagUrgencyMotionCfg v_stUrgencyMotionCfg)
+{
+	if(NULL==v_szFlashPath || 0==strlen(v_szFlashPath))
+	{
+		LOGOUT("v_szFlashPath or v_szProductId is NULL or strlen = 0");
+		return -1;
+	}
+	int iRet=-1;
+	iRet = SetCfgFile(&v_stUrgencyMotionCfg, offsetof(tagUrgencyMotionCfg, m_unUrgencyMotionCfg.m_objUrgencyMotionCfg), sizeof(tagUrgencyMotionCfg));
+	LOGOUT("SetUrgencyMotionCfg iRet=%d",iRet);
+	return iRet;
+}
+#endif
+
 /*INT32S SetVersionCfg(const char *v_szFlashPath,tagVersionCfg v_stVersionCfg)
 {
 	if(NULL==v_szFlashPath || 0==strlen(v_szFlashPath))
@@ -197,7 +212,7 @@ INT32S SetAliyunOssCfg(const char *v_szFlashPath,tagAliyunOssCfg v_stAliyunOssCf
 	LOGOUT("SetAliyunOssCfg iRet=%d",iRet);
 	return iRet;
 }*/
-//
+
 /*INT32S GetProductId(const char *v_szFlashPath,char *v_szVersion,INT32U length)
 {
 	if(NULL==v_szFlashPath || 0==strlen(v_szFlashPath) || NULL==v_szVersion)
@@ -213,7 +228,6 @@ INT32S SetAliyunOssCfg(const char *v_szFlashPath,tagAliyunOssCfg v_stAliyunOssCf
 	return iRet;
 }
 */
-//
 
 INT32S SetCapParamCfg(const char *v_szFlashPath,tagCapParamCfg v_stCapParamCfg)
 {
