@@ -377,7 +377,15 @@ int updateFile(char *fileBuf, int fileSize, char *srcFile, char *destFile)
 	ret = system("mv /mnt/mtd/ipc/sykj/aliyunOss.bin /mnt/mtd/ipc/sykj/test.bin");
 	if(ret != 0)
 	{
-		LOGOUT("updateFile, mv update error, system return :%d---%s--\n", ret, strerror(errno));
+		LOGOUT("updateFile, mv aliyunOss.bin error, system return :%d---%s--\n", ret, strerror(errno));
+		return -1;
+	}
+	//
+	ret = system("mv /mnt/mtd/ipc/sykj/ipcUpdate.bin /mnt/mtd/ipc/sykj/updateTest.bin");
+	if(ret != 0)
+	{
+		system("mv /mnt/mtd/ipc/sykj/test.bin /mnt/mtd/ipc/sykj/aliyunOss.bin");
+		LOGOUT("updateFile, mv ipcUpdate.bin error, system return :%d---%s--\n", ret, strerror(errno));
 		return -1;
 	}
 	ret = system(outFileBuf);
@@ -390,10 +398,23 @@ int updateFile(char *fileBuf, int fileSize, char *srcFile, char *destFile)
 			LOGOUT("updateFile, mv update error, rest system return :%d---%s--\n", ret, strerror(errno));
 			return -1;
 		}
+		ret = system("mv /mnt/mtd/ipc/sykj/updateTest.bin /mnt/mtd/ipc/sykj/ipcUpdate.bin");
+		if(ret != 0)
+		{
+			LOGOUT("updateFile, mv update error, rest system return :%d---%s--\n", ret, strerror(errno));
+			return -1;
+		}
 		return -1;
 	}
 
 	ret = system("rm -rf /mnt/mtd/ipc/sykj/test.bin");
+	if(ret != 0)
+	{
+		LOGOUT("updateFile, update error, system return :%d---%s--\n", ret, strerror(errno));
+		return -1;
+	}
+	//
+	ret = system("rm -rf /mnt/mtd/ipc/sykj/updateTest.bin");
 	if(ret != 0)
 	{
 		LOGOUT("updateFile, update error, system return :%d---%s--\n", ret, strerror(errno));
@@ -587,11 +608,19 @@ void *P_UpdateThread()
 	SERVICEVERSION returnInfo;
 	int updateSecond = 0;
 	int timeSeconds = 0;
+	srand(time(NULL));
+	int randTime=0+rand()%(8-0+1);
+	if(randTime == 8)
+	{
+		randTime = 11;
+	}
+
 	while(1)
 	{
 		sleep(5);
 		int hour = getTime();
-		if(hour == 3 && isUpdate == 1)
+		LOGOUT("randTime:%d---\n", randTime);
+		if(hour == randTime && isUpdate == 1)
 		{
 			updateSecond = 0;
 			while(1)
@@ -608,6 +637,7 @@ void *P_UpdateThread()
 					reportImageUpdateResult(returnInfo, timeSeconds);
 					LOGOUT("execute %s",CMDREBOOT)
 					system(CMDREBOOT);
+					exit(0);
 				}
 				else if(ret == -2)
 				{
@@ -623,7 +653,7 @@ void *P_UpdateThread()
 			}
 			isUpdate = 0;
 		}
-		else if(hour != 3)
+		else if(hour != randTime)
 		{
 			isUpdate = 1;
 		}
