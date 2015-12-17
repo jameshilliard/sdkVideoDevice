@@ -185,7 +185,6 @@ INT32S SetAliyunOssCfg(const char *v_szFlashPath,tagAliyunOssCfg v_stAliyunOssCf
 	return iRet;
 }
 
-#if 0
 INT32S SetUrgencyMotionCfg(const char *v_szFlashPath,tagUrgencyMotionCfg v_stUrgencyMotionCfg)
 {
 	if(NULL==v_szFlashPath || 0==strlen(v_szFlashPath))
@@ -194,11 +193,23 @@ INT32S SetUrgencyMotionCfg(const char *v_szFlashPath,tagUrgencyMotionCfg v_stUrg
 		return -1;
 	}
 	int iRet=-1;
-	iRet = SetCfgFile(&v_stUrgencyMotionCfg, offsetof(tagUrgencyMotionCfg, m_unUrgencyMotionCfg.m_objUrgencyMotionCfg), sizeof(tagUrgencyMotionCfg));
+	iRet = SetCfgFile(&v_stUrgencyMotionCfg, offsetof(tagConfigCfg, m_unUrgencyMotionCfg.m_objUrgencyMotionCfg), sizeof(tagUrgencyMotionCfg));
 	LOGOUT("SetUrgencyMotionCfg iRet=%d",iRet);
 	return iRet;
 }
-#endif
+
+INT32S SetSoundEableCfg(const char *v_szFlashPath,tagSoundEableCfg v_stSoundEableCfg)
+{
+	if(NULL==v_szFlashPath || 0==strlen(v_szFlashPath))
+	{
+		LOGOUT("v_szFlashPath or v_szProductId is NULL or strlen = 0");
+		return -1;
+	}
+	int iRet=-1;
+	iRet = SetCfgFile(&v_stSoundEableCfg, offsetof(tagConfigCfg, m_unSoundEableCfg.m_objSoundEableCfg), sizeof(tagSoundEableCfg));
+	LOGOUT("SetSoundEableCfg iRet=%d",iRet);
+	return iRet;
+}
 
 /*INT32S SetVersionCfg(const char *v_szFlashPath,tagVersionCfg v_stVersionCfg)
 {

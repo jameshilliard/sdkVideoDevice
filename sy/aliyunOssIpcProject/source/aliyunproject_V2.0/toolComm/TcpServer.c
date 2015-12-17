@@ -514,17 +514,7 @@ void SetVideoParam(int v_iSocket, S_Data *v_pSData)
 	}
 	//if(0!=memcmp(&objCapParamCfg,&g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg,sizeof(objCapParamCfg)))
 	{
-		HI_S_Video_Ext sVideo;
-		int iRet=GetMasterVideoStream(&sVideo);
-		sVideo.u32Bitrate=objCapParamCfg.m_wBitRate;
-		sVideo.u32Frame=objCapParamCfg.m_wFrameRate;
-		sVideo.u32Height=objCapParamCfg.m_wHeight;
-		sVideo.u32Width=objCapParamCfg.m_wWidth;
-		sVideo.u32ImgQuality=objCapParamCfg.m_wQpConstant;
-		sVideo.u32Iframe=objCapParamCfg.m_wKeyFrameRate;
-		sVideo.blCbr=objCapParamCfg.m_CodeType;
 		SetCapParamCfg(DEVICECONFIGDIR,objCapParamCfg);
-		SetMasterVideoStream(&sVideo);
 		memcpy(&g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg,&objCapParamCfg,sizeof(objCapParamCfg));
 	}
 	SetXmlValue(&stDataEnCode, "result","10000");
@@ -559,10 +549,9 @@ void GetUrgencyMotionParam(int v_iSocket, S_Data *v_stDeCodeData)
 	TcpSendCmdData(v_iSocket, &stDataEnCode);
 	FreeXmlValue(&stDataEnCode);
 }
-
 void SetUrgencyMotionParam(int v_iSocket, S_Data *v_pSData)
 {
-	#if 0
+
 	if(-1 == v_iSocket || NULL == v_pSData)
 	{
 		return ;
@@ -572,60 +561,160 @@ void SetUrgencyMotionParam(int v_iSocket, S_Data *v_pSData)
 	stDataEnCode.szCommandId = v_pSData->szCommandId;
 	strncpy(stDataEnCode.szCommandName,v_pSData->szCommandName,sizeof(stDataEnCode.szCommandName));
 	strcpy(stDataEnCode.szType , CONNETTYPE);
+	HI_S_Video_Ext sVideo;
+	char buffer[80]={0};
+	char wBuffer[80]={0};
+	char hBuffer[80]={0};
 	int i=0;
 	tagUrgencyMotionCfg objUrgencyMotionCfg;
 	memset(&objUrgencyMotionCfg,0,sizeof(tagUrgencyMotionCfg));
+	
 	for(i=0;i<v_pSData->iParamCount;i++)
 	{
-		if(strcmp(v_pSData->params[i].szKey,"BuctetName")==0)
+		if(strcmp(v_pSData->params[i].szKey,"StartPeriod")==0)
 		{
-			strncpy(objUrgencyMotionCfg.m_szBuctetName,v_pSData->params[i].szValue,sizeof(objUrgencyMotionCfg.m_szBuctetName));
+			objUrgencyMotionCfg.m_iStartPeriod=atoi(v_pSData->params[i].szValue);
 		}
-		if(strcmp(v_pSData->params[i].szKey,"OssEndPoint")==0)
+		if(strcmp(v_pSData->params[i].szKey,"StartSumDetect")==0)
 		{
-			strncpy(objUrgencyMotionCfg.m_szOssEndPoint,v_pSData->params[i].szValue,sizeof(objUrgencyMotionCfg.m_szOssEndPoint));
+			objUrgencyMotionCfg.m_iStartSumDetect=atoi(v_pSData->params[i].szValue);
 		}
-		if(strcmp(v_pSData->params[i].szKey,"AccessKeyId")==0)
+		if(strcmp(v_pSData->params[i].szKey,"StartSumArea")==0)
 		{
-			strncpy(objUrgencyMotionCfg.m_szAccessKeyId,v_pSData->params[i].szValue,sizeof(objUrgencyMotionCfg.m_szAccessKeyId));
+			objUrgencyMotionCfg.m_iStartSumArea=atoi(v_pSData->params[i].szValue);
 		}
-		if(strcmp(v_pSData->params[i].szKey,"AccessKeySecret")==0)
+		if(strcmp(v_pSData->params[i].szKey,"StartSoundSize")==0)
 		{
-			strncpy(objUrgencyMotionCfg.m_szAccessKeySecret,v_pSData->params[i].szValue,sizeof(objUrgencyMotionCfg.m_szAccessKeySecret));
+			objUrgencyMotionCfg.m_iStartSoundSize=atoi(v_pSData->params[i].szValue);
 		}
-		if(strcmp(v_pSData->params[i].szKey,"VideoPath")==0)
+		if(strcmp(v_pSData->params[i].szKey,"OverPeriod")==0)
 		{
-			strncpy(objUrgencyMotionCfg.m_szVideoPath,v_pSData->params[i].szValue,sizeof(objUrgencyMotionCfg.m_szVideoPath));
+			objUrgencyMotionCfg.m_iOverPeriod=atoi(v_pSData->params[i].szValue);
 		}
-		if(strcmp(v_pSData->params[i].szKey,"JpgPath")==0)
+		if(strcmp(v_pSData->params[i].szKey,"OverSumDetect")==0)
 		{
-			strncpy(objUrgencyMotionCfg.m_szJPGPath,v_pSData->params[i].szValue,sizeof(objUrgencyMotionCfg.m_szJPGPath));
+			objUrgencyMotionCfg.m_iOverSumDetect=atoi(v_pSData->params[i].szValue);
 		}
+		if(strcmp(v_pSData->params[i].szKey,"OverSumArea")==0)
+		{
+			objUrgencyMotionCfg.m_iOverSumArea=atoi(v_pSData->params[i].szValue);
+		}
+		if(strcmp(v_pSData->params[i].szKey,"OverSoundSize")==0)
+		{
+			objUrgencyMotionCfg.m_iOverSoundSize=atoi(v_pSData->params[i].szValue);
+		}
+
+		if(strcmp(v_pSData->params[i].szKey,"EndRecTime")==0)
+		{
+			objUrgencyMotionCfg.m_iEndRecTime=atoi(v_pSData->params[i].szValue);
+		}
+		if(strcmp(v_pSData->params[i].szKey,"Enable")==0)
+		{
+			objUrgencyMotionCfg.m_bEnable=atoi(v_pSData->params[i].szValue);
+		}
+
 	}
-	if(0!=memcmp(&objUrgencyMotionCfg,&g_stConfigCfg.m_unAliyunOssCfg.m_objUrgencyMotionCfg,sizeof(objUrgencyMotionCfg)))
+	//if(0!=memcmp(&objUrgencyMotionCfg,&g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg,sizeof(objUrgencyMotionCfg)))
 	{
 		SetUrgencyMotionCfg(DEVICECONFIGDIR,objUrgencyMotionCfg);
-		memcpy(&g_stConfigCfg.m_unAliyunOssCfg.m_objUrgencyMotionCfg,&objUrgencyMotionCfg,sizeof(objUrgencyMotionCfg));
+		memcpy(&g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg,&objUrgencyMotionCfg,sizeof(objUrgencyMotionCfg));
 	}
 	SetXmlValue(&stDataEnCode, "result","10000");
 	TcpSendCmdData(v_iSocket, &stDataEnCode);
 	FreeXmlValue(&stDataEnCode);
-
 	
-	SetXmlValue(&stDataEnCode, "StartPeriod", g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartPeriod);
-	SetXmlValue(&stDataEnCode, "StartSumDetect",g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSumDetect);
-	SetXmlValue(&stDataEnCode, "StartSumArea",g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSumArea);
-	SetXmlValue(&stDataEnCode, "StartSoundSize",g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSoundSize);
-	SetXmlValue(&stDataEnCode, "OverPeriod", g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverPeriod);
-	SetXmlValue(&stDataEnCode, "OverSumDetect",g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverSumDetect);
-	SetXmlValue(&stDataEnCode, "OverSumArea",g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverSumArea);
-	SetXmlValue(&stDataEnCode, "OverSoundSize",g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverSoundSize);
-	SetXmlValue(&stDataEnCode, "EndRecTime",g_stConfigCfg..m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iEndRecTime);
-	SetXmlValue(&stDataEnCode, "Enable",g_stConfigCfg..m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_bEnable);
+}
+
+void GetSoundEableParam(int v_iSocket, S_Data *v_stDeCodeData)
+{
+
+	if(-1 == v_iSocket || NULL == v_stDeCodeData)
+	{
+		return ;
+	}
+	S_Data stDataEnCode;
+	memset(&stDataEnCode, 0, sizeof(stDataEnCode));
+	stDataEnCode.szCommandId = v_stDeCodeData->szCommandId;
+	strncpy(stDataEnCode.szCommandName,v_stDeCodeData->szCommandName,sizeof(stDataEnCode.szCommandName));
+	strcpy(stDataEnCode.szType , CONNETTYPE);
+
+	SetXmlIntValue(&stDataEnCode, "StartUpEnable", g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bStartUpEnable);
+	SetXmlIntValue(&stDataEnCode, "ServerSuccessEnable", g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bServerSuccessEnable);
+	SetXmlIntValue(&stDataEnCode, "ServerFailureEnable", g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bServerFailureEnable);
+	SetXmlIntValue(&stDataEnCode, "UpgradeEnable", g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bUpgradeEnable);
+	SetXmlIntValue(&stDataEnCode, "LoginInEnable", g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bLoginInEnable);
+	SetXmlIntValue(&stDataEnCode, "UrgencyStartEnable", g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bUrgencyStartEnable);
+	SetXmlIntValue(&stDataEnCode, "UrgencyOverEnable", g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bUrgencyOverEnable);
+	SetXmlIntValue(&stDataEnCode, "Enable", g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bEnable);
+
 	SetXmlValue(&stDataEnCode, "result","10000");
 	TcpSendCmdData(v_iSocket, &stDataEnCode);
 	FreeXmlValue(&stDataEnCode);
-	#endif
+}
+void SetSoundEableParam(int v_iSocket, S_Data *v_pSData)
+{
+
+	if(-1 == v_iSocket || NULL == v_pSData)
+	{
+		return ;
+	}
+	S_Data stDataEnCode;
+	memset(&stDataEnCode, 0, sizeof(stDataEnCode));
+	stDataEnCode.szCommandId = v_pSData->szCommandId;
+	strncpy(stDataEnCode.szCommandName,v_pSData->szCommandName,sizeof(stDataEnCode.szCommandName));
+	strcpy(stDataEnCode.szType , CONNETTYPE);
+	HI_S_Video_Ext sVideo;
+	char buffer[80]={0};
+	char wBuffer[80]={0};
+	char hBuffer[80]={0};
+	int i=0;
+	tagSoundEableCfg objSoundEableCfg;
+	memset(&objSoundEableCfg,0,sizeof(tagSoundEableCfg));
+	
+	for(i=0;i<v_pSData->iParamCount;i++)
+	{
+		if(strcmp(v_pSData->params[i].szKey,"StartUpEnable")==0)
+		{
+			objSoundEableCfg.m_bStartUpEnable=atoi(v_pSData->params[i].szValue);
+		}
+		if(strcmp(v_pSData->params[i].szKey,"ServerSuccessEnable")==0)
+		{
+			objSoundEableCfg.m_bServerSuccessEnable=atoi(v_pSData->params[i].szValue);
+		}
+		if(strcmp(v_pSData->params[i].szKey,"ServerFailureEnable")==0)
+		{
+			objSoundEableCfg.m_bServerFailureEnable=atoi(v_pSData->params[i].szValue);
+		}
+		if(strcmp(v_pSData->params[i].szKey,"UpgradeEnable")==0)
+		{
+			objSoundEableCfg.m_bUpgradeEnable=atoi(v_pSData->params[i].szValue);
+		}
+		if(strcmp(v_pSData->params[i].szKey,"LoginInEnable")==0)
+		{
+			objSoundEableCfg.m_bLoginInEnable=atoi(v_pSData->params[i].szValue);
+		}
+		if(strcmp(v_pSData->params[i].szKey,"UrgencyStartEnable")==0)
+		{
+			objSoundEableCfg.m_bUrgencyStartEnable=atoi(v_pSData->params[i].szValue);
+		}
+		if(strcmp(v_pSData->params[i].szKey,"UrgencyOverEnable")==0)
+		{
+			objSoundEableCfg.m_bUrgencyOverEnable=atoi(v_pSData->params[i].szValue);
+		}
+		if(strcmp(v_pSData->params[i].szKey,"Enable")==0)
+		{
+			objSoundEableCfg.m_bEnable=atoi(v_pSData->params[i].szValue);
+		}
+	}
+	//if(0!=memcmp(&objSoundEableCfg,&g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg,sizeof(objSoundEableCfg)))
+	{
+		SetSoundEableCfg(DEVICECONFIGDIR,objSoundEableCfg);
+		memcpy(&g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg,&objSoundEableCfg,sizeof(objSoundEableCfg));
+	}
+	SetXmlValue(&stDataEnCode, "result","10000");
+	TcpSendCmdData(v_iSocket, &stDataEnCode);
+	FreeXmlValue(&stDataEnCode);
+	
 }
 
 // ÷ÿ∆ÙœµÕ≥
@@ -722,22 +811,22 @@ void *P_TcpServerSendThread()
 				break;
 			case 4006:
 				{	
-					GetVideoParam(dwPushSym, &stDataDe);
+					GetUrgencyMotionParam(dwPushSym, &stDataDe);
 				}
 				break;
 			case 4007:
 				{	
-					SetVideoParam(dwPushSym, &stDataDe);
+					SetUrgencyMotionParam(dwPushSym, &stDataDe);
 				}
 				break;
 			case 4008:
 				{	
-					GetVideoParam(dwPushSym, &stDataDe);
+					GetSoundEableParam(dwPushSym, &stDataDe);
 				}
 				break;
 			case 4009:
 				{	
-					SetVideoParam(dwPushSym, &stDataDe);
+					SetSoundEableParam(dwPushSym, &stDataDe);
 				}
 				break;
 			case 4040:

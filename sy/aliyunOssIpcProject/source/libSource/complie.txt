@@ -12,6 +12,8 @@ make -j4 CC=arm-hisiv100nptl-linux-gcc
 ./configure --host=arm-hisiv100nptl-linux CC=arm-hisiv100nptl-linux-gcc --prefix=/home/samba/share/sourceOpen/AliYun/arm/libarmOs --with-apr=/home/samba/share/sourceOpen/AliYun/arm/libarmOs
 7.faac mp4v2
 如何编译：
+8.libmad
+./configure --host=arm-hisiv100nptl-linux --prefix=/home/samba/share/sourceOpen/AliYun/arm/libarmOs --disable-debugging  --enable-shared --enable-static 
 1../configure --host=arm-hisiv100nptl-linux --prefix=/home/samba/share/sourceOpen/AliYun/arm/libarmOs
 2.make
 3.make install
