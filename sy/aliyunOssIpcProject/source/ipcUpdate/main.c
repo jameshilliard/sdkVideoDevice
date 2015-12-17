@@ -68,6 +68,7 @@ int GetVersionCfg()
 //
 int main()
 {
+	sleep(30);
 	int errorNumber = 0;
 	int ret = 0;
 	char timeBuf[20] = {0};
@@ -82,9 +83,6 @@ int main()
 	{
 		LOGOUT("InitUpdate success ret:%d %s", ret,CMDREBOOT);
 	}
-	/*memset(timeBuf, 0, sizeof(timeBuf));
-	getStrTime(timeBuf);
-	ipcRestartReportImageUpdateResult(timeBuf);*/
 	while(1)
 	{
 		sleep(10);
@@ -101,7 +99,7 @@ int main()
 		if(errorNumber >10)
 		{
 			errorNumber = 0;
-			updateVersion();
+			//updateVersion();
 			system(CMDREBOOT);
 		}
 	}
