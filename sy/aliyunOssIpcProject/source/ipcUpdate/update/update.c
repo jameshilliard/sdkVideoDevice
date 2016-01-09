@@ -363,63 +363,78 @@ int updateFile(char *fileBuf, int fileSize, char *srcFile, char *destFile)
 		return -1;
 	}
 	int ret = 0;
+	int writeLen = 0;
 	char outFileBuf[1024] = {0};
+	
+	sprintf(outFileBuf, "rm -rf %s", srcFile);
+	system(outFileBuf);
 	FILE* fptr;  
     if ((fptr = fopen(srcFile,"w")) == NULL)  
     {  
         LOGOUT("fopen file error:%s\n",srcFile);  
         return -1;  
     }
-	fwrite(fileBuf,1,fileSize,fptr); 
+	writeLen = fwrite(fileBuf, 1, fileSize, fptr); 
 	fclose(fptr);
+	if(writeLen != fileSize)
+	{
+		
+		system(outFileBuf);
+		LOGOUT("updateFile writeLen != fileSizer:%d \n",writeLen);  
+		return -1;
+	}
 	sprintf(outFileBuf, "/usr/bin/unzip -o %s -d %s",  srcFile, destFile);
 	printf("outFileBuf-----%s-----\n", outFileBuf);
-	ret = system("mv /mnt/mtd/ipc/sykj/aliyunOss.bin /mnt/mtd/ipc/sykj/test.bin");
+	ret = system("mv /mnt/mtd/ipc/sykj/aliyunOss.bin /mnt/mtd/ipc/tmpfs/syflash/test.bin");
 	if(ret != 0)
 	{
 		LOGOUT("updateFile, mv aliyunOss.bin error, system return :%d---%s--\n", ret, strerror(errno));
-		return -1;
+		//return -1;
 	}
 	//
-	ret = system("mv /mnt/mtd/ipc/sykj/ipcUpdate.bin /mnt/mtd/ipc/sykj/updateTest.bin");
+	ret = system("mv /mnt/mtd/ipc/sykj/ipcUpdate.bin /mnt/mtd/ipc/tmpfs/syflash/updateTest.bin");
 	if(ret != 0)
 	{
-		system("mv /mnt/mtd/ipc/sykj/test.bin /mnt/mtd/ipc/sykj/aliyunOss.bin");
+		//system("mv /mnt/mtd/ipc/tmpfs/syflash/test.bin /mnt/mtd/ipc/sykj/aliyunOss.bin");
 		LOGOUT("updateFile, mv ipcUpdate.bin error, system return :%d---%s--\n", ret, strerror(errno));
-		return -1;
+		//return -1;
 	}
 	ret = system(outFileBuf);
 	if(ret != 0)
 	{
 		LOGOUT("updateFile, update error, system return :%d---%s--\n", ret, strerror(errno));
-		ret = system("mv /mnt/mtd/ipc/sykj/test.bin /mnt/mtd/ipc/sykj/aliyunOss.bin");
+		ret = system("mv /mnt/mtd/ipc/tmpfs/syflash/test.bin /mnt/mtd/ipc/sykj/aliyunOss.bin");
 		if(ret != 0)
 		{
 			LOGOUT("updateFile, mv update error, rest system return :%d---%s--\n", ret, strerror(errno));
-			return -1;
+			//return -1;
 		}
-		ret = system("mv /mnt/mtd/ipc/sykj/updateTest.bin /mnt/mtd/ipc/sykj/ipcUpdate.bin");
+		ret = system("mv /mnt/mtd/ipc/tmpfs/syflash/updateTest.bin /mnt/mtd/ipc/sykj/ipcUpdate.bin");
 		if(ret != 0)
 		{
 			LOGOUT("updateFile, mv update error, rest system return :%d---%s--\n", ret, strerror(errno));
-			return -1;
+			//return -1;
 		}
 		return -1;
 	}
 
-	ret = system("rm -rf /mnt/mtd/ipc/sykj/test.bin");
+	ret = system("rm -rf /mnt/mtd/ipc/tmpfs/syflash/test.bin");
 	if(ret != 0)
 	{
 		LOGOUT("updateFile, update error, system return :%d---%s--\n", ret, strerror(errno));
-		return -1;
+		//return -1;
 	}
 	//
-	ret = system("rm -rf /mnt/mtd/ipc/sykj/updateTest.bin");
+	ret = system("rm -rf /mnt/mtd/ipc/tmpfs/syflash/updateTest.bin");
 	if(ret != 0)
 	{
 		LOGOUT("updateFile, update error, system return :%d---%s--\n", ret, strerror(errno));
-		return -1;
+		//return -1;
 	}
+	memset(outFileBuf, 0, sizeof(outFileBuf));
+	sprintf(outFileBuf, "rm -rf %s", srcFile);
+	system(outFileBuf);
+	
 	return 1;
 }
 //
