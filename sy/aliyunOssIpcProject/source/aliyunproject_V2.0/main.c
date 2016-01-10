@@ -67,10 +67,10 @@ int main()
 				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szOssEndPoint,
 				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeyId,
 				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeySecret);
-	Init_LogOut(LOGSIZE,LOGDIR,TRUE,TEMPDIR);	
+	Init_LogOut(LOGSIZE,LOGDIR,FALSE,TEMPDIR);	
 	LOGOUT("Init_LogOut %s %s", SDK_HARD_FWVERSION, SDK_SYSTEM_FWVERSION);
 	//InitConServer();
-	//iRet=InitHiSDKVideoAllChannel();
+	iRet=InitHiSDKVideoAllChannel();
 	LOGOUT("InitHiSDKVideoAllChannel iRet=%d over",iRet);
 	if(iRet!=0)
 	{
@@ -106,13 +106,10 @@ int main()
 		return -1;
 	}*/
 	
-	int pid;
-	unsigned long long sendSocketTraffic;
 	while(g_main_start)
 	{
 		sleep(2);
-		iRet=GetSendSocketTraffic("vs_server",&sendSocketTraffic);
-		LOGOUT("client sleep %d %llu",pid,(sendSocketTraffic/1024));
+		//LOGOUT("client sleep");
 	}
 	ReleaseTcpServer();
 	LOGOUT("ReleaseTcpServer over");

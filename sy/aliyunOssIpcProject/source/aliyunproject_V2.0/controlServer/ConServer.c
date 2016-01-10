@@ -440,18 +440,30 @@ int dataRecord(const char *server,const char *v_szId, char *videoPath,
 	if(iRet!=0)
 	{
 		LOGOUT("%s %s failure",strUrl,sendBuf);
+		if(sendBuf)
+		{
+			free(sendBuf);
+		}
 		return -2;
 	}
 	printf("strResponse---%s---", strResponse);
 	if(NULL == strResponse)
 	{
 		LOGOUT("pMsg null");
+		if(sendBuf)
+		{
+			free(sendBuf);
+		}
 		return -3;
 	}
 	cJSON * pJson = cJSON_Parse(strResponse);
 	if(NULL == pJson)																						 
 	{
 		LOGOUT("pJson null");
+		if(sendBuf)
+		{
+			free(sendBuf);
+		}
 		return 0;
 	}
 	cJSON * pSub = cJSON_GetObjectItem(pJson, "result");
@@ -466,6 +478,10 @@ int dataRecord(const char *server,const char *v_szId, char *videoPath,
 		LOGOUT("result : %d", pSub->valueint);
 	}
 	cJSON_Delete(pJson);
+	if(sendBuf)
+	{
+		free(sendBuf);
+	}
 	return result;
 }
 
