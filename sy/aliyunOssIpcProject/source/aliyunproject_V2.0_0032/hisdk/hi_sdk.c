@@ -38,6 +38,10 @@ static char  * 				g_motionString=NULL;
 static char  *				g_soundString=NULL;
 HI_CONTROLMD_DATA 			g_controlMd[4];
 
+static DWORD				g_workTimeMs=0;
+
+
+
 #if 0
 HI_S32 OnEventCallback(HI_U32 u32Handle, /* 句柄 */
                                 HI_U32 u32Event,      /* 事件 */
@@ -799,6 +803,105 @@ HI_S32 OnStreamCallback(HI_U32 u32Handle, /* 句柄 */
 	return HI_SUCCESS;
 }
 
+//struct tm 
+//{ 
+//	int tm_sec; 
+//	int tm_min; 
+//	int tm_hour; 
+//	int tm_mday; 
+//	int tm_mon; 
+//	int tm_year; 
+//	int tm_wday; 
+//	int tm_yday; 
+//	int tm_isdst; 
+//};
+
+void * judgeWorkTask(void* param)
+{
+	time_t timep;
+	struct tm* localTime;
+	HI_S32 iRet=0;
+
+	char buffer[40*1024]={0,};
+	char g711Buffer[164]={0,};
+	DWORD realSize=0;
+	
+	while(1)
+	{
+		iRet=readFile("reset.g711",buffer,40*1024,&realSize);
+		if(iRet==0)
+		{
+			LOGOUT("readFile reset.g711 success %d",realSize);
+			//G711：0x00 0x01 0x50 0x00
+			g711Buffer[0]=0x00;g711Buffer[1]=0x01;g711Buffer[2]=0x50;g711Buffer[3]=0x00;
+			int sum=0;
+			int size=0;
+			if(u32HandleHight!=0)
+			{
+				//（1—G711，4—G726)
+				iRet=HI_NET_DEV_StartVoice(u32HandleHight,1);
+				if(iRet==HI_SUCCESS)
+				{
+					LOGOUT("HI_NET_DEV_StartpVoice success");
+				}
+				else
+				{
+					LOGOUT("HI_NET_DEV_StartpVoice failure");
+				}
+			}
+			while(1)
+			{
+				if((realSize-sum)>160)
+					size=160;
+				else if((realSize-sum)>0)
+					size=(realSize-sum);
+				else
+					size=0;
+				if(size==0)
+					break;
+				memcpy(g711Buffer+4,buffer+sum,size);
+				sum=sum+size;
+				if(u32HandleHight!=0)
+				{
+					iRet=HI_NET_DEV_SendVoiceData(u32HandleHight,g711Buffer,sizeof(g711Buffer),getTickCountMs());
+					if(iRet==HI_SUCCESS)
+					{
+						//LOGOUT("HI_NET_DEV_SendVoiceData success");
+					}
+					else
+					{
+						LOGOUT("HI_NET_DEV_SendVoiceData failure");
+					}
+				}
+				usleep(10000);
+			}
+			if(u32HandleHight!=0)
+			{
+				//（1—G711，4—G726)
+				iRet=HI_NET_DEV_StopVoice(u32HandleHight);
+				if(iRet==HI_SUCCESS)
+				{
+					LOGOUT("HI_NET_DEV_StopVoice success");
+				}
+				else
+				{
+					LOGOUT("HI_NET_DEV_StopVoice failure");
+				}
+			}
+			sleep(10);
+		}
+		if(g_workTimeMs!=0)
+		{
+			if((getTickCountMs()-g_workTimeMs)>30*1000)
+			{
+				LOGOUT("the dataCallBack is unconnect- reboot APP");
+				exit(0);
+			}
+		}
+		sleep(2);
+	}
+}
+
 HI_S32 OnDataCallback(HI_U32 u32Handle, /* 句柄 */
                                 HI_U32 u32DataType,       /* 数据类型*/
                                 HI_U8*  pu8Buffer,      /* 数据 */
@@ -806,6 +909,8 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* 句柄 */
                                 HI_VOID* pUserData    /* 用户数据*/
                                 )
 {
+	g_workTimeMs=getTickCountMs();
+	//LOGOUT("g_workTimeMs = %ld ",g_workTimeMs);
 	if(u32DataType!=2)
 	{
 		//LOGOUT("time=%d,u32Handle=%d,u32DataType=%d,pu8Buffer=%s,u32Length=%d,pUserData=%s\n",
@@ -1665,9 +1770,19 @@ int InitHiSDKVideoAllChannel()
 	iRet = pthread_create(&m_makeMp4Task, NULL, makeMp4Task, NULL);
 	if(iRet != 0)
 	{
-		LOGOUT("can't create thread: %s",strerror(iRet));
+		LOGOUT("can't create makeMp4Task thread: %s",strerror(iRet));
 		return -2;
 	}
+
+	pthread_t m_judgeWorkTask;//实时播放，过程控制线程
+	iRet = pthread_create(&m_judgeWorkTask, NULL, judgeWorkTask, NULL);
+	if(iRet != 0)
+	{
+		LOGOUT("can't create judgeWorkTask thread: %s",strerror(iRet));
+		return -2;
+	}
+	g_workTimeMs=getTickCountMs();
+		
 	memset(g_controlMd,0,sizeof(g_controlMd));
 	int i=0;
 	pthread_t m_controlMdTask[4];
