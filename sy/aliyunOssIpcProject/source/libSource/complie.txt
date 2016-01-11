@@ -14,6 +14,8 @@ make -j4 CC=arm-hisiv100nptl-linux-gcc
 如何编译：
 8.libmad
 ./configure --host=arm-hisiv100nptl-linux --prefix=/home/samba/share/sourceOpen/AliYun/arm/libarmOs --disable-debugging  --enable-shared --enable-static 
+./configure --host=arm-hisiv100nptl-linux --prefix=/home/erreur/workSpace/workSource/AliYun/arm/libarmOs --disable-debugging  --enable-shared --enable-static
+
 1../configure --host=arm-hisiv100nptl-linux --prefix=/home/samba/share/sourceOpen/AliYun/arm/libarmOs
 2.make
 3.make install
