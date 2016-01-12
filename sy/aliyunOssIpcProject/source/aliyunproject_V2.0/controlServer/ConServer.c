@@ -440,12 +440,14 @@ int dataRecord(const char *server,const char *v_szId, char *videoPath,
 	if(iRet!=0)
 	{
 		LOGOUT("%s %s failure",strUrl,sendBuf);
+
 		if(sendBuf)
 		{
 			free(sendBuf);
 		}
 		return -2;
 	}
+	free(sendBuf);
 	printf("strResponse---%s---", strResponse);
 	if(NULL == strResponse)
 	{
@@ -484,6 +486,69 @@ int dataRecord(const char *server,const char *v_szId, char *videoPath,
 	}
 	return result;
 }
+//
+int reportUrgencyRecord(const char *server,const char *v_szId, char *videoPath, 
+			   long long creatTimeInMilSecond, int videoFileSize,char *jpgFilePath, 
+			   int videoTimeLength,Motion_Data mMotionData)
+{
+	if(server==NULL || v_szId==NULL)
+	{
+		LOGOUT("param is error");
+		return -1;
+	}	
+
+	int result = 0;
+	char *sendBuf=malloc(20480);
+	if(!sendBuf)
+	{
+		LOGOUT("malloc is error");
+	}
+	char strUrl[1024]={0};
+	char strResponse[1024] = {0};
+	memset(sendBuf,0,sizeof(sendBuf));
+	memset(strUrl,0,sizeof(strUrl));
+	/*sprintf(sendBuf,STRING_RECORD_CONSERVER, v_szId, videoPath, creatTimeInMilSecond, videoFileSize,jpgFilePath, videoTimeLength,
+					 mMotionData.videoMotionTotal_Dist1,mMotionData.videoMotionTotal_Dist2,
+		             mMotionData.videoMotionTotal_Dist3, mMotionData.videoMotionTotal_Dist4,mMotionData.voiceAlarmTotal);*/
+	sprintf(sendBuf,STRING_RECORD_CONSERVER, v_szId, videoPath, creatTimeInMilSecond, videoFileSize,jpgFilePath, videoTimeLength,
+					 mMotionData.motionDetectInfo, mMotionData.soundVolumeInfo);
+	sprintf(strUrl,STRING_GENCYCORD_CONSERVER,server);
+	int iRet=Post_head(strUrl, sendBuf, strResponse);
+	printf("-sendBuf=%s strUrl=%s---\n",sendBuf,strUrl);
+	if(iRet!=0)
+	{
+		LOGOUT("%s %s failure",strUrl,sendBuf);
+		free(sendBuf);
+		return -2;
+	}
+	free(sendBuf);
+	printf("strResponse---%s---", strResponse);
+	if(NULL == strResponse)
+	{
+		LOGOUT("pMsg null");
+		return -3;
+	}
+	cJSON * pJson = cJSON_Parse(strResponse);
+	if(NULL == pJson)																						 
+	{
+		LOGOUT("pJson null");
+		return 0;
+	}
+	cJSON * pSub = cJSON_GetObjectItem(pJson, "result");
+	if(NULL == pSub)
+	{
+		
+		 LOGOUT("dataRecord return null");
+	}
+	else
+	{
+		result = pSub->valueint;
+		LOGOUT("result : %d", pSub->valueint);
+	}
+	cJSON_Delete(pJson);
+	return result;
+}
+
 
 int InitConServer()
 {

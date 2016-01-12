@@ -17,6 +17,8 @@
 #define 	STRING_LOGIN_CONSERVER  	"http://%s/ipccmd_1p4.php?act=login"
 #define 	STRING_LOGOUT_CONSERVER		"http://%s/ipccmd_1p4.php?act=logout"
 #define 	STRING_DATARECORD_CONSERVER	"http://%s/ipccmd_1p4.php?act=dataRecord"
+#define 	STRING_GENCYCORD_CONSERVER	"http://%s/ipccmd_1p5.php?act=reportUrgencyRecord"
+
 /*#define 	STRING_RECORD_CONSERVER		"ipc_id=%s&videoPath=%s&creatTimeInMilSecond=%lld&videoFileSize=%d&\
 jpgFilePath=%s&videoTimeLength=%d&videoMotionTotal_Dist1=%d&\
 videoMotionTotal_Dist2=%d&videoMotionTotal_Dist3=%d&videoMotionTotal_Dist4=%d&\
@@ -65,6 +67,9 @@ extern "C" {
 	int loginCtrl(const char *server,const char *v_szId,const char *v_szPwd,LOGINRETURNINFO *returnInfo);
 	int exitCtrl(const char *server,const char *v_szId,const char *v_szPwd);
 	int dataRecord(const char *server,const char *v_szId, char *videoPath, 
+			   long long creatTimeInMilSecond, int videoFileSize,char *jpgFilePath, 
+			   int videoTimeLength,Motion_Data mMotionData);
+	int reportUrgencyRecord(const char *server,const char *v_szId, char *videoPath, 
 			   long long creatTimeInMilSecond, int videoFileSize,char *jpgFilePath, 
 			   int videoTimeLength,Motion_Data mMotionData);
 #  ifdef __cplusplus

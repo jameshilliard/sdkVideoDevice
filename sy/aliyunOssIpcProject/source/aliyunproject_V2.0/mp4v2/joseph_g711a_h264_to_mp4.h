@@ -92,6 +92,7 @@ extern "C"{
 	int CloseMp4Module(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *joseph_mp4_config);
 	int Mp4FileVideoEncode(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *joseph_mp4_config,unsigned char* nBuffer,unsigned int length);
 	int Mp4FileAudioEncode(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *joseph_mp4_config,unsigned char* nBuffer,unsigned int length,unsigned int *power);
+	int g711a_encode(void *pout_buf, int *pout_len, const void *pin_buf, const int in_len);
 #ifdef __cplusplus
 #if __cplusplus
 extern "C"{

@@ -822,13 +822,14 @@ void * judgeWorkTask(void* param)
 	struct tm* localTime;
 	HI_S32 iRet=0;
 
-	char buffer[40*1024]={0,};
+	char buffer[400*1024]={0,};
 	char g711Buffer[164]={0,};
 	DWORD realSize=0;
 	
 	while(1)
 	{
-		iRet=readFile("reset.g711",buffer,40*1024,&realSize);
+		iRet=readFile("reset.g711",buffer,400*1024,&realSize);
+		LOGOUT("judgeWorkTask :%d--", iRet);
 		if(iRet==0)
 		{
 			LOGOUT("readFile reset.g711 success %d",realSize);
@@ -866,7 +867,7 @@ void * judgeWorkTask(void* param)
 					iRet=HI_NET_DEV_SendVoiceData(u32HandleHight,g711Buffer,sizeof(g711Buffer),getTickCountMs());
 					if(iRet==HI_SUCCESS)
 					{
-						//LOGOUT("HI_NET_DEV_SendVoiceData success");
+						LOGOUT("HI_NET_DEV_SendVoiceData success");
 					}
 					else
 					{

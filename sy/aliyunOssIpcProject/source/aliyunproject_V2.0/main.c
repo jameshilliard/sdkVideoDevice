@@ -13,6 +13,7 @@
 #include "hisdk/hi_sdk.h"
 #include "toolComm/UdpSearch.h"
 #include "controlServer/ConServer.h"
+#include "pollingCheck/pollingCheck.h"
 
 
 BOOL g_main_start=TRUE;
@@ -98,13 +99,13 @@ int main()
 		return -1;
 	}
 
-	/*iRet=InitUpdate();
-	LOGOUT("updateMoudle iRet=%d over",iRet);
-	if(iRet!=0)
+	pthread_t pthreadWork;
+	//iRet = pthread_create(&pthreadWork, NULL, PollingcheckThread, NULL);
+	if(iRet != 0)
 	{
-		LOGOUT("error and return");
+		LOGOUT("Create checkThread Fail!!\n");
 		return -1;
-	}*/
+	}
 	
 	while(g_main_start)
 	{

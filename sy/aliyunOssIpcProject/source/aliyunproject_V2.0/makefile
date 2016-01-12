@@ -1,4 +1,4 @@
-LIB = -L./liball/libarm -lNetLib -loss_c_sdk -lvo-aacenc -laprutil-1 -lapr-1 -lcurl -lxml2 -lmp4v2 -ldl -lrt -lpthread -lm -Wl,--rpath=./liball/libarm
+LIB = -L /hisi3518/madplayer/libz/lib -L./liball/libarm -L /usr/lib64/ -lmad -lNetLib -loss_c_sdk -lvo-aacenc -laprutil-1 -lapr-1 -lcurl -lxml2 -lmp4v2 -ldl -lrt -lpthread  -lm -Wl,--rpath=./liball/libarm
 #LIB = -L./liball/libarm -lNetLib -loss_c_sdk -lutf8proc  -laprutil-1 -lapr-1 -lcurl -lxml2 -lfaac -ldl -lrt -lpthread -lm -Wl,--rpath=./liball/libarm
 
 INCLUDES = -I./include\
@@ -8,7 +8,9 @@ INCLUDES = -I./include\
 		   -I./include/mp4v2\
 		   -I./include/curl\
 		   -I./include/openssl\
-		   -I./include/vo-aacenc
+		   -I./include/vo-aacenc\
+		   -I./include/mad\
+		   -I /hisi3518/madplayer/libz/include/
 #关闭所有 未使用变量、printf格式化、警告 
 #FLAGS = -m32 -O2 -Wall -Wno-unused -Wno-format -fstrength-reduce -DHI_OS_LINUX
 FLAGS = -g -O3 -Wall -Wno-unused -Wno-format -fstrength-reduce -DHI_OS_LINUX -DCPU_ARM
@@ -33,9 +35,10 @@ CSRCS += $(wildcard ./oss/*.c)
 CSRCS += $(wildcard ./mxml/*.c)
 CSRCS += $(wildcard ./controlServer/*.c)
 CSRCS += $(wildcard ./json/*.c)
-CSRCS += $(wildcard ./update/*.c)
+CSRCS += $(wildcard ./pollingCheck/*.c)
+CSRCS += $(wildcard ./mp3ToPcm/*.c)
 
-VPATH = ./Common:./LogOut:./hisdk:./toolComm:./mxml:./mp4v2:./oss:./controlServer:./json
+VPATH = ./Common:./LogOut:./hisdk:./toolComm:./mxml:./mp4v2:./oss:./controlServer:./json:./pollingCheck:./mp3ToPcm
 
 OBJDIR := ./objs
 DEPDIR := ./deps
@@ -51,7 +54,7 @@ all: $(ALL_OUTPUT)
 
 #$(CDEPS) $(CPPDEPS)
 $(CS_P):  $(COBJS) $(CPPOBJS) 
-	$(GXX) -o $(CS_P) $(CPPOBJS) $(COBJS)  -D EXECINFO
+	$(GXX) -o $(CS_P) $(CPPOBJS) $(COBJS) $(LIB) -D EXECINFO
 	#$(GXX) -shared -o $(CS_P) $(CPPOBJS) $(COBJS)  -D EXECINFO
 sinclude $(wildcard $(DEPDIR)/*.d)
 	
