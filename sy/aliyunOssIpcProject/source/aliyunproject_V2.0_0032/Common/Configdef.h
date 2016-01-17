@@ -28,7 +28,7 @@
 
 #define 	COMMVER1 					1
 #define 	COMMVER2 					2
-#define 	SDKVERSION 					COMMVER1 
+#define 	SDKVERSION 					COMMVER2 
 
 #if   SDKVERSION == COMMVER1
 
@@ -40,7 +40,7 @@
 #define	DE_ALACCESSSECRET		"mwpC5hLaYOIR3obMkqJ4uKoPCvwupf"
 
 #elif SDKVERSION == COMMVER2 
-
+//速尔快递 2.0.0033
 #define SDK_SYSTEM_FWVERSION	"2.0.0033"	// SDK版本号
 #define DE_ROUTESERVER			"ipc.355fun.com"
 #define	DE_ALBUCKETNAME			"cyq-fyws"	
@@ -49,7 +49,6 @@
 #define	DE_ALACCESSSECRET		"L3gqCggwtaH3byJipRTTZdXs1bTSt8"
 
 #endif
-
 // 设备编号和产品型号配置文件名字
 #define SERVERNOFILENAME  		"serverNo"
 #define PRODUCTFILENAME  		"productNo"
