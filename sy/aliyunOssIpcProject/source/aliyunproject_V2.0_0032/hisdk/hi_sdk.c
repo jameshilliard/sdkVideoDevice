@@ -822,12 +822,15 @@ void * judgeWorkTask(void* param)
 	struct tm* localTime;
 	HI_S32 iRet=0;
 
+	#if DEBUG_AUDIO
 	char buffer[40*1024]={0,};
 	char g711Buffer[164]={0,};
 	DWORD realSize=0;
+	#endif
 	
 	while(1)
 	{
+		#if DEBUG_AUDIO
 		iRet=readFile("reset.g711",buffer,40*1024,&realSize);
 		if(iRet==0)
 		{
@@ -890,6 +893,8 @@ void * judgeWorkTask(void* param)
 			}
 			sleep(10);
 		}
+		#endif
+		
 		if(g_workTimeMs!=0)
 		{
 			if((getTickCountMs()-g_workTimeMs)>30*1000)
