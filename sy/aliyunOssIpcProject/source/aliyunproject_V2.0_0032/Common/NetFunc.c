@@ -3,7 +3,7 @@
 
 
 // 判断网卡是否可用
-BOOL  isValidNetworkCard(const char *v_szInterface, char *v_szDeviceIp, char *v_szDevMask, char *v_szDevHwMask,char *v_szBcastAddr)
+BOOL  isValidNetworkCard(const char *v_szInterface, char *v_szDeviceIp, char *v_szDevMask, char *v_szDevHwMask,char *v_szBcastAddr,char *v_routeIp)
 {
 	if((NULL == v_szInterface) || (NULL == v_szDeviceIp) || (NULL == v_szDevMask) 
 		|| (NULL == v_szDevHwMask))
@@ -122,7 +122,7 @@ BOOL  isValidNetworkCard(const char *v_szInterface, char *v_szDeviceIp, char *v_
 				v_szDevHwMask：mac地址
 **返回：FALSE:失败，TRUE：成功 
 ************************************************************************/
-BOOL ScanNetWorkCardName(const char *v_szDirectory, char *v_szNetName, char *v_szDeviceIp, char *v_szDevMask, char *v_szDevHwMask,char *v_szBcastAddr)
+BOOL ScanNetWorkCardName(const char *v_szDirectory, char *v_szNetName, char *v_szDeviceIp, char *v_szDevMask, char *v_szDevHwMask,char *v_szBcastAddr,char *v_routeIp)
 {
 	if((NULL == v_szDirectory)||(NULL == v_szNetName)||(NULL == v_szDeviceIp)||(NULL == v_szDevHwMask)||(NULL == v_szDevHwMask))
 	{
@@ -136,7 +136,7 @@ BOOL ScanNetWorkCardName(const char *v_szDirectory, char *v_szNetName, char *v_s
 	if((dp = opendir(v_szDirectory)) == NULL)
 	{
 		perror("opendir");
-		bRet = isValidNetworkCard(szNetWorkName, v_szDeviceIp, v_szDevMask, v_szDevHwMask,v_szBcastAddr);
+		bRet = isValidNetworkCard(szNetWorkName, v_szDeviceIp, v_szDevMask, v_szDevHwMask,v_szBcastAddr,v_routeIp);
 		if(NULL != v_szNetName)
 		{
 			memcpy(v_szNetName, szNetWorkName, MIN(strlen(szNetWorkName), sizeof(v_szNetName)));
@@ -153,9 +153,9 @@ BOOL ScanNetWorkCardName(const char *v_szDirectory, char *v_szNetName, char *v_s
 				(entry->d_name[0] != '.'))
 			{
 				printf("opendir  %s \n",entry->d_name);
-				if(strcmp(entry->d_name,"eth0")==0)
+				if(strcmp(entry->d_name,"ra0")==0)
 				{
-					bRet = isValidNetworkCard("eth0", v_szDeviceIp, v_szDevMask, v_szDevHwMask,v_szBcastAddr);
+					bRet = isValidNetworkCard("ra0", v_szDeviceIp, v_szDevMask, v_szDevHwMask,v_szBcastAddr,v_routeIp);
 					if (bRet)
 					{
 						if(NULL != v_szNetName)
@@ -169,7 +169,7 @@ BOOL ScanNetWorkCardName(const char *v_szDirectory, char *v_szNetName, char *v_s
 				{
 					if(strcmp(entry->d_name,"lo")!=0)
 					{
-						bRet = isValidNetworkCard(entry->d_name, v_szDeviceIp, v_szDevMask, v_szDevHwMask,v_szBcastAddr);
+						bRet = isValidNetworkCard(entry->d_name, v_szDeviceIp, v_szDevMask, v_szDevHwMask,v_szBcastAddr,v_routeIp);
 						if (bRet)
 						{
 							if(NULL != v_szNetName)
@@ -287,13 +287,10 @@ int GetDeviceNetInfo(char *v_szDeviceIp, char *v_szDevSubnet, char *v_szDevHwMas
 	// 获取网卡名字
 	BOOL bRet = FALSE;
 	char szNetWorkCardName[20] = {0};
-	bRet = ScanNetWorkCardName(SYSCLASSNET, szNetWorkCardName, v_szDeviceIp, v_szDevSubnet, v_szDevHwMask,v_szBcastAddr);
-	if(bRet)
-	{
-		GetGateway(v_szDevGw);
-		//LOGOUT("ifconfig netCardName:%s ipddr:%s hwMac:%s subnet:%s gw:%s",szNetWorkCardName,v_szDeviceIp,v_szDevHwMask,v_szDevSubnet,v_szDevGw);
-	}
-	else// 使用ifconfig获取网络信息
+	GetGateway(v_szDevGw);
+	bRet = ScanNetWorkCardName(SYSCLASSNET, szNetWorkCardName, v_szDeviceIp, v_szDevSubnet, v_szDevHwMask,v_szBcastAddr,v_szDevGw);
+	//LOGOUT("ifconfig netCardName:%s ipddr:%s hwMac:%s subnet:%s gw:%s",szNetWorkCardName,v_szDeviceIp,v_szDevHwMask,v_szDevSubnet,v_szDevGw);
+	if(!bRet)// 使用ifconfig获取网络信息
 	{
 		char cmd[128]={0};
 		sprintf(cmd,"ifconfig %s > %s/netconfig", szNetWorkCardName, TEMPDIR);

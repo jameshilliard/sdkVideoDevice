@@ -46,9 +46,9 @@ void * aliyunOssTask(void* param)
 	int iRet=-1;
 	int fileType=-1;
 	LOGINRETURNINFO returnInfo;
-	loginCtrl(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,//g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort,
-		      g_szServerNO,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,
-		      &returnInfo);
+	//loginCtrl(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,//g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort,
+	//	      g_szServerNO,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,
+	//	      &returnInfo);
 	time_t oldTime;
 	time_t newTime;
 	time((time_t *)&oldTime);

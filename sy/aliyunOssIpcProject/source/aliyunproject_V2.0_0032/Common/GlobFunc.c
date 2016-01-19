@@ -78,9 +78,9 @@ INT32S ReadConfigFile(char *v_szFilePath, char *v_szReadBuf, int v_iBufLen)
 		LOGOUT("readServerNo failed , fopen serverNo error");
 		return -2;
 	}
-	fread(v_szReadBuf, 1, v_iBufLen, fp);
+	int iRet=fread(v_szReadBuf, 1, v_iBufLen, fp);
 
-	//LOGOUT("v_szReadBuf = %s", v_szReadBuf);
+	//LOGOUT("v_szReadBuf = %s iRet =%d file=%s", v_szReadBuf,iRet,v_szFilePath);
 	fclose(fp);
 	return 0;
 }

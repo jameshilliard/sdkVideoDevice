@@ -28,27 +28,45 @@
 
 #define 	COMMVER1 					1
 #define 	COMMVER2 					2
-#define 	SDKVERSION 					COMMVER2 
+#define 	SDKVERSION 					COMMVER1 
 
 #if   SDKVERSION == COMMVER1
 
-#define SDK_SYSTEM_FWVERSION	"1.0.0033"	// SDK版本号
+#define SDK_SYSTEM_FWVERSION	"1.0.0034"	// SDK版本号
 #define DE_ROUTESERVER			"ipc.100memory.com"
 #define	DE_ALBUCKETNAME			"memory100"	
 #define	DE_ALENDPOINT			"oss-cn-qingdao.aliyuncs.com"
 #define DE_ALACCESSKEYID		"FNbJ4XFhi337eObw"
 #define	DE_ALACCESSSECRET		"mwpC5hLaYOIR3obMkqJ4uKoPCvwupf"
+#define	DE_VIDEOPATH			"Videos"
+#define	DE_JPGPATH				"Photos"
+
 
 #elif SDKVERSION == COMMVER2 
 //速尔快递 2.0.0033
-#define SDK_SYSTEM_FWVERSION	"2.0.0033"	// SDK版本号
+#define SDK_SYSTEM_FWVERSION	"2.0.0034"	// SDK版本号
 #define DE_ROUTESERVER			"ipc.355fun.com"
 #define	DE_ALBUCKETNAME			"cyq-fyws"	
 #define	DE_ALENDPOINT			"oss-cn-qingdao.aliyuncs.com"
 #define DE_ALACCESSKEYID		"QyPpDQ2ZRTaO9R4G"
 #define	DE_ALACCESSSECRET		"L3gqCggwtaH3byJipRTTZdXs1bTSt8"
+#define	DE_VIDEOPATH			"Videos"
+#define	DE_JPGPATH				"Photos"
 
 #endif
+
+//#define	DE_ALBUCKETNAME			"zs-oss-test-go"	
+//#define	DE_ALENDPOINT			"oss-cn-shenzhen.aliyuncs.com"
+//#define 	DE_ALACCESSKEYID		"YCcIdLNNUAkA4d2K"
+//#define	DE_ALACCESSSECRET		"jwVtojgl6hsxyj7oj86lz0X3T73x5v"
+//#define	DE_ALBUCKETNAME			"memory100"	
+//#define	DE_ALENDPOINT			"oss-cn-qingdao.aliyuncs.com"
+//#define 	DE_ALACCESSKEYID		"FNbJ4XFhi337eObw"
+//#define	DE_ALACCESSSECRET		"mwpC5hLaYOIR3obMkqJ4uKoPCvwupf"
+//#define	DE_VIDEOPATH			"Videos"
+//#define	DE_JPGPATH				"Photos"
+
+
 // 设备编号和产品型号配置文件名字
 #define SERVERNOFILENAME  		"serverNo"
 #define PRODUCTFILENAME  		"productNo"
@@ -79,20 +97,6 @@
 #define	DEVICECHANNELNUM		1
 #define	DEVICECHANNELSTARTNUM	1
 #define DE_SECRET				""
-
-//#define	DE_ALBUCKETNAME			"zs-oss-test-go"	
-//#define	DE_ALENDPOINT			"oss-cn-shenzhen.aliyuncs.com"
-//#define 	DE_ALACCESSKEYID		"YCcIdLNNUAkA4d2K"
-//#define	DE_ALACCESSSECRET		"jwVtojgl6hsxyj7oj86lz0X3T73x5v"
-#define	DE_ALBUCKETNAME			"memory100"	
-#define	DE_ALENDPOINT			"oss-cn-qingdao.aliyuncs.com"
-#define DE_ALACCESSKEYID		"FNbJ4XFhi337eObw"
-#define	DE_ALACCESSSECRET		"mwpC5hLaYOIR3obMkqJ4uKoPCvwupf"
-
-#define	DE_VIDEOPATH			"Videos"
-#define	DE_JPGPATH				"Photos"
-
-
 
 // tagCapParamCfg摄像头信息默认参数
 #define DE_BITRATE				512					// 码率

@@ -272,14 +272,37 @@ int loginCtrl(const char *server,const char *v_szId,const char *v_szPwd,LOGINRET
 	}
 	//char sendBuf[] = "id=LB1GB29HYM3M8HJ7111C&pwd=123456";
 	//char strUrl[] = "http://cgtx.100memory.com/ipccmd.php?act=login";
+	//3)HWVersion:IPC的硬件版本号
+	//4)SWVersion:ipc 的固件版本号
+	
 	char sendBuf[1024]={0};
 	char strUrl[1024]={0};
 	char strResponse[1024] = {0};
+	char allVersion[256]={0};
+	char hardwareVersion[256]={0};
+	char softwareVersion[256]={0};
 	memset(sendBuf,0,sizeof(sendBuf));
 	memset(strUrl,0,sizeof(strUrl));
-	sprintf(sendBuf,"id=%s&pwd=%s",v_szId,v_szPwd);
+	memset(allVersion,0,sizeof(allVersion));
+	memset(hardwareVersion,0,sizeof(hardwareVersion));
+	memset(softwareVersion,0,sizeof(softwareVersion));
+	//设置软件版本信息
+	int iRet= GetSoftVersion(DEVICECONFIGDIR, allVersion, sizeof(allVersion));
+	if(0==iRet)
+	{
+		LOGOUT("GetSoftVersion success over iRet=%d %s",iRet,allVersion);
+		sscanf(allVersion,"%[^_]_%s",hardwareVersion,softwareVersion);
+		LOGOUT("hardwareVersion=%s and softwareVersion=%s",hardwareVersion,softwareVersion);
+	}
+	else
+	{
+		LOGOUT("SetSoftVersion failed over iRet=%d",iRet);
+		//return -1;
+	}
+	sprintf(sendBuf,"id=%s&pwd=%s&HWVersion=%s&SWVersion=%s",v_szId,v_szPwd,hardwareVersion,softwareVersion);
+	//sprintf(sendBuf,"id=%s&pwd=%s",v_szId,v_szPwd);
 	sprintf(strUrl,STRING_LOGIN_CONSERVER,server);
-	int iRet=Post_head(strUrl, sendBuf, strResponse);
+	iRet=Post_head(strUrl, sendBuf, strResponse);
 	if(iRet!=0)
 	{
 		LOGOUT("%s %d failure",strUrl,sendBuf);
