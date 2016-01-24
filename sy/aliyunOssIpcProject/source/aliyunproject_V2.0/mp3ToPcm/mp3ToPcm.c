@@ -1,157 +1,216 @@
-#include <stdio.h>  
-#include <stdlib.h>  
-#include <unistd.h>  
-#include <sys/stat.h>  
-#include <sys/mman.h>  
-//#include <sys/soundcard.h>  
-#include <sys/ioctl.h>  
-#include <sys/fcntl.h>  
-#include <sys/types.h>  
-#include <mad.h>  
-#include <alsa/asoundlib.h>
-#include "../LogOut/LogOut.h"
-#define SAMPLE_RATE 44100  
-#define CHANNELS 2  
-#define PCM_DEVICE "plughw:0,0"  
-static snd_pcm_hw_params_t *hwparams = NULL;  
-static snd_pcm_t *pcm_handle = NULL;  
-struct buffer  
-{  
-    unsigned char const *start;  
-   unsigned long length;  
-};  
-static int decode (unsigned char const *, unsigned long);  
-//static int init_alsa ();  
-FILE *outFile;
-char *outPutBuf;
-int g_outPutSize = 0;
-//
-int getPCM(unsigned char *inBuf, int inSize, unsigned char *outBuf, int *outSize)
+#include "mp3ToPcm.h"
+#include "../mp4v2/joseph_g711a_h264_to_mp4.h"
+
+/*
+ * This is the input callback. The purpose of this callback is to (re)fill
+ * the stream buffer which is to be decoded. In this example, an entire file
+ * has been mapped into memory, so we just call mad_stream_buffer() with the
+ * address and length of the mapping. When this callback is called a second
+ * time, we are finished decoding.
+ */
+static int mp3DecodeStatus=DECODENULL;
+static int mp3DecodeControl=DECODENULL;
+
+static enum mad_flow input(void *data,struct mad_stream *stream)
 {
-	outPutBuf = NULL;
-	g_outPutSize = 0;
-	outPutBuf = (char*)malloc(inSize*8);
-	decode(inBuf, inSize);
-	if(outPutBuf != NULL)
+	mp3_file *mp3fp;
+	int      ret_code;
+	int      unproc_data_size;    /*the unprocessed data's size*/
+	int      copy_size;
+
+	mp3fp = (mp3_file *)data;
+	if(mp3fp->fpos<mp3fp->flen)
 	{
-		*outSize = g_outPutSize;
-		memcpy(outBuf, outPutBuf, g_outPutSize);
-		free(outPutBuf);
+		unproc_data_size = stream->bufend - stream->next_frame;
+		memcpy(mp3fp->fbuf, mp3fp->fbuf+mp3fp->fbsize-unproc_data_size, unproc_data_size);
+		copy_size = BUFSIZE - unproc_data_size;
+		if(mp3fp->fpos + copy_size > mp3fp->flen)
+		{
+		  copy_size = mp3fp->flen - mp3fp->fpos;
+		}
+		fread(mp3fp->fbuf+unproc_data_size, 1, copy_size, mp3fp->fp);
+		mp3fp->fbsize = unproc_data_size + copy_size;
+		mp3fp->fpos  += copy_size;
+
+		/*Hand off the buffer to the mp3 input stream*/
+		mad_stream_buffer(stream, mp3fp->fbuf, mp3fp->fbsize);
+		ret_code = MAD_FLOW_CONTINUE;
 	}
 	else
 	{
+	  	ret_code = MAD_FLOW_STOP;
+	}
+	if(mp3DecodeControl==DECODESTOP)
+	{
+		LOGOUT("file %s decode mp3 is stop",mp3fp->filePath);
+		return MAD_FLOW_STOP;
+	}
+	return ret_code;
+}
+
+/*
+ * The following utility routine performs simple rounding, clipping, and
+ * scaling of MAD's high-resolution samples down to 16 bits. It does not
+ * perform any dithering or noise shaping, which would be recommended to
+ * obtain any exceptional audio quality. It is therefore not recommended to
+ * use this routine if high-quality output is desired.
+ */
+
+static inline signed int scale(mad_fixed_t sample)
+{
+	/* round */  
+	sample += (1L << (MAD_F_FRACBITS - 16));  
+	
+	/* clip */	
+	if (sample >= MAD_F_ONE)  
+	  sample = MAD_F_ONE - 1;  
+	else if (sample < -MAD_F_ONE)  
+	  sample = -MAD_F_ONE;	
+	
+	/* quantize */	
+	return sample >> (MAD_F_FRACBITS + 1 - 16);  
+}
+
+/*
+ * This is the output callback function. It is called after each frame of
+ * MPEG audio data has been completely decoded. The purpose of this callback
+ * is to output (or play) the decoded PCM audio.
+ */
+
+char outBuffer[10*1024]={0,};
+char outBufferG711[10*1024]={0,};
+
+static enum mad_flow output(void *data,struct mad_header const *header,struct mad_pcm *pcm)
+{
+	unsigned int nchannels, nsamples;  
+	mad_fixed_t const *left_ch, *right_ch;	
+
+	/* pcm->samplerate contains the sampling frequency */  
+
+	nchannels = pcm->channels;	
+	nsamples  = pcm->length;  
+	left_ch   = pcm->samples[0];  
+	right_ch  = pcm->samples[1];  
+	char *ptrOutBuffer=outBuffer;
+	int realCount=0;
+	//printf("out lensth is %d\n",nsamples);
+	while(nsamples--) 
+	{  
+	  signed int sample; 
+	  /* output sample(s) in 16-bit signed little-endian PCM */  
+	  sample = scale(*left_ch++); 
+	  //if(!(nsamples%11==5 || nsamples%11==10))
+	  //	continue;
+	  *ptrOutBuffer++=(char)((sample >> 0) & 0xff);
+	  *ptrOutBuffer++=(char)((sample >> 8) & 0xff);
+	  realCount++;
+	  //putchar((sample >> 0) & 0xff);  
+	  //putchar((sample >> 8) & 0xff);  
+	} 
+	int outLength=10*1024;
+	outLength=g711a_encode(outBufferG711,&outLength,outBuffer,realCount*2);
+	writeFileWithFlag("startUp.g711",outBufferG711,outLength,"a+");
+	if(mp3DecodeControl==DECODESTOP)
+	{
+		LOGOUT("file output decode mp3 is stop");
+		return MAD_FLOW_STOP;
+	}
+	return MAD_FLOW_CONTINUE; 
+}
+
+/*
+ * This is the error callback function. It is called whenever a decoding
+ * error occurs. The error is indicated by stream->error; the list of
+ * possible MAD_ERROR_* errors can be found in the mad.h (or stream.h)
+ * header file.
+ */
+
+static enum mad_flow error(void *data,
+		    struct mad_stream *stream,
+		    struct mad_frame *frame)
+{
+	mp3_file *mp3fp = data;
+	LOGOUT("decoding error 0x%04x (%s) at byte offset %u\n",stream->error,mad_stream_errorstr(stream),stream->this_frame - mp3fp->fbuf);
+	if(mp3DecodeControl==DECODESTOP)
+	{ 
+		LOGOUT("file %s decode mp3 is stop",mp3fp->filePath);
+		return MAD_FLOW_STOP;
+	}					 									   
+	/* return MAD_FLOW_BREAK here to stop decoding (and propagate an error) */
+	return MAD_FLOW_CONTINUE;
+}
+
+/*
+ * This is the function called by main() above to perform all the decoding.
+ * It instantiates a decoder object and configures it with the input,
+ * output, and error callback functions above. A single call to
+ * mad_decoder_run() continues until a callback function returns
+ * MAD_FLOW_STOP (to stop decoding) or MAD_FLOW_BREAK (to stop decoding and
+ * signal an error).
+ */
+
+static int decode(mp3_file *mp3fp)
+{
+	struct mad_decoder decoder;
+	int result;
+	/* configure input, output, and error functions */
+	mad_decoder_init(&decoder, mp3fp,
+	   input, 0 /* header */, 0 /* filter */, output,
+	   error, 0 /* message */);
+	/* start decoding */
+	result = mad_decoder_run(&decoder, MAD_DECODER_MODE_SYNC);
+	/* release the decoder */
+	mad_decoder_finish(&decoder);
+	return result;
+}
+
+int controlMp3Decode(int type)
+{ 
+	mp3DecodeControl=type;
+}
+int getMP3DecodeStatus()
+{
+	return mp3DecodeStatus;
+}
+int playMp3File(const char *stMp3Path)
+{
+	long flen, fsta, fend;
+	int  dlen;
+	mp3_file mp3fp;
+	
+	if((mp3fp.fp = fopen("startUp.mp3", "r")) == NULL)
+	{
+		LOGOUT("can't open source file.\n");
 		return -1;
 	}
-	return g_outPutSize;
-}
-//
-static enum mad_flow input (void *data, struct mad_stream *stream)  
-{  
-    struct buffer *buffer = data;  
-    if (!buffer->length)  
-       return MAD_FLOW_STOP;  
-    mad_stream_buffer (stream, buffer->start, buffer->length);  
-    buffer->length = 0;  
-    return MAD_FLOW_CONTINUE;  
-}  
-/*这一段是处理采样后的pcm音频 */  
-static inline signed int scale (mad_fixed_t sample)  
-{  
-    sample += (1L << (MAD_F_FRACBITS - 16));  
-   if (sample >= MAD_F_ONE)  
-       sample = MAD_F_ONE - 1;  
-   else if (sample < -MAD_F_ONE)  
-       sample = -MAD_F_ONE;  
-   return sample >> (MAD_F_FRACBITS + 1 - 16);  
+	fsta = ftell(mp3fp.fp);
+	fseek(mp3fp.fp, 0, SEEK_END);
+	fend = ftell(mp3fp.fp);
+	flen = fend - fsta;
+	if(flen<=0)
+	{
+		LOGOUT("file is null\n");
+		return -2;
+	}
+	fseek(mp3fp.fp, 0, SEEK_SET);
+	fread(mp3fp.fbuf, 1, BUFSIZE, mp3fp.fp);
+	mp3fp.fbsize = BUFSIZE;
+	mp3fp.fpos   = BUFSIZE;
+	mp3fp.flen   = flen;
+	memset(mp3fp.filePath,0,sizeof(mp3fp.filePath));
+	int length=strlen(stMp3Path);
+	if(length>sizeof(mp3fp.filePath))
+		length=sizeof(mp3fp.filePath);
+	memcpy(mp3fp.filePath,stMp3Path,length);
+	LOGOUT("decode start %s",mp3fp.filePath);
+	mp3DecodeStatus=DECODERUN;
+	mp3DecodeControl=DECODERUN;
+	decode(&mp3fp);
+	mp3DecodeStatus=DECODESTOP;
+	mp3DecodeControl=DECODESTOP;
+	LOGOUT("decode over %s",mp3fp.filePath);
+	fclose(mp3fp.fp);
+	return 0;
 }
 
-//
-static enum mad_flow outputPCM (void *data, struct mad_header const *header, struct mad_pcm *pcm)  
-{  
-    unsigned int nchannels, nsamples, n;  
-    mad_fixed_t const *left_ch, *right_ch;  
-    unsigned char Output[6912], *OutputPtr;  
-    int fmt, wrote, speed, exact_rate, err, dir;  
-    nchannels = pcm->channels;  
-    n = nsamples = pcm->length;  
-    left_ch = pcm->samples[0];  
-    right_ch = pcm->samples[1];  
-//    fmt = AFMT_S16_LE;  
-//    speed = pcm->samplerate * 2;        /*播放速度是采样率的两倍 */  
-    OutputPtr = Output;//将OutputPtr指向Output  
-    while (nsamples--)  
-    {  
-        signed int sample;  
-        sample = scale (*left_ch++);  
-        *(OutputPtr++) = sample >> 0;  
-        *(OutputPtr++) = sample >> 8;  
-        if (nchannels == 2)  
-        {  
-            sample = scale (*right_ch++);  
-            *(OutputPtr++) = sample >> 0;  
-            *(OutputPtr++) = sample >> 8;  
-        }  
-    }  
-    OutputPtr = Output;//由于之前的操作将OutputPtr的指针指向了最后，这时需要将其指针移动到最前面  
-   
-    //fwrite(OutputPtr, 1, n*2*nchannels, outFile); 
-    LOGOUT("mad_flow  n*2*nchannels:%d---", n*2*nchannels);
-   // memset(outPutBuf+g_outPutSize, 0, n*2*nchannels);
-	memcpy(outPutBuf+g_outPutSize, OutputPtr, n*2*nchannels);
-	g_outPutSize += n*2*nchannels;
-//    snd_pcm_writei (pcm_handle, OutputPtr, n);  
-    OutputPtr = Output;//写完文件后，OutputPtr的指针也移动到了最后，这时需要将其指针移动到最前面  
-    return MAD_FLOW_CONTINUE;  
-}
-//
-
-static enum mad_flow output (void *data, struct mad_header const *header, struct mad_pcm *pcm)  
-{  
-    unsigned int nchannels, nsamples, n;  
-    mad_fixed_t const *left_ch, *right_ch;  
-    unsigned char Output[6912], *OutputPtr;  
-    int fmt, wrote, speed, exact_rate, err, dir;  
-    nchannels = pcm->channels;  
-    n = nsamples = pcm->length;  
-    left_ch = pcm->samples[0];  
-    right_ch = pcm->samples[1];  
-//    fmt = AFMT_S16_LE;  
-//    speed = pcm->samplerate * 2;        /*播放速度是采样率的两倍 */  
-    OutputPtr = Output;//将OutputPtr指向Output  
-    while (nsamples--)  
-    {  
-        signed int sample;  
-        sample = scale (*left_ch++);  
-        *(OutputPtr++) = sample >> 0;  
-        *(OutputPtr++) = sample >> 8;  
-        if (nchannels == 2)  
-        {  
-            sample = scale (*right_ch++);  
-            *(OutputPtr++) = sample >> 0;  
-            *(OutputPtr++) = sample >> 8;  
-        }  
-    }  
-    OutputPtr = Output;//由于之前的操作将OutputPtr的指针指向了最后，这时需要将其指针移动到最前面  
-    fwrite(OutputPtr, 1, n*2*nchannels, outFile);  
-//    snd_pcm_writei (pcm_handle, OutputPtr, n);  
-    OutputPtr = Output;//写完文件后，OutputPtr的指针也移动到了最后，这时需要将其指针移动到最前面  
-    return MAD_FLOW_CONTINUE;  
-}  
-static enum mad_flow error (void *data, struct mad_stream *stream, struct mad_frame *frame)  
-{  
-    return MAD_FLOW_CONTINUE;  
-}  
-static int decode (unsigned char const *start, unsigned long length)  
-{  
-    struct buffer buffer;  
-    struct mad_decoder decoder;  
-    int result;  
-    buffer.start = start;  
-    buffer.length = length;  
-    mad_decoder_init (&decoder, &buffer, input, 0, 0, outputPCM, error, 0);  
-    mad_decoder_options (&decoder, 0);  
-    result = mad_decoder_run (&decoder, MAD_DECODER_MODE_SYNC);  
-    mad_decoder_finish (&decoder);  
-   return result;  
-} 
 

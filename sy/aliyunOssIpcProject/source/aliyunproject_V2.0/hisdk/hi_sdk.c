@@ -39,7 +39,8 @@ static char  *				g_soundString=NULL;
 HI_CONTROLMD_DATA 			g_controlMd[4];
 
 static DWORD				g_workTimeMs=0;
-
+static int 					g_playAudioStatus=0;    // 1:play network audio.
+static pthread_mutex_t 		g_playAudioMutex;
 
 
 #if 0
@@ -803,94 +804,168 @@ HI_S32 OnStreamCallback(HI_U32 u32Handle, /* ¾ä±ú */
 	return HI_SUCCESS;
 }
 
-//struct tm 
-//{ 
-//	int tm_sec; 
-//	int tm_min; 
-//	int tm_hour; 
-//	int tm_mday; 
-//	int tm_mon; 
-//	int tm_year; 
-//	int tm_wday; 
-//	int tm_yday; 
-//	int tm_isdst; 
-//};
+int playAudioG711aBuffer(const char *buffer,unsigned int realSize,int type)
+{
+	char g711Buffer[164]={0,};
+	LOGOUT("readFile reset.g711 success %d",realSize);
+	//G711£º0x00 0x01 0x50 0x00
+	g711Buffer[0]=0x00;g711Buffer[1]=0x01;g711Buffer[2]=0x50;g711Buffer[3]=0x00;
+	int sum=0;
+	int size=0;
+	HI_S32 iRet=0;
+	if(g_playAudioStatus==1 && type!=1)
+	{
+		LOGOUT("play network mp3 file");
+		return -1;
+	}
+	g_playAudioStatus=type;
+	pthread_mutex_lock(&g_playAudioMutex);
+	if(u32HandleHight!=0)
+	{
+		//£¨1¡ªG711£¬4¡ªG726)
+		iRet=HI_NET_DEV_StartVoice(u32HandleHight,1);
+		if(iRet==HI_SUCCESS)
+		{
+			LOGOUT("HI_NET_DEV_StartpVoice success");
+		}
+		else
+		{
+			LOGOUT("HI_NET_DEV_StartpVoice failure");
+		}
+	}
+	else
+	{
+		pthread_mutex_unlock(&g_playAudioMutex);
+		LOGOUT("HI_NET_DEV_StartpVoice failure");
+		return -1;
+		
+	}
+	while(1)
+	{
+		if((realSize-sum)>160)
+			size=160;
+		else if((realSize-sum)>0)
+			size=(realSize-sum);
+		else
+			size=0;
+		if(size==0)
+			break;
+		memcpy(g711Buffer+4,buffer+sum,size);
+		sum=sum+size;
+		if(u32HandleHight!=0)
+		{
+			iRet=HI_NET_DEV_SendVoiceData(u32HandleHight,g711Buffer,sizeof(g711Buffer),getTickCountMs());
+			if(iRet==HI_SUCCESS)
+			{
+				//LOGOUT("HI_NET_DEV_SendVoiceData success");
+			}
+			else
+			{
+				LOGOUT("HI_NET_DEV_SendVoiceData failure");
+			}
+		}
+		usleep(5000);
+	}
+	if(u32HandleHight!=0)
+	{
+		//£¨1¡ªG711£¬4¡ªG726)
+		iRet=HI_NET_DEV_StopVoice(u32HandleHight);
+		if(iRet==HI_SUCCESS)
+		{
+			LOGOUT("HI_NET_DEV_StopVoice success");
+		}
+		else
+		{
+			LOGOUT("HI_NET_DEV_StopVoice failure");
+		}
+	}
+	else
+	{
+		LOGOUT("HI_NET_DEV_StartpVoice failure");
+	}
+	pthread_mutex_unlock(&g_playAudioMutex);
+	return 0;
+}
+
+void playStartAudio()
+{
+	char g711aBUffer[100*1024]={0};
+	unsigned int length=0;
+	DWORD averNetWorkKs=0;
+	int iRet=0;
+	if(getTickCountMs()>STARTUPMINTIME)
+	{
+		LOGOUT("do not play start audio,getTimeMs is %d",getTickCountMs());
+		return;
+	}
+	iRet=readFile(AUDIOSTARTUP,g711aBUffer,100*1024,&length);
+	if(iRet==0)
+	{
+		LOGOUT("readfile %s success iRet=%d",AUDIOUSERLOGININ,iRet);
+		playAudioG711aBuffer(g711aBUffer,length,0);
+	}
+	else
+	{
+		LOGOUT("readfile %s failure iRet=%d",AUDIOUSERLOGININ,iRet);
+	}
+}
 
 void * judgeWorkTask(void* param)
 {
-	time_t timep;
-	struct tm* localTime;
-	HI_S32 iRet=0;
-
-	char buffer[400*1024]={0,};
-	char g711Buffer[164]={0,};
-	DWORD realSize=0;
-	
+	unsigned long long socketNums = 0;
+	unsigned long long socketNumsLast = 0;
+	unsigned lastFlagP2P=0;
+	char g711aBUffer[100*1024]={0};
+	unsigned int length=0;
+	DWORD lastTimeMs=0;
+	DWORD nowTimeMs=0;
+	DWORD diffTimeS=0;
+	DWORD averNetWorkKs=0;
+	int iRet=0;
 	while(1)
 	{
-		iRet=readFile("reset.g711",buffer,400*1024,&realSize);
-		LOGOUT("judgeWorkTask :%d--", iRet);
-		if(iRet==0)
+		GetSendSocketTraffic(P2PPROCESS, &socketNums);
+		socketNums=socketNums/1024;
+		if(socketNumsLast==0)
 		{
-			LOGOUT("readFile reset.g711 success %d",realSize);
-			//G711£º0x00 0x01 0x50 0x00
-			g711Buffer[0]=0x00;g711Buffer[1]=0x01;g711Buffer[2]=0x50;g711Buffer[3]=0x00;
-			int sum=0;
-			int size=0;
-			if(u32HandleHight!=0)
-			{
-				//£¨1¡ªG711£¬4¡ªG726)
-				iRet=HI_NET_DEV_StartVoice(u32HandleHight,1);
-				if(iRet==HI_SUCCESS)
-				{
-					LOGOUT("HI_NET_DEV_StartpVoice success");
-				}
-				else
-				{
-					LOGOUT("HI_NET_DEV_StartpVoice failure");
-				}
-			}
-			while(1)
-			{
-				if((realSize-sum)>160)
-					size=160;
-				else if((realSize-sum)>0)
-					size=(realSize-sum);
-				else
-					size=0;
-				if(size==0)
-					break;
-				memcpy(g711Buffer+4,buffer+sum,size);
-				sum=sum+size;
-				if(u32HandleHight!=0)
-				{
-					iRet=HI_NET_DEV_SendVoiceData(u32HandleHight,g711Buffer,sizeof(g711Buffer),getTickCountMs());
-					if(iRet==HI_SUCCESS)
-					{
-						LOGOUT("HI_NET_DEV_SendVoiceData success");
-					}
-					else
-					{
-						LOGOUT("HI_NET_DEV_SendVoiceData failure");
-					}
-				}
-				usleep(10000);
-			}
-			if(u32HandleHight!=0)
-			{
-				//£¨1¡ªG711£¬4¡ªG726)
-				iRet=HI_NET_DEV_StopVoice(u32HandleHight);
-				if(iRet==HI_SUCCESS)
-				{
-					LOGOUT("HI_NET_DEV_StopVoice success");
-				}
-				else
-				{
-					LOGOUT("HI_NET_DEV_StopVoice failure");
-				}
-			}
-			sleep(10);
+			socketNumsLast=socketNums;
+			lastTimeMs=getTickCountMs();
 		}
+		nowTimeMs=getTickCountMs();
+		diffTimeS=(nowTimeMs-lastTimeMs)/1000;
+		if(diffTimeS==0)
+			averNetWorkKs=0;
+		else
+			averNetWorkKs=(socketNums-socketNumsLast)/diffTimeS;
+		lastTimeMs=nowTimeMs;
+		//LOGOUT("tutk process network per second is %d",averNetWorkKs);
+		if(averNetWorkKs > P2PWORKMINVALUE)
+		{
+			if(lastFlagP2P==0)
+			{
+				lastFlagP2P=1;
+				iRet=readFile(AUDIOUSERLOGININ,g711aBUffer,100*1024,&length);
+				if(iRet==0)
+				{
+					LOGOUT("readfile %s success iRet=%d",AUDIOUSERLOGININ,iRet);
+					playAudioG711aBuffer(g711aBUffer,length,0);
+				}
+				else
+				{
+					LOGOUT("readfile %s failure iRet=%d",AUDIOUSERLOGININ,iRet);
+				}				
+				LOGOUT("tutk process network open is %ld diffTimes=%d",averNetWorkKs,diffTimeS);
+			}
+		}
+		else
+		{
+			if(lastFlagP2P==1)
+			{
+				LOGOUT("tutk process network close is %ld diffTimes=%d",averNetWorkKs,diffTimeS);
+			}
+			lastFlagP2P=0;
+		}
+		socketNumsLast=socketNums;
 		if(g_workTimeMs!=0)
 		{
 			if((getTickCountMs()-g_workTimeMs)>30*1000)
@@ -1732,6 +1807,7 @@ int MakeKeyFrame(int channel)
 int InitHiSDKVideoAllChannel()
 {
 	int iRet=-1;
+	pthread_mutex_init(&g_playAudioMutex,NULL);
 	g_quene = (Queue*)QueueListConstruction();
 	if(g_quene)
 	{	
@@ -1833,7 +1909,7 @@ int InitHiSDKVideoAllChannel()
 		LOGOUT("InitVideoQuene %d failure",VIDEOBUFFERSIZE);
 	}
 	#endif
-
+	playStartAudio();
 	return iRet;
 }  
 

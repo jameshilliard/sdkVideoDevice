@@ -46,9 +46,9 @@ void * aliyunOssTask(void* param)
 	int iRet=-1;
 	int fileType=-1;
 	LOGINRETURNINFO returnInfo;
-	loginCtrl(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,//g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort,
-		      g_szServerNO,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,
-		      &returnInfo);
+	//loginCtrl(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,//g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort,
+	//	      g_szServerNO,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,
+	//	      &returnInfo);
 	time_t oldTime;
 	time_t newTime;
 	time((time_t *)&oldTime);
@@ -96,7 +96,7 @@ void * aliyunOssTask(void* param)
 		memset(motionString,0,MAX_MOTION_STRING);
 		memset(soundString,0,MAX_SOUND_STRING);
 		memset(aliyunFilePath,0,sizeof(aliyunFilePath));
-		iRet=readMediaFile(SYSTEM_MEDIA_SENDFILEPATH,fileName);
+		//iRet=readMediaFile(SYSTEM_MEDIA_SENDFILEPATH,fileName);
 		if(iRet==1 || iRet==2)
 		{
 			fileType=iRet;

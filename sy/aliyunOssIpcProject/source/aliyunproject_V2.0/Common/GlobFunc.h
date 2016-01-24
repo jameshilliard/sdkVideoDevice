@@ -19,6 +19,7 @@ extern "C" {
 	INT32S	creatDir(LPCTSTR pDir);
 	INT32S 	split( char **szArray, char *v_szSplitStr, const char *v_szDdelim, int v_iArayNum);
 	INT32S 	writeFile(LPCTSTR filePath,LPCTSTR fileBuffer,DWORD size);
+	INT32S  writeFileWithFlag(LPCTSTR filePath,LPCTSTR fileBuffer,DWORD size,LPCTSTR flag);
 	INT32S 	readFile(LPCTSTR filePath,LPCTSTR fileBuffer,DWORD bufferSize,DWORD *fileSize);
 	char * 	SY_base64Encode(const char *text);
 	INT32S 	readMediaFile(const char *pszDir,char fileName[MAX_PATH]);

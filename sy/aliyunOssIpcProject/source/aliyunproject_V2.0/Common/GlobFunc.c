@@ -359,6 +359,45 @@ INT32S creatDir(LPCTSTR pDir)
     return iRet;  
 }  
 
+INT32S writeFileWithFlag(LPCTSTR filePath,LPCTSTR fileBuffer,DWORD size,LPCTSTR flag)
+{
+	if(NULL==filePath || NULL==fileBuffer)
+		return -1;
+	INT32S iRet = -2;
+	FILE *fp=NULL;
+	if ((fp = fopen(filePath, flag)) != NULL)
+	{   
+		SLONG locWrite = 0;   
+		SLONG numLeft = size-locWrite; 
+		SLONG numWrite = 0;
+		INT32U writeCount=0;
+		while(numLeft>0) 
+		{   
+			numWrite = fwrite(fileBuffer+locWrite, sizeof(char), numLeft, fp);   
+			if (numWrite<numLeft || writeCount++>100) 
+			{   
+				break;   
+			}   
+			locWrite += numWrite;   
+			numLeft -= numWrite;   
+		}   
+		if(fclose(fp) == 0)
+		{
+			if(numLeft == 0)
+				iRet=0;
+			else
+				iRet=-3;
+		} 
+		else
+			iRet=-4;
+	} 
+	else
+	{
+		LOGOUT("  %s open failure",filePath)		
+	}
+	return iRet;
+}
+
 INT32S writeFile(LPCTSTR filePath,LPCTSTR fileBuffer,DWORD size)
 {
 	if(NULL==filePath || NULL==fileBuffer)
@@ -494,9 +533,9 @@ INT32S readFile(LPCTSTR filePath,LPCTSTR fileBuffer,DWORD bufferSize,DWORD *file
 	INT32S iRet = -2;
 	FILE *fp=NULL;
 	*fileSize=getFileSize(filePath);
-	printf("fileSize is %d------",*fileSize);
 	if(bufferSize<*fileSize)
 	{
+		LOGOUT("fileSize too big is %d",*fileSize);
 		return -3;
 	}
 	if ((fp = fopen(filePath, "rb")) != NULL)
@@ -506,15 +545,18 @@ INT32S readFile(LPCTSTR filePath,LPCTSTR fileBuffer,DWORD bufferSize,DWORD *file
 		DWORD numLeft = size; 
 		DWORD numRead = 0;
 		INT32U readCount=0;
+		LOGOUT("fileSize %d locRead %d",size,locRead);
 		while(size>locRead) 
 		{   
-			numRead = fread((void *)(fileBuffer+locRead), sizeof(char), numLeft, fp);   
+			numRead = fread((void *)(fileBuffer+locRead),1,numLeft, fp);   
 			if (numRead<numLeft || readCount++>100) 
 			{   
+				LOGOUT("numRead=%d readCount=%d",numRead,readCount);
 				break;   
 			}   
 			locRead+= numRead;   
-			numLeft-= numRead;   
+			numLeft-= numRead; 
+			LOGOUT("locRead=%d numLeft=%d",locRead,numLeft);
 		}   
 		if(fclose(fp) == 0)
 		{
@@ -564,7 +606,6 @@ INT32S readOrgFile(LPCTSTR filePath,LPCTSTR fileBuffer,DWORD bufferSize,DWORD *f
 	}
 	return iRet;
 }
-
 
 char * SY_base64Encode(const char *text) 
 {
@@ -730,13 +771,13 @@ int GetSendSocketTraffic(char* ProcName, unsigned long long* socketNums)
 				memset(buffer,0,sizeof(buffer));
 				memcpy(buffer,ptrStart,ptrEnd-ptrStart);
 				memset(networkName,0,sizeof(networkName));
-				printf("buffer is %s---\n",buffer);
+				//printf("buffer is %s---\n",buffer);
 				iRet = sscanf(buffer,"%s %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu"
 						,networkName,&test,&test,&test,&test,&test,&test,&test,&test
 						,&socketNum,&test,&test,&test,&test,&test,&test,&test);
 				if(strstr(buffer,"eth0")!=NULL || strstr(buffer,"ra0")!=NULL)
 				{
-					printf("iRet=%d network=%s packetNum=%llu--\n",iRet,networkName,socketNum);
+					//printf("iRet=%d network=%s packetNum=%llu--\n",iRet,networkName,socketNum);
 					*socketNums+=socketNum;
 				}
 			}
