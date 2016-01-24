@@ -284,10 +284,10 @@ int loginCtrl(const char *server,const char *v_szId,const char *v_szPwd,LOGINRET
 	memset(sendBuf,0,sizeof(sendBuf));
 	memset(strUrl,0,sizeof(strUrl));
 	//设置软件版本信息
-	int iRet= GetSoftVersion(DEVICECONFIGDIR, allVersion, strlen(allVersion));
+	int iRet= GetSoftVersion(DEVICECONFIGDIR, allVersion, sizeof(allVersion));
 	if(0==iRet)
 	{
-		LOGOUT("SetSoftVersion success over iRet=%d %s",iRet,allVersion);
+		LOGOUT("GetSoftVersion success over iRet=%d %s",iRet,allVersion);
 		sscanf(allVersion,"[^_]_%s",hardwareVersion,softwareVersion);
 		LOGOUT("hardwareVersion=%s and softwareVersion=%s",hardwareVersion,softwareVersion);
 	}

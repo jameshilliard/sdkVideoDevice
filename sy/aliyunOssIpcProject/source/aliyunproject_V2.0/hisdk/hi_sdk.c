@@ -430,6 +430,8 @@ void * makeMp4Task(void* param)
 	{
 		//memset(buf,0,sizeof(buf));
 		sym=0;
+		if(g_quene==NULL)
+			goto OUT0;
 		int ret = g_quene->popData(g_quene->_this, (void*)buf,512*1024, &length, &sym, &id);
 		if(ret==0)
 		{
@@ -615,6 +617,8 @@ void * makeMp4Task(void* param)
 			usleep(10*1000);
 		}
 	}
+
+OUT0:
 	free(buf);
 }
 

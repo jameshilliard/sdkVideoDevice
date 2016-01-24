@@ -156,6 +156,7 @@ int main()
 		sleep(2);
 		//LOGOUT("client sleep");
 	}
+	sleep(2);
 	ReleaseTcpServer();
 	LOGOUT("ReleaseTcpServer over");
 	RealseUdpSearch();

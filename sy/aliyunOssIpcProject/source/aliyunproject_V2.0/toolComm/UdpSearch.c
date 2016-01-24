@@ -120,6 +120,8 @@ static INT32S resolveCmd1002(S_Data *v_pSData,S_Data *v_pstData,char *v_szDevHwM
 			if(iRet==1)
 			{
 				ResetDeviceConfig(DEVICECONFIGDIR);
+				SetXmlValue(v_pstData, "mac", v_szDevHwMask); 
+				SetXmlValue(v_pstData, "result", "10000");
 				g_main_start=FALSE;
 				return 0;
 			}
