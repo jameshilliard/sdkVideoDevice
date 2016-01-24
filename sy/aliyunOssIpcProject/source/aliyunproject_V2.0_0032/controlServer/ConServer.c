@@ -59,19 +59,28 @@ int Post_head(char *strUrl, char *strPost, char *strResponse)
   
     if (res != CURLE_OK)  
     {  
-		printf("send error---\n");
 		switch(res)  
         {  
             case CURLE_UNSUPPORTED_PROTOCOL:  
-                fprintf(stderr,"不支持的协议,由URL的头部指定\n");  
+                //fprintf(stderr,"不支持的协议,由URL的头部指定\n");
+                LOGOUT("no support protocol,URL,CURLE_UNSUPPORTED_PROTOCOL");
+				break;
             case CURLE_COULDNT_CONNECT:  
-                fprintf(stderr,"不能连接到remote主机或者代理\n");  
+                //fprintf(stderr,"不能连接到remote主机或者代理\n"); 
+                LOGOUT("no connet remote host,URL,CURLE_COULDNT_CONNECT");
+				break;
             case CURLE_HTTP_RETURNED_ERROR:  
-                fprintf(stderr,"http返回错误\n");  
+                //fprintf(stderr,"http返回错误\n"); 
+                LOGOUT("http return error,CURLE_HTTP_RETURNED_ERROR");
+				break;
             case CURLE_READ_ERROR:  
-                fprintf(stderr,"读本地文件错误\n");  
+                //fprintf(stderr,"读本地文件错误\n");
+                LOGOUT("read local file error,CURLE_READ_ERROR");
+				break;
             default:  
-                fprintf(stderr,"返回值:%d\n",res);  
+				//fprintf(stderr,"返回值:%d\n",res); 
+				LOGOUT("error curl %d",res);
+				break;
         }  
         return -1;  
     }  
