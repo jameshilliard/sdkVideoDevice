@@ -121,7 +121,7 @@ int main()
 	if(iRet!=0)
 	{
 		LOGOUT("error and return");
-		return -1;
+		//return -1;
 	}
 	//test
 	//	devInfo_test();
@@ -145,7 +145,7 @@ int main()
 	}
 
 	pthread_t pthreadWork;
-	//iRet = pthread_create(&pthreadWork, NULL, PollingcheckThread, NULL);
+	iRet = pthread_create(&pthreadWork, NULL, PollingcheckThread, NULL);
 	if(iRet != 0)
 	{
 		LOGOUT("Create checkThread Fail!!\n");

@@ -68,8 +68,17 @@ typedef struct
 	HI_U32 m_u32AreaTimes[16];
 	Motion_Data m_stMotionData;
 	Motion_Data m_stSumMotionData;
+	
 } HI_Motion_Data;
 
+
+typedef struct 
+{
+	DWORD  		m_u32MotionStartTime;
+	HI_U32 		m_u32StartAreaTimes[16][16];
+	HI_U32 		m_u32OverAreaTimes[16][16];
+	HI_U32		m_uFlag;
+} HI_UrgencyMotion_Data;
 
 typedef struct 
 {

@@ -41,6 +41,7 @@ HI_CONTROLMD_DATA 			g_controlMd[4];
 static DWORD				g_workTimeMs=0;
 static int 					g_playAudioStatus=0;    // 1:play network audio.
 static pthread_mutex_t 		g_playAudioMutex;
+static HI_UrgencyMotion_Data	g_UrgencyMotion_Data;
 
 
 #if 0
@@ -902,15 +903,22 @@ void playStartAudio()
 		LOGOUT("do not play start audio,getTimeMs is %d",getTickCountMs());
 		return;
 	}
-	iRet=readFile(AUDIOSTARTUP,g711aBUffer,100*1024,&length);
-	if(iRet==0)
+	if(g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bStartUpEnable==DE_ENABLE)
 	{
-		LOGOUT("readfile %s success iRet=%d",AUDIOUSERLOGININ,iRet);
-		playAudioG711aBuffer(g711aBUffer,length,0);
+		iRet=readFile(AUDIOSTARTUP,g711aBUffer,100*1024,&length);
+		if(iRet==0)
+		{
+			LOGOUT("readfile %s success iRet=%d",AUDIOUSERLOGININ,iRet);
+			playAudioG711aBuffer(g711aBUffer,length,0);
+		}
+		else
+		{
+			LOGOUT("readfile %s failure iRet=%d",AUDIOUSERLOGININ,iRet);
+		}
 	}
 	else
 	{
-		LOGOUT("readfile %s failure iRet=%d",AUDIOUSERLOGININ,iRet);
+		LOGOUT("config m_bStartUpEnable is disable");
 	}
 }
 
@@ -948,16 +956,23 @@ void * judgeWorkTask(void* param)
 			if(lastFlagP2P==0)
 			{
 				lastFlagP2P=1;
-				iRet=readFile(AUDIOUSERLOGININ,g711aBUffer,100*1024,&length);
-				if(iRet==0)
+				if(g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bLoginInEnable==DE_ENABLE)
 				{
-					LOGOUT("readfile %s success iRet=%d",AUDIOUSERLOGININ,iRet);
-					playAudioG711aBuffer(g711aBUffer,length,0);
+					iRet=readFile(AUDIOUSERLOGININ,g711aBUffer,100*1024,&length);
+					if(iRet==0)
+					{
+						LOGOUT("readfile %s success iRet=%d",AUDIOUSERLOGININ,iRet);
+						playAudioG711aBuffer(g711aBUffer,length,0);
+					}
+					else
+					{
+						LOGOUT("readfile %s failure iRet=%d",AUDIOUSERLOGININ,iRet);
+					}	
 				}
 				else
 				{
-					LOGOUT("readfile %s failure iRet=%d",AUDIOUSERLOGININ,iRet);
-				}				
+					LOGOUT("config m_bLoginInEnable is disable");
+				}
 				LOGOUT("tutk process network open is %ld diffTimes=%d",averNetWorkKs,diffTimeS);
 			}
 		}
@@ -1049,6 +1064,7 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 	{
 		if(u32WaitIFrame==1)
 			break;
+		
 		DWORD nowTime=getTickCountMs();
 		DWORD endTime=0;
 		if(motionData.m_u32MotionStatus==1 || motionData.m_u32MotionStatus==2)
@@ -1812,6 +1828,7 @@ int InitHiSDKVideoAllChannel()
 {
 	int iRet=-1;
 	pthread_mutex_init(&g_playAudioMutex,NULL);
+	memset(&g_UrgencyMotion_Data,0,sizeof(g_UrgencyMotion_Data));
 	g_quene = (Queue*)QueueListConstruction();
 	if(g_quene)
 	{	

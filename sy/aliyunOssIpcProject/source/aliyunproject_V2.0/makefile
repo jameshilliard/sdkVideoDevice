@@ -1,4 +1,4 @@
-LIB = -L /hisi3518/madplayer/libz/lib -L./liball/libarm -L /usr/lib64/ -lmad -lNetLib -loss_c_sdk -lvo-aacenc -laprutil-1 -lapr-1 -lcurl -lxml2 -lmp4v2 -ldl -lrt -lpthread  -lm -Wl,--rpath=./liball/libarm
+LIB = -L /hisi3518/madplayer/libz/lib -L./liball/libarm -lmad -lNetLib -loss_c_sdk -lvo-aacenc -laprutil-1 -lapr-1 -lcurl -lxml2 -lmp4v2 -ldl -lrt -lpthread  -lm -Wl,--rpath=./liball/libarm
 #LIB = -L./liball/libarm -lNetLib -loss_c_sdk -lutf8proc  -laprutil-1 -lapr-1 -lcurl -lxml2 -lfaac -ldl -lrt -lpthread -lm -Wl,--rpath=./liball/libarm
 
 INCLUDES = -I./include\

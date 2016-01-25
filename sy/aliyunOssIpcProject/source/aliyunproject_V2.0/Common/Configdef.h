@@ -111,6 +111,7 @@
 #define DE_CONTINUES_RECORD_MOTION_TIMES		5
 #define	DE_END_RECORD_MOTION_TIME				100
 #define	DE_ENABLE								1
+#define	DE_DISABLE								0
 
 
 #define DE_START_PREIOD							1

@@ -597,7 +597,6 @@ void *PollingcheckThread(void *param)
 			PollingContent();
 			sleep(100);
 			continue;
-
 		}
 	}
 

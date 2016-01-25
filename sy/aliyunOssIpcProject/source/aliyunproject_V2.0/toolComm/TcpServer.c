@@ -549,6 +549,7 @@ void GetUrgencyMotionParam(int v_iSocket, S_Data *v_stDeCodeData)
 	TcpSendCmdData(v_iSocket, &stDataEnCode);
 	FreeXmlValue(&stDataEnCode);
 }
+
 void SetUrgencyMotionParam(int v_iSocket, S_Data *v_pSData)
 {
 
@@ -614,7 +615,7 @@ void SetUrgencyMotionParam(int v_iSocket, S_Data *v_pSData)
 		}
 
 	}
-	//if(0!=memcmp(&objUrgencyMotionCfg,&g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg,sizeof(objUrgencyMotionCfg)))
+	if(0!=memcmp(&objUrgencyMotionCfg,&g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg,sizeof(objUrgencyMotionCfg)))
 	{
 		SetUrgencyMotionCfg(DEVICECONFIGDIR,objUrgencyMotionCfg);
 		memcpy(&g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg,&objUrgencyMotionCfg,sizeof(objUrgencyMotionCfg));
@@ -706,7 +707,7 @@ void SetSoundEableParam(int v_iSocket, S_Data *v_pSData)
 			objSoundEableCfg.m_bEnable=atoi(v_pSData->params[i].szValue);
 		}
 	}
-	//if(0!=memcmp(&objSoundEableCfg,&g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg,sizeof(objSoundEableCfg)))
+	if(0!=memcmp(&objSoundEableCfg,&g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg,sizeof(objSoundEableCfg)))
 	{
 		SetSoundEableCfg(DEVICECONFIGDIR,objSoundEableCfg);
 		memcpy(&g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg,&objSoundEableCfg,sizeof(objSoundEableCfg));

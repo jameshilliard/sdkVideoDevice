@@ -141,9 +141,9 @@ BOOL InitConfigFile(tagConfigCfg *v_pstConfigCfg)
 	objConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_bEnable=DE_ENABLE;
 
 	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bStartUpEnable=DE_ENABLE;
-	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bServerSuccessEnable=DE_ENABLE;
-	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bServerFailureEnable=DE_ENABLE;
-	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bUpgradeEnable=DE_ENABLE;
+	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bServerSuccessEnable=DE_DISABLE;
+	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bServerFailureEnable=DE_DISABLE;
+	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bUpgradeEnable=DE_DISABLE;
 	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bLoginInEnable=DE_ENABLE;
 	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bUrgencyStartEnable=DE_ENABLE;
 	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bUrgencyOverEnable=DE_ENABLE;
