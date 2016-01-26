@@ -1,0 +1,2 @@
+#!/bin/sh
+/mnt/mtd/ipc/sykj/uipcam &
