@@ -13,47 +13,11 @@
 #include "hisdk/hi_sdk.h"
 #include "toolComm/UdpSearch.h"
 #include "controlServer/ConServer.h"
-#include "pollingCheck/pollingCheck.h"
-#include "mp3ToPcm/mp3ToPcm.h"
+//#include "pollingCheck/pollingCheck.h"
+//#include "mp3ToPcm/mp3ToPcm.h"
 
 BOOL g_main_start=TRUE;
 
-void InitAllConfig()
-{
-	INT32S iRet=InitDeviceConfig(DEVICECONFIGDIR,&g_stConfigCfg);
-	LOGOUT("InitCfgMng over iRet=%d",iRet);
-	iRet=GetServerNo(DEVICECONFIGDIR,g_szServerNO,sizeof(g_szServerNO));
-	if(0==strlen(g_szServerNO))
-	{
-		LOGOUT("GetServerNo over iRet=%d",iRet);
-	}
-	else
-	{
-		LOGOUT("GetServerNo %s over iRet=%d",g_szServerNO,iRet);
-	}	
-
-}
-
-void ReleaseAllConfig()
-{
-	ReleaseDeviceConfig();
-}
-
-void GetVersionCfg()
-{
-	int ret = 0;
-	char hardVersion[20] = {0};
-	char softVersion[20] = {0};
-	ret = GetHardVersion(DEVICECONFIGDIR, hardVersion, sizeof(hardVersion));
-	if(ret == 0)
-	{
-		LOGOUT("GetHardVersion success over iRet=%d, hardVersion:%s", ret, hardVersion);
-	}
-	else
-	{
-		LOGOUT("GetHardVersion failed over iRet=%d, hardVersion:%s", ret, hardVersion);
-	}
-}
 #if 0
 void testMain()
 {
@@ -99,6 +63,43 @@ void testMain()
 }
 #endif
 
+void InitAllConfig()
+{
+	INT32S iRet=InitDeviceConfig(DEVICECONFIGDIR,&g_stConfigCfg);
+	LOGOUT("InitCfgMng over iRet=%d",iRet);
+	iRet=GetServerNo(DEVICECONFIGDIR,g_szServerNO,sizeof(g_szServerNO));
+	if(0==strlen(g_szServerNO))
+	{
+		LOGOUT("GetServerNo over iRet=%d",iRet);
+	}
+	else
+	{
+		LOGOUT("GetServerNo %s over iRet=%d",g_szServerNO,iRet);
+	}	
+
+}
+
+void ReleaseAllConfig()
+{
+	ReleaseDeviceConfig();
+}
+
+void GetVersionCfg()
+{
+	int ret = 0;
+	char hardVersion[20] = {0};
+	char softVersion[20] = {0};
+	ret = GetHardVersion(DEVICECONFIGDIR, hardVersion, sizeof(hardVersion));
+	if(ret == 0)
+	{
+		LOGOUT("GetHardVersion success over iRet=%d, hardVersion:%s", ret, hardVersion);
+	}
+	else
+	{
+		LOGOUT("GetHardVersion failed over iRet=%d, hardVersion:%s", ret, hardVersion);
+	}
+}
+
 int main()
 {
 
@@ -123,10 +124,6 @@ int main()
 		LOGOUT("error and return");
 		//return -1;
 	}
-	//test
-	//	devInfo_test();
-	//exit(1);
-	//
 	iRet=initAliyunOssTask();
 	LOGOUT("initAliyunOssTask iRet=%d over",iRet);
 	iRet=InitUdpSearch();
@@ -143,7 +140,7 @@ int main()
 		LOGOUT("error and return");
 		return -1;
 	}
-
+	#if 0
 	pthread_t pthreadWork;
 	iRet = pthread_create(&pthreadWork, NULL, PollingcheckThread, NULL);
 	if(iRet != 0)
@@ -151,12 +148,12 @@ int main()
 		LOGOUT("Create checkThread Fail!!\n");
 		return -1;
 	}
+	#endif
 	while(g_main_start)
 	{
 		sleep(2);
 		//LOGOUT("client sleep");
 	}
-	sleep(2);
 	ReleaseTcpServer();
 	LOGOUT("ReleaseTcpServer over");
 	RealseUdpSearch();

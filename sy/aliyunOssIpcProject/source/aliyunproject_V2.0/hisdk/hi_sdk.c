@@ -551,6 +551,11 @@ void * makeMp4Task(void* param)
 					Mp4FileAudioEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)buf,length,&power);		
 					if(power!=0)
 					{
+						int nowTime=getTickCountMs();
+						int flag=(nowTime-g_UrgencyMotion_Data.m_u32MotionStartTime)/1000;
+						if(flag<=0)
+							flag=0;
+						g_UrgencyMotion_Data.m_u32SoundSize[flag]=power;
 						char tempString[32]={0};
 						sprintf(tempString,"%x,",power);
 						strcat(g_soundString,tempString);
@@ -578,6 +583,10 @@ void * makeMp4Task(void* param)
 					iRet=creatRecordData(&mRecordData,&joseph_mp4_config,motionData.m_stSumMotionData);
 					if(iRet==0)
 					{
+						if(g_UrgencyMotion_Data.m_uStartFlag==1)
+							mRecordData.m_iUrencyFlag=1;
+						else
+							mRecordData.m_iUrencyFlag=0;
 						iRet=writeFile(joseph_mp4_config.nDataEndName,(LPCTSTR)(&mRecordData),sizeof(mRecordData));
 					}
 					iRet=writeFile(joseph_mp4_config.nMotionEndName,(LPCTSTR)(g_motionString),strlen(g_motionString));
@@ -676,12 +685,14 @@ static HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 			break;
 		case RECORDVIDEO:
 		{
-			if(u32WaitIFrame==1&&pstruAV->u32AVFrameFlag == HI_NET_DEV_VIDEO_FRAME_FLAG)
+			if(u32WaitIFrame==1 && pstruAV->u32AVFrameFlag==HI_NET_DEV_VIDEO_FRAME_FLAG)
 			{
 				if(pstruAV->u32VFrameType==1)
 				{
 					u32LastStartTPS=pstruAV->u32AVFramePTS;
 					motionData.m_u32MotionStartTime=getTickCountMs();
+					memset(&g_UrgencyMotion_Data,0,sizeof(g_UrgencyMotion_Data));
+					g_UrgencyMotion_Data.m_u32MotionStartTime=motionData.m_u32MotionStartTime;
 					u32WaitIFrame=0;
 					g_nowRecordTime=getTickCountMs();
 					g_lastRecordTime=g_nowRecordTime;
@@ -867,6 +878,7 @@ int playAudioG711aBuffer(const char *buffer,unsigned int realSize,int type)
 			else
 			{
 				LOGOUT("HI_NET_DEV_SendVoiceData failure");
+				break;
 			}
 		}
 		usleep(5000);
@@ -892,34 +904,27 @@ int playAudioG711aBuffer(const char *buffer,unsigned int realSize,int type)
 	return 0;
 }
 
-void playStartAudio()
+void playAudio(const char *file)
 {
-	char g711aBUffer[100*1024]={0};
-	unsigned int length=0;
-	DWORD averNetWorkKs=0;
-	int iRet=0;
-	if(getTickCountMs()>STARTUPMINTIME)
+	char *g711aBUffer=malloc(100*1024);	
+	if(g711aBUffer==NULL)
 	{
-		LOGOUT("do not play start audio,getTimeMs is %d",getTickCountMs());
-		return;
+		LOGOUT("malloc G711a Buffer file is error");
 	}
-	if(g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bStartUpEnable==DE_ENABLE)
+	unsigned int length=0;
+	int iRet=0;
+	iRet=readFile(file,g711aBUffer,100*1024,&length);
+	if(iRet==0)
 	{
-		iRet=readFile(AUDIOSTARTUP,g711aBUffer,100*1024,&length);
-		if(iRet==0)
-		{
-			LOGOUT("readfile %s success iRet=%d",AUDIOUSERLOGININ,iRet);
-			playAudioG711aBuffer(g711aBUffer,length,0);
-		}
-		else
-		{
-			LOGOUT("readfile %s failure iRet=%d",AUDIOUSERLOGININ,iRet);
-		}
+		LOGOUT("readfile %s success iRet=%d",file,iRet);
+		playAudioG711aBuffer(g711aBUffer,length,0);
 	}
 	else
 	{
-		LOGOUT("config m_bStartUpEnable is disable");
+		LOGOUT("readfile %s failure iRet=%d",file,iRet);
 	}
+	if(g711aBUffer)
+		free(g711aBUffer);
 }
 
 void * judgeWorkTask(void* param)
@@ -956,18 +961,10 @@ void * judgeWorkTask(void* param)
 			if(lastFlagP2P==0)
 			{
 				lastFlagP2P=1;
-				if(g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bLoginInEnable==DE_ENABLE)
+				if(g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bLoginInEnable==DE_ENABLE
+					&&g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bEnable==DE_ENABLE)
 				{
-					iRet=readFile(AUDIOUSERLOGININ,g711aBUffer,100*1024,&length);
-					if(iRet==0)
-					{
-						LOGOUT("readfile %s success iRet=%d",AUDIOUSERLOGININ,iRet);
-						playAudioG711aBuffer(g711aBUffer,length,0);
-					}
-					else
-					{
-						LOGOUT("readfile %s failure iRet=%d",AUDIOUSERLOGININ,iRet);
-					}	
+					playAudio(AUDIOUSERLOGININ);
 				}
 				else
 				{
@@ -985,6 +982,36 @@ void * judgeWorkTask(void* param)
 			lastFlagP2P=0;
 		}
 		socketNumsLast=socketNums;
+		if(g_UrgencyMotion_Data.m_uStartFlag==1)
+		{
+			if(g_UrgencyMotion_Data.m_uStartSoundFlag==0)
+			{
+				if(g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bUrgencyStartEnable==DE_ENABLE
+					&&g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bEnable==DE_ENABLE)
+				{
+					playAudio(AUDIOURGENCYSTART);
+				}
+				else
+				{
+					LOGOUT("config m_bLoginInEnable is disable");
+				}
+			}
+		}
+		if(g_UrgencyMotion_Data.m_uOverFlag==1)
+		{
+			if(g_UrgencyMotion_Data.m_uOverSoundFlag==0)
+			{
+				if(g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bUrgencyOverEnable==DE_ENABLE
+					&&g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bEnable==DE_ENABLE)
+				{
+					playAudio(AUDIOURGENCYEND);
+				}
+				else
+				{
+					LOGOUT("config m_bLoginInEnable is disable");
+				}
+			}
+		}	
 		if(g_workTimeMs!=0)
 		{
 			if((getTickCountMs()-g_workTimeMs)>30*1000)
@@ -994,6 +1021,195 @@ void * judgeWorkTask(void* param)
 			}
 		}
 		sleep(2);
+	}
+}
+
+void reloveUrgencyMotion(DWORD nowTime,HI_U32 u32DataType,HI_U8* pu8Buffer,HI_U32 u32Length)
+{
+	g_UrgencyMotion_Data.m_uNowFlag=(nowTime-g_UrgencyMotion_Data.m_u32MotionStartTime)/1000;
+	if(g_UrgencyMotion_Data.m_uNowFlag<0)
+		g_UrgencyMotion_Data.m_uNowFlag=0;
+	if(g_UrgencyMotion_Data.m_uLastFlag<=0)
+		g_UrgencyMotion_Data.m_uLastFlag=0;
+	int flag=g_UrgencyMotion_Data.m_uNowFlag;
+	if(u32DataType==0)
+	{
+		HI_S_ALARM_MD *pMd=NULL;
+		int i=0;
+		for(;i<u32Length/sizeof(HI_S_ALARM_MD);i++)
+		{
+			pMd=(HI_S_ALARM_MD *)pu8Buffer+i;
+			//reloveMotionArea(*pMd,&motionData);
+			//LOGOUT("pMd=0x%x,u32Area=%d,u32X=%d,u32Y=%d,u32Width=%d,u32Height=%d",
+			//	    pMd,pMd->u32Area,pMd->u32X,pMd->u32Y,pMd->u32Width,pMd->u32Height);
+			switch(pMd->u32Area)
+			{
+				case 1:
+					{
+						switch(pMd->u32X)
+						{
+							case DE_WIDTH*0/8:
+								g_UrgencyMotion_Data.m_u32StartAreaTimes[flag][0]++;
+								break;
+							case DE_WIDTH*1/8:
+								g_UrgencyMotion_Data.m_u32StartAreaTimes[flag][4]++;
+								break;
+							case DE_WIDTH*2/8:
+								g_UrgencyMotion_Data.m_u32StartAreaTimes[flag][8]++;
+								break;
+							case DE_WIDTH*3/8:
+								g_UrgencyMotion_Data.m_u32StartAreaTimes[flag][12]++;
+								break;
+							default:
+								break;
+						}
+					}
+					break;
+				case 2:
+					{
+						switch(pMd->u32X)
+						{
+							case DE_WIDTH*0/8:
+								g_UrgencyMotion_Data.m_u32StartAreaTimes[flag][1]++;
+								break;
+							case DE_WIDTH*1/8:
+								g_UrgencyMotion_Data.m_u32StartAreaTimes[flag][5]++;
+								break;
+							case DE_WIDTH*2/8:
+								g_UrgencyMotion_Data.m_u32StartAreaTimes[flag][9]++;
+								break;
+							case DE_WIDTH*3/8:
+								g_UrgencyMotion_Data.m_u32StartAreaTimes[flag][13]++;
+								break;
+							default:
+								break;
+						}
+					}
+					break;
+		
+				case 3:
+					{
+						switch(pMd->u32X)
+						{
+							case DE_WIDTH*7/8:
+								g_UrgencyMotion_Data.m_u32StartAreaTimes[flag][2]++;
+								break;
+							case DE_WIDTH*6/8:
+								g_UrgencyMotion_Data.m_u32StartAreaTimes[flag][6]++;
+								break;
+							case DE_WIDTH*5/8:
+								g_UrgencyMotion_Data.m_u32StartAreaTimes[flag][10]++;
+								break;
+							case DE_WIDTH*4/8:
+								g_UrgencyMotion_Data.m_u32StartAreaTimes[flag][14]++;
+								break;
+							default:
+								break;
+						}
+					}
+					break;
+		
+				case 4:
+					{
+						switch(pMd->u32X)
+						{
+							case DE_WIDTH*7/8:
+								g_UrgencyMotion_Data.m_u32StartAreaTimes[flag][3]++;
+								break;
+							case DE_WIDTH*6/8:
+								g_UrgencyMotion_Data.m_u32StartAreaTimes[flag][7]++;
+								break;
+							case DE_WIDTH*5/8:
+								g_UrgencyMotion_Data.m_u32StartAreaTimes[flag][11]++;
+								break;
+							case DE_WIDTH*4/8:
+								g_UrgencyMotion_Data.m_u32StartAreaTimes[flag][15]++;
+								break;
+							default:
+								break;
+						}
+					}
+					break;	
+				default:
+					break;
+			}
+		}
+		
+	}
+	if(g_UrgencyMotion_Data.m_uNowFlag!=g_UrgencyMotion_Data.m_uLastFlag)
+	{
+		if(g_UrgencyMotion_Data.m_u32SoundSize!=0)
+		{
+			g_UrgencyMotion_Data.m_uLastFlag=g_UrgencyMotion_Data.m_uNowFlag;
+
+			if(g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_bEnable==DE_ENABLE)
+			{
+				if(g_UrgencyMotion_Data.m_uStartFlag==0)
+				{
+					int mStartSumDetect=0;
+					int mStartSumArea=0;
+					int mStartSoundSize=0;
+					int k=0;
+					int secondFlag=0;
+					int i=g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartPeriod-1;
+					for(;i>=0;i--)
+					{
+						secondFlag=g_UrgencyMotion_Data.m_uLastFlag-i;
+						if(secondFlag>=0)
+						{
+							k++;
+							int j=0;
+							for(;j<16;j++)
+							{
+								mStartSumDetect+=g_UrgencyMotion_Data.m_u32StartAreaTimes[secondFlag][j];
+								if(g_UrgencyMotion_Data.m_u32StartAreaTimes[secondFlag][j]!=0)
+									mStartSumArea++;
+							}
+							mStartSoundSize+=g_UrgencyMotion_Data.m_u32SoundSize[secondFlag];
+						}
+					}
+					mStartSoundSize=mStartSoundSize/k;
+					if(mStartSumArea >= g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSumArea 
+					   && mStartSumDetect >= g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSumDetect
+					   && mStartSoundSize >= g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSoundSize)
+					{
+						g_UrgencyMotion_Data.m_uStartFlag=1;
+					}
+				}
+				else if(g_UrgencyMotion_Data.m_uOverFlag==0)
+				{
+					int mOverSumDetect=0;
+					int mOverSumArea=0;
+					int mOverSoundSize=0;
+					int k=0;
+					int secondFlag=0;
+					int i=g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverPeriod-1;
+					for(;i>=0;i--)
+					{
+						secondFlag=g_UrgencyMotion_Data.m_uLastFlag-i;
+						if(secondFlag>=0)
+						{
+							k++;
+							int j=0;
+							for(j=0;j<16;j++)
+							{
+								mOverSumDetect+=g_UrgencyMotion_Data.m_u32StartAreaTimes[secondFlag][j];
+								if(g_UrgencyMotion_Data.m_u32StartAreaTimes[secondFlag][j]!=0)
+									mOverSumArea++;
+							}
+							mOverSoundSize+=g_UrgencyMotion_Data.m_u32SoundSize[secondFlag];
+						}
+					}
+					mOverSoundSize=mOverSoundSize/k;
+					if(mOverSumArea <= g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverSumArea 
+					   && mOverSumDetect <= g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverSumDetect
+					   && mOverSoundSize <= g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverSoundSize)
+					{
+						g_UrgencyMotion_Data.m_uOverFlag=1;
+					}				
+				}
+			}
+		}	
 	}
 }
 
@@ -1064,12 +1280,12 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 	{
 		if(u32WaitIFrame==1)
 			break;
-		
-		DWORD nowTime=getTickCountMs();
+		DWORD nowTime=g_workTimeMs;
+		reloveUrgencyMotion(g_workTimeMs,u32DataType,pu8Buffer,u32Length);
 		DWORD endTime=0;
 		if(motionData.m_u32MotionStatus==1 || motionData.m_u32MotionStatus==2)
 		{
-			DWORD notTick=getTickCountMs();
+			DWORD notTick=g_workTimeMs;
 			int   times=0;
 			while(times<100)
 			{
@@ -1221,7 +1437,7 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 				motionCount=motionData.m_stMotionData.videoMotionTotal_Dist1+motionData.m_stMotionData.videoMotionTotal_Dist2+
 							motionData.m_stMotionData.videoMotionTotal_Dist3+motionData.m_stMotionData.videoMotionTotal_Dist4;
 				LOGOUT("continue:motionCount is %d",motionCount);
-				if(motionCount>=motionData.m_u32MotionTimesIsValid)
+				if(motionCount>=motionData.m_u32MotionTimesIsValid || g_UrgencyMotion_Data.m_uOverFlag!=1)
 				{
 					motionData.m_u32MotionStatus=2;
 					motionData.m_u32MotionStartTime=getTickCountMs();
@@ -1930,7 +2146,20 @@ int InitHiSDKVideoAllChannel()
 		LOGOUT("InitVideoQuene %d failure",VIDEOBUFFERSIZE);
 	}
 	#endif
-	playStartAudio();
+	if(getTickCountMs()>STARTUPMINTIME)
+	{
+		LOGOUT("do not play start audio,getTimeMs is %d",getTickCountMs());
+		return;
+	}
+	if(g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bStartUpEnable==DE_ENABLE 
+		&& g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bEnable==DE_ENABLE)
+	{
+		 playAudio(AUDIOSTARTUP);
+	}
+	else
+	{
+		LOGOUT("config m_bStartUpEnable is disable");
+	};
 	return iRet;
 }  
 

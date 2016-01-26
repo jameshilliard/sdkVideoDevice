@@ -36,9 +36,9 @@ CSRCS += $(wildcard ./mxml/*.c)
 CSRCS += $(wildcard ./controlServer/*.c)
 CSRCS += $(wildcard ./json/*.c)
 #CSRCS += $(wildcard ./pollingCheck/*.c)
-CSRCS += $(wildcard ./mp3ToPcm/*.c)
+#CSRCS += $(wildcard ./mp3ToPcm/*.c)
 
-VPATH = ./Common:./LogOut:./hisdk:./toolComm:./mxml:./mp4v2:./oss:./controlServer:./json:./mp3ToPcm
+VPATH = ./Common:./LogOut:./hisdk:./toolComm:./mxml:./mp4v2:./oss:./controlServer:./json
 
 OBJDIR := ./objs
 DEPDIR := ./deps

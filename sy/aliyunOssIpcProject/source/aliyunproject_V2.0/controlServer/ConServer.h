@@ -57,6 +57,8 @@ typedef struct recordData_
 	int 	m_videoTimeLength;
 	long long m_creatTimeInMilSecond; 
 	Motion_Data m_mMotionData;
+	int 	m_iUrencyFlag;
+	char 	m_szReserver[76];
 }RecordData;//服务器返回信息列表
 
 

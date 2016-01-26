@@ -75,9 +75,14 @@ typedef struct
 typedef struct 
 {
 	DWORD  		m_u32MotionStartTime;
-	HI_U32 		m_u32StartAreaTimes[16][16];
-	HI_U32 		m_u32OverAreaTimes[16][16];
-	HI_U32		m_uFlag;
+	HI_U32 		m_u32StartAreaTimes[120][16];
+	HI_U32 		m_u32SoundSize[120];
+	HI_U32		m_uNowFlag;
+	HI_U32		m_uLastFlag;
+	HI_U32		m_uStartFlag;
+	HI_U32		m_uStartSoundFlag;
+	HI_U32		m_uOverFlag;
+	HI_U32		m_uOverSoundFlag;
 } HI_UrgencyMotion_Data;
 
 typedef struct 

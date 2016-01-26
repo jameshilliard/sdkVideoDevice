@@ -172,10 +172,19 @@ void * aliyunOssTask(void* param)
 								//LOGOUT("send:%s soundString:%s",file2Path,soundString);
 								mRecordData.m_mMotionData.motionDetectInfo=motionString;
 								mRecordData.m_mMotionData.soundVolumeInfo=soundString;
-								//LOGOUT("server:%s id:%s",mRecordData.m_server,mRecordData.m_id);
-								iRet=dataRecord(mRecordData.m_server,mRecordData.m_id,mRecordData.m_videoPath,
-												mRecordData.m_creatTimeInMilSecond,mRecordData.m_videoFileSize,
-												mRecordData.m_jpgPath,mRecordData.m_videoTimeLength,mRecordData.m_mMotionData);
+								if(mRecordData.m_iUrencyFlag==1)
+								{
+									iRet=reportUrgencyRecord(mRecordData.m_server,mRecordData.m_id,mRecordData.m_videoPath,
+																	mRecordData.m_creatTimeInMilSecond,mRecordData.m_videoFileSize,
+																	mRecordData.m_jpgPath,mRecordData.m_videoTimeLength,mRecordData.m_mMotionData);
+								}
+								else
+								{
+									//LOGOUT("server:%s id:%s",mRecordData.m_server,mRecordData.m_id);
+									iRet=dataRecord(mRecordData.m_server,mRecordData.m_id,mRecordData.m_videoPath,
+													mRecordData.m_creatTimeInMilSecond,mRecordData.m_videoFileSize,
+													mRecordData.m_jpgPath,mRecordData.m_videoTimeLength,mRecordData.m_mMotionData);
+								}
 								if(iRet==1)
 								{
 									 unlink(file1Path);
