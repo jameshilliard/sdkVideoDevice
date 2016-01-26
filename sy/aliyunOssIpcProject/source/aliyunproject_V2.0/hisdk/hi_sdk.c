@@ -43,6 +43,9 @@ static int 					g_playAudioStatus=0;    // 1:play network audio.
 static pthread_mutex_t 		g_playAudioMutex;
 static HI_UrgencyMotion_Data	g_UrgencyMotion_Data;
 
+char softwareVersion[256]={0};
+
+
 
 #if 0
 HI_S32 OnEventCallback(HI_U32 u32Handle, /* ¾ä±ú */
@@ -823,7 +826,6 @@ HI_S32 OnStreamCallback(HI_U32 u32Handle, /* ¾ä±ú */
 int playAudioG711aBuffer(const char *buffer,unsigned int realSize,int type)
 {
 	char g711Buffer[164]={0,};
-	LOGOUT("readFile reset.g711 success %d",realSize);
 	//G711£º0x00 0x01 0x50 0x00
 	g711Buffer[0]=0x00;g711Buffer[1]=0x01;g711Buffer[2]=0x50;g711Buffer[3]=0x00;
 	int sum=0;
@@ -954,12 +956,14 @@ void * judgeWorkTask(void* param)
 			averNetWorkKs=0;
 		else
 			averNetWorkKs=(socketNums-socketNumsLast)/diffTimeS;
+		LOGOUT("-----------socketNums=%lld socketNumsLast=%lld",socketNums,socketNumsLast);
+		LOGOUT("-----------nowTimeMs=%ld lastTimeMs=%ld",nowTimeMs,lastTimeMs);
 		lastTimeMs=nowTimeMs;
-		//LOGOUT("tutk process network per second is %d",averNetWorkKs);
 		if(averNetWorkKs > P2PWORKMINVALUE)
 		{
 			if(lastFlagP2P==0)
 			{
+				LOGOUT("tutk process network open is %ld diffTimes=%ld",averNetWorkKs,diffTimeS);
 				lastFlagP2P=1;
 				if(g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bLoginInEnable==DE_ENABLE
 					&&g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bEnable==DE_ENABLE)
@@ -970,7 +974,6 @@ void * judgeWorkTask(void* param)
 				{
 					LOGOUT("config m_bLoginInEnable is disable");
 				}
-				LOGOUT("tutk process network open is %ld diffTimes=%d",averNetWorkKs,diffTimeS);
 			}
 		}
 		else
@@ -981,11 +984,29 @@ void * judgeWorkTask(void* param)
 			}
 			lastFlagP2P=0;
 		}
-		socketNumsLast=socketNums;
+		socketNumsLast=socketNums;	
+		if(g_workTimeMs!=0)
+		{
+			if((getTickCountMs()-g_workTimeMs)>30*1000)
+			{
+				LOGOUT("the dataCallBack is unconnect- reboot APP");
+				exit(0);
+			}
+		}
+		sleep(2);
+	}
+}
+
+void * playAudioTask(void* param)
+{
+	int iRet=0;
+	while(1)
+	{
 		if(g_UrgencyMotion_Data.m_uStartFlag==1)
 		{
 			if(g_UrgencyMotion_Data.m_uStartSoundFlag==0)
 			{
+				g_UrgencyMotion_Data.m_uStartSoundFlag=1;
 				if(g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bUrgencyStartEnable==DE_ENABLE
 					&&g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bEnable==DE_ENABLE)
 				{
@@ -1001,6 +1022,7 @@ void * judgeWorkTask(void* param)
 		{
 			if(g_UrgencyMotion_Data.m_uOverSoundFlag==0)
 			{
+				g_UrgencyMotion_Data.m_uOverSoundFlag=1;
 				if(g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bUrgencyOverEnable==DE_ENABLE
 					&&g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bEnable==DE_ENABLE)
 				{
@@ -1011,16 +1033,8 @@ void * judgeWorkTask(void* param)
 					LOGOUT("config m_bLoginInEnable is disable");
 				}
 			}
-		}	
-		if(g_workTimeMs!=0)
-		{
-			if((getTickCountMs()-g_workTimeMs)>30*1000)
-			{
-				LOGOUT("the dataCallBack is unconnect- reboot APP");
-				exit(0);
-			}
 		}
-		sleep(2);
+		usleep(1000000);
 	}
 }
 
@@ -1140,8 +1154,6 @@ void reloveUrgencyMotion(DWORD nowTime,HI_U32 u32DataType,HI_U8* pu8Buffer,HI_U3
 	{
 		if(g_UrgencyMotion_Data.m_u32SoundSize!=0)
 		{
-			g_UrgencyMotion_Data.m_uLastFlag=g_UrgencyMotion_Data.m_uNowFlag;
-
 			if(g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_bEnable==DE_ENABLE)
 			{
 				if(g_UrgencyMotion_Data.m_uStartFlag==0)
@@ -1169,10 +1181,13 @@ void reloveUrgencyMotion(DWORD nowTime,HI_U32 u32DataType,HI_U8* pu8Buffer,HI_U3
 						}
 					}
 					mStartSoundSize=mStartSoundSize/k;
+					LOGOUT("mStartSumArea=%d mStartSumDetect=%d mStartSoundSize=%d m_uStartFlag=%d",
+						mStartSumArea,mStartSumDetect,mStartSoundSize,g_UrgencyMotion_Data.m_uStartFlag);
 					if(mStartSumArea >= g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSumArea 
 					   && mStartSumDetect >= g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSumDetect
 					   && mStartSoundSize >= g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSoundSize)
 					{
+						LOGOUT("g_UrgencyMotion_Data.m_uStartFlag=1");
 						g_UrgencyMotion_Data.m_uStartFlag=1;
 					}
 				}
@@ -1209,6 +1224,7 @@ void reloveUrgencyMotion(DWORD nowTime,HI_U32 u32DataType,HI_U8* pu8Buffer,HI_U3
 					}				
 				}
 			}
+			g_UrgencyMotion_Data.m_uLastFlag=g_UrgencyMotion_Data.m_uNowFlag;
 		}	
 	}
 }
@@ -1437,7 +1453,7 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 				motionCount=motionData.m_stMotionData.videoMotionTotal_Dist1+motionData.m_stMotionData.videoMotionTotal_Dist2+
 							motionData.m_stMotionData.videoMotionTotal_Dist3+motionData.m_stMotionData.videoMotionTotal_Dist4;
 				LOGOUT("continue:motionCount is %d",motionCount);
-				if(motionCount>=motionData.m_u32MotionTimesIsValid || g_UrgencyMotion_Data.m_uOverFlag!=1)
+				if(motionCount>=motionData.m_u32MotionTimesIsValid || (g_UrgencyMotion_Data.m_uOverFlag!=1))
 				{
 					motionData.m_u32MotionStatus=2;
 					motionData.m_u32MotionStartTime=getTickCountMs();
@@ -2093,6 +2109,14 @@ int InitHiSDKVideoAllChannel()
 	if(iRet != 0)
 	{
 		LOGOUT("can't create judgeWorkTask thread: %s",strerror(iRet));
+		return -2;
+	}
+
+	pthread_t m_playAudioTask;
+	iRet = pthread_create(&m_playAudioTask, NULL, playAudioTask, NULL);
+	if(iRet != 0)
+	{
+		LOGOUT("can't create playAudioTask thread: %s",strerror(iRet));
 		return -2;
 	}
 	g_workTimeMs=getTickCountMs();

@@ -443,6 +443,22 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Dialog\SoundEableSet.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Dialog\SoundEableSet.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Dialog\UrgencyMotionSet.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Dialog\UrgencyMotionSet.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Dialog\VideoParamSet.cpp"
 				>
 				<FileConfiguration

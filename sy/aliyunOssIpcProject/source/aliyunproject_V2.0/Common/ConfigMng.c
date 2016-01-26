@@ -129,14 +129,15 @@ BOOL InitConfigFile(tagConfigCfg *v_pstConfigCfg)
 
 
 	objConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartPeriod=DE_START_PREIOD;
-	objConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSumDetect=DE_START_PREIOD;
-	objConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSumArea=DE_START_PREIOD;
-	objConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSoundSize=DE_START_PREIOD;
+	objConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSumDetect=DE_START_SUM_DETECT;
+	objConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSumArea=DE_START_SUM_AREA;
+	objConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSoundSize=DE_START_SOUND_SIZE;
 	
 	objConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverPeriod=DE_OVER_PREIOD;
-	objConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverSumDetect=DE_OVER_PREIOD;
-	objConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverSumArea=DE_OVER_PREIOD;
-	objConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverSoundSize=DE_OVER_PREIOD;
+	objConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverSumDetect=DE_OVER_SUM_DETECT;
+	objConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverSumArea=DE_OVER_SUM_AREA;
+	objConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverSoundSize=DE_OVER_SOUND_SIZE;
+	
 	objConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iEndRecTime=DE_URGENCY_REC_TIME;
 	objConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_bEnable=DE_ENABLE;
 

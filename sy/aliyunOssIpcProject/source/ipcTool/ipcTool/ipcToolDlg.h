@@ -118,4 +118,7 @@ public:
 	afx_msg void OnBnClickedButtonVideoset();
 	afx_msg void OnBnClickedButtonAlgorithmset();
 	afx_msg void OnBnClickedButtonOssset();
+	afx_msg void OnBnClickedButtonWeb();
+	afx_msg void OnBnClickedButtonSoundset();
+	afx_msg void OnBnClickedButtonUrgencymotionset();
 };

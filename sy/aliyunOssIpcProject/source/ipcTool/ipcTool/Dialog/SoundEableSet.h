@@ -16,7 +16,7 @@ public:
 		m_objTcpClient.InitTcpSocket(strServer, port);
 	}
 // 对话框数据
-	enum { IDD = IDD_DIALOG_VIDEOSET };
+	enum { IDD = IDD_DIALOG_SOUNDSET };
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持

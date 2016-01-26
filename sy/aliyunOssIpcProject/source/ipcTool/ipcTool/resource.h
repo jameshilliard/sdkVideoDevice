@@ -10,10 +10,14 @@
 #define IDD_DIALOG_ALGORITHMSET         130
 #define IDD_DIALOG_VIDEOSET             131
 #define IDD_DIALOG_OSSCONFIG            132
+#define IDD_DIALOG_SOUNDSET             133
+#define IDD_DIALOG_URGENCYMOTIONSET     134
 #define IDC_BUTTON_SEARCH               1000
 #define IDC_LIST_RECORD                 1001
 #define IDC_BUTTON_RESTART              1002
+#define IDC_BUTTON_URGENCYMOTIONSET     1002
 #define IDC_BUTTON_WEB                  1003
+#define IDC_BUTTON_SOUNDSET             1003
 #define IDC_BUTTON_RESTART2             1004
 #define IDC_BUTTON_VIDEOSET             1004
 #define IDC_EDIT_DEVID                  1005
@@ -29,6 +33,7 @@
 #define IDC_BUTTON_ALGORITHMSET         1014
 #define IDC_EDIT_PASSWORD               1015
 #define IDC_BUTTON_OSSSET               1015
+#define IDC_BUTTON_OSSSET2              1016
 #define IDC_COMBO_LANGUAGE              1017
 #define IDC_EDIT_USER2                  1019
 #define IDC_EDIT_HTTPPROT               1019
@@ -41,6 +46,7 @@
 #define IDC_EDIT_ConRecTimes            1029
 #define IDC_EDIT_BucketName             1030
 #define IDC_EDIT_ConRecLastTime         1031
+#define IDC_COMBO_SOUNDENABLE           1031
 #define IDC_EDIT_BefRecTimes            1032
 #define IDC_EDIT_BefRecLastTime         1033
 #define IDC_EDIT_OSSEndPoint            1033
@@ -55,14 +61,28 @@
 #define IDC_EDIT_JPGPATH                1037
 #define IDC_COMBO1                      1038
 #define IDC_COMBO_RESET                 1038
+#define IDC_COMBO_SOUNDSTARTUP          1039
+#define IDC_COMBO_SOUNDURGENCYSTART     1040
+#define IDC_COMBO_SOUNDURGENCYOVER      1041
+#define IDC_COMBO_SOUNDLOGININ          1042
+#define IDC_EDIT_URGENDRECTIME          1043
+#define IDC_EDIT_URGSTARTPERIOD         1044
+#define IDC_EDIT_URGOVERSUMDETECT       1045
+#define IDC_EDIT_URGOVERSUMAREA         1046
+#define IDC_EDIT_URGOVERSOUNDSIZE       1047
+#define IDC_COMBO_URGEBABLE             1048
+#define IDC_EDIT_URGSTARTSUMDETECT      1049
+#define IDC_EDIT_URGSTARTSUMAREA        1050
+#define IDC_EDIT_URGSTARTSOUNDSIZE      1051
+#define IDC_EDIT_URGOVERPERIOD          1052
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        133
+#define _APS_NEXT_RESOURCE_VALUE        135
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1039
+#define _APS_NEXT_CONTROL_VALUE         1053
 #define _APS_NEXT_SYMED_VALUE           104
 #endif
 #endif

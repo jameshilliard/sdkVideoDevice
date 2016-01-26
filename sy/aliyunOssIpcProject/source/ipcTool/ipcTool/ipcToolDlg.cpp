@@ -8,6 +8,8 @@
 #include "./Dialog/VideoParamSet.h"
 #include "./Dialog/AlgorithmParamSet.h"
 #include "./Dialog/OSSConfigParamSet.h"
+#include "./Dialog/SoundEableSet.h"
+#include "./Dialog/UrgencyMotionSet.h"
 #include "./Utility/httpClient/SyTcpClient.h"
 
 #ifdef _DEBUG
@@ -77,6 +79,8 @@ BEGIN_MESSAGE_MAP(CipcToolDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_VIDEOSET, &CipcToolDlg::OnBnClickedButtonVideoset)
 	ON_BN_CLICKED(IDC_BUTTON_ALGORITHMSET, &CipcToolDlg::OnBnClickedButtonAlgorithmset)
 	ON_BN_CLICKED(IDC_BUTTON_OSSSET, &CipcToolDlg::OnBnClickedButtonOssset)
+	ON_BN_CLICKED(IDC_BUTTON_SOUNDSET, &CipcToolDlg::OnBnClickedButtonSoundset)
+	ON_BN_CLICKED(IDC_BUTTON_URGENCYMOTIONSET, &CipcToolDlg::OnBnClickedButtonUrgencymotionset)
 END_MESSAGE_MAP()
 
 
@@ -580,4 +584,36 @@ void CipcToolDlg::OnBnClickedButtonOssset()
 	mOSSConfigParamSet->init(ip,port);
 	mOSSConfigParamSet->DoModal();
 	delete(mOSSConfigParamSet);
+}
+
+void CipcToolDlg::OnBnClickedButtonSoundset()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	int nItem=GetFirstSelect();
+	if(-1==nItem)
+	{
+		return;
+	}
+	CString ip = m_RecordListCtrl.GetItemText(nItem,LIST_COL_IPADDRESS);
+	int port =  SERVER_PORT;
+	CSoundEableSet *mCSoundEableSet=new CSoundEableSet();
+	mCSoundEableSet->init(ip,port);
+	mCSoundEableSet->DoModal();
+	delete(mCSoundEableSet);
+}
+
+void CipcToolDlg::OnBnClickedButtonUrgencymotionset()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	int nItem=GetFirstSelect();
+	if(-1==nItem)
+	{
+		return;
+	}
+	CString ip = m_RecordListCtrl.GetItemText(nItem,LIST_COL_IPADDRESS);
+	int port =  SERVER_PORT;
+	CUrgencyMotionSet *mUrgencyMotionSet=new CUrgencyMotionSet();
+	mUrgencyMotionSet->init(ip,port);
+	mUrgencyMotionSet->DoModal();
+	delete(mUrgencyMotionSet);
 }

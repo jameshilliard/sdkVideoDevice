@@ -132,7 +132,7 @@ BOOL ScanNetWorkCardName(const char *v_szDirectory, char *v_szNetName, char *v_s
 	DIR *dp; 
 	struct dirent *entry;
 	struct stat statbuf;
-	char *szNetWorkName = "eth0";
+	char *szNetWorkName = "ra0";
 	if((dp = opendir(v_szDirectory)) == NULL)
 	{
 		perror("opendir");
@@ -153,9 +153,9 @@ BOOL ScanNetWorkCardName(const char *v_szDirectory, char *v_szNetName, char *v_s
 				(entry->d_name[0] != '.'))
 			{
 				printf("opendir  %s \n",entry->d_name);
-				if(strcmp(entry->d_name,"eth0")==0)
+				if(strcmp(entry->d_name,"ra0")==0)
 				{
-					bRet = isValidNetworkCard("eth0", v_szDeviceIp, v_szDevMask, v_szDevHwMask,v_szBcastAddr);
+					bRet = isValidNetworkCard("ra0", v_szDeviceIp, v_szDevMask, v_szDevHwMask,v_szBcastAddr);
 					if (bRet)
 					{
 						if(NULL != v_szNetName)

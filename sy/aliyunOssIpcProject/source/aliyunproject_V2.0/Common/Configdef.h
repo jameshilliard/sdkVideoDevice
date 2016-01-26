@@ -115,7 +115,7 @@
 
 
 #define DE_START_PREIOD							1
-#define DE_START_SUM_DETECT						15
+#define DE_START_SUM_DETECT						10
 #define DE_START_SUM_AREA						8
 #define DE_START_SOUND_SIZE						0x300
 

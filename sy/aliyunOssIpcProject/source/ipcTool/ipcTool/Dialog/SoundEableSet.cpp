@@ -25,13 +25,13 @@ void CSoundEableSet::DoDataExchange(CDataExchange* pDX)
 	CDialog::DoDataExchange(pDX);
 
 	DDX_Control(pDX, IDC_COMBO_SOUNDSTARTUP,m_cbSoundStartUpEnable);
-	DDX_Control(pDX, IDC_COMBO_SOUNDSERVERSUCCESS,m_cbSoundServerSuccessEnable);
-	DDX_Control(pDX, IDC_COMBO_SOUNDENBALE,m_cbSoundServerFailureEnable);
-	DDX_Control(pDX, IDC_COMBO_SOUNDENBALE,m_cbSoundUpgradeEnable);
-	DDX_Control(pDX, IDC_COMBO_SOUNDENBALE,m_cbSoundLoginInEnable);
-	DDX_Control(pDX, IDC_COMBO_SOUNDENBALE,m_cbSoundUrgencyStartEnable);
-	DDX_Control(pDX, IDC_COMBO_SOUNDENBALE,m_cbSoundUrgencyOverEnable);
-	DDX_Control(pDX, IDC_COMBO_SOUNDENBALE,m_cbSoundEnable);
+	//DDX_Control(pDX, IDC_COMBO_SOUNDSERVERSUCCESS,m_cbSoundServerSuccessEnable);
+	//DDX_Control(pDX, IDC_COMBO_SOUNDSERVERFAILURE,m_cbSoundServerFailureEnable);
+	//DDX_Control(pDX, IDC_COMBO_SOUNDUPGRADE,m_cbSoundUpgradeEnable);
+	DDX_Control(pDX, IDC_COMBO_SOUNDLOGININ,m_cbSoundLoginInEnable);
+	DDX_Control(pDX, IDC_COMBO_SOUNDURGENCYSTART,m_cbSoundUrgencyStartEnable);
+	DDX_Control(pDX, IDC_COMBO_SOUNDURGENCYOVER,m_cbSoundUrgencyOverEnable);
+	DDX_Control(pDX, IDC_COMBO_SOUNDENABLE,m_cbSoundEnable);
 }
 
 
@@ -52,15 +52,28 @@ BOOL CSoundEableSet::OnInitDialog()
 	map<CString,CString> mapofparam;
 	map<CString,CString> mapofResult;
 
-	bool bRet=m_objTcpClient.TcpPost(mapofparam, mapofResult, 4006);
+	m_cbSoundStartUpEnable.AddString("是");
+	m_cbSoundLoginInEnable.AddString("是");
+	m_cbSoundUrgencyStartEnable.AddString("是");
+	m_cbSoundUrgencyOverEnable.AddString("是");
+	m_cbSoundEnable.AddString("是");
+
+	m_cbSoundStartUpEnable.AddString("否");
+	m_cbSoundLoginInEnable.AddString("否");
+	m_cbSoundUrgencyStartEnable.AddString("否");
+	m_cbSoundUrgencyOverEnable.AddString("否");
+	m_cbSoundEnable.AddString("否");
+
+
+	bool bRet=m_objTcpClient.TcpPost(mapofparam, mapofResult, 4008);
 	//if(bRet)
 	{
-		int iRet=m_cbResolution.SelectString(0,mapofResult["Resolution"]);
-		iRet=m_cbQuality.SelectString(0,mapofResult["Quality"]);
-		iRet=m_cbCodeType.SelectString(0,((mapofResult["CodeType"]=="0")?"可变码流":"固定码流"));
-		iRet=m_cbFrame.SelectString(0,mapofResult["Frame"]);
-		m_csCode=mapofResult["Code"];
-		m_csKeyFrame=mapofResult["KeyFrame"];
+		int iRet=0;
+		iRet=m_cbSoundStartUpEnable.SelectString(0,(mapofResult["StartUpEnable"]=="0")?"否":"是");
+		iRet=m_cbSoundLoginInEnable.SelectString(0,(mapofResult["LoginInEnable"]=="0")?"否":"是");
+		iRet=m_cbSoundUrgencyStartEnable.SelectString(0,(mapofResult["UrgencyStartEnable"]=="0")?"否":"是");
+		iRet=m_cbSoundUrgencyOverEnable.SelectString(0,(mapofResult["UrgencyOverEnable"]=="0")?"否":"是");
+		iRet=m_cbSoundEnable.SelectString(0,(mapofResult["Enable"]=="0")?"否":"是");
 	}
 	UpdateData(FALSE);
 	return TRUE;  // return TRUE unless you set the focus to a control
@@ -74,16 +87,16 @@ void CSoundEableSet::OnBnClickedOk()
 	// TODO:  在此添加额外的初始化
 	map<CString,CString> mapofparam;
 	map<CString,CString> mapofResult;
-	/* 码流模式、HI_TRUE为固定码流，HI_FALSE为可变码流 */
-	m_cbResolution.GetWindowText(mapofparam["Resolution"]);
-	m_cbQuality.GetWindowText(mapofparam["Quality"]);
-	m_cbCodeType.GetWindowText(codeType);
-	mapofparam["CodeType"]=(codeType=="固定码流"?"1":"0");
-	m_cbFrame.GetWindowText(mapofparam["Frame"]);
-	mapofparam["Code"]=m_csCode;
-	mapofparam["KeyFrame"]=m_csKeyFrame;
 
-	bool bRet=m_objTcpClient.TcpPost(mapofparam, mapofResult, 4005);
+	CString enable="";
+
+	m_cbSoundStartUpEnable.GetWindowText(enable);mapofparam["StartUpEnable"]=(enable=="是"?"1":"0");
+	m_cbSoundLoginInEnable.GetWindowText(enable);mapofparam["LoginInEnable"]=(enable=="是"?"1":"0");
+	m_cbSoundUrgencyStartEnable.GetWindowText(enable);mapofparam["UrgencyStartEnable"]=(enable=="是"?"1":"0");
+	m_cbSoundUrgencyOverEnable.GetWindowText(enable);mapofparam["UrgencyOverEnable"]=(enable=="是"?"1":"0");
+	m_cbSoundEnable.GetWindowText(enable);mapofparam["Enable"]=(enable=="是"?"1":"0");
+
+	bool bRet=m_objTcpClient.TcpPost(mapofparam, mapofResult, 4009);
 	if(bRet)
 	{
 		AfxMessageBox("更新成功");

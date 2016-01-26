@@ -87,15 +87,15 @@ void CUrgencyMotionSet::OnBnClickedOk()
 	CString enable="";
 	m_cbUrgEnable.GetWindowText(enable);
 	mapofparam["Enable"]=(enable=="ÊÇ"?"1":"0");
-	mapofResult["StartPeriod"]		=	m_csUrgStartPeriod;
-	mapofResult["StartSumDetect"]	=	m_csUrgStartSumDetect;
-	mapofResult["StartSumArea"]		=	m_csUrgStartSumArea;
-	mapofResult["StartSoundSize"]	=	m_csUrgStartSoundSize;
-	mapofResult["OverPeriod"]		=	m_csUrgOverPeriod;
-	mapofResult["OverSumDetect"]	=	m_csUrgOverSumDetect;
-	mapofResult["OverSumArea"]		=	m_csUrgOverSumArea;
-	mapofResult["OverSoundSize"]	=	m_csUrgOverSoundSize;
-	mapofResult["EndRecTime"]	=	m_csUrgEndRecTime;
+	mapofparam["StartPeriod"]		=	m_csUrgStartPeriod;
+	mapofparam["StartSumDetect"]	=	m_csUrgStartSumDetect;
+	mapofparam["StartSumArea"]		=	m_csUrgStartSumArea;
+	mapofparam["StartSoundSize"]	=	m_csUrgStartSoundSize;
+	mapofparam["OverPeriod"]		=	m_csUrgOverPeriod;
+	mapofparam["OverSumDetect"]		=	m_csUrgOverSumDetect;
+	mapofparam["OverSumArea"]		=	m_csUrgOverSumArea;
+	mapofparam["OverSoundSize"]		=	m_csUrgOverSoundSize;
+	mapofparam["EndRecTime"]		=	m_csUrgEndRecTime;
 	bool bRet=m_objTcpClient.TcpPost(mapofparam, mapofResult, 4007);
 	if(bRet)
 	{

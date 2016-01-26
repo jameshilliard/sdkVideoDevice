@@ -545,18 +545,18 @@ INT32S readFile(LPCTSTR filePath,LPCTSTR fileBuffer,DWORD bufferSize,DWORD *file
 		DWORD numLeft = size; 
 		DWORD numRead = 0;
 		INT32U readCount=0;
-		LOGOUT("fileSize %d locRead %d",size,locRead);
+		//LOGOUT("fileSize %d locRead %d",size,locRead);
 		while(size>locRead) 
 		{   
 			numRead = fread((void *)(fileBuffer+locRead),1,numLeft, fp);   
 			if (numRead<numLeft || readCount++>100) 
 			{   
-				LOGOUT("numRead=%d readCount=%d",numRead,readCount);
+				//LOGOUT("numRead=%d readCount=%d",numRead,readCount);
 				break;   
 			}   
 			locRead+= numRead;   
 			numLeft-= numRead; 
-			LOGOUT("locRead=%d numLeft=%d",locRead,numLeft);
+			//LOGOUT("locRead=%d numLeft=%d",locRead,numLeft);
 		}   
 		if(fclose(fp) == 0)
 		{

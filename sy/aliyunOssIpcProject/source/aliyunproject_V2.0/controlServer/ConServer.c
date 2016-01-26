@@ -288,7 +288,7 @@ int loginCtrl(const char *server,const char *v_szId,const char *v_szPwd,LOGINRET
 	if(0==iRet)
 	{
 		LOGOUT("GetSoftVersion success over iRet=%d %s",iRet,allVersion);
-		sscanf(allVersion,"[^_]_%s",hardwareVersion,softwareVersion);
+		sscanf(allVersion,"%[^_]_%s",hardwareVersion,softwareVersion);
 		LOGOUT("hardwareVersion=%s and softwareVersion=%s",hardwareVersion,softwareVersion);
 	}
 	else
