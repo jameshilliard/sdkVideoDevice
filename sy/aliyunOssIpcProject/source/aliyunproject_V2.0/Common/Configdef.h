@@ -26,7 +26,7 @@
 #define SDK_PROCESS_NAME        "aliyunOss.bin"
 
 //#define DEBUG_FILE_VIDEO		1
-#define DEBUG_OTHER_RUN			1
+//#define DEBUG_OTHER_RUN			1
 
 
 
@@ -35,7 +35,7 @@
 #define 	SDKVERSION 					COMMVER1 
 
 #if   SDKVERSION == COMMVER1
-#define SDK_SYSTEM_FWVERSION	"1.0.0033"	// SDK°æ±¾ºÅ
+#define SDK_SYSTEM_FWVERSION	"1.0.0034"	// SDK°æ±¾ºÅ
 
 #define DE_ROUTESERVER			"ipc.100memory.com"
 #define	DE_ALBUCKETNAME			"memory100"	
@@ -44,7 +44,7 @@
 #define	DE_ALACCESSSECRET		"mwpC5hLaYOIR3obMkqJ4uKoPCvwupf"
 
 #elif SDKVERSION == COMMVER2 
-#define SDK_SYSTEM_FWVERSION	"2.0.0033"	// SDK°æ±¾ºÅ
+#define SDK_SYSTEM_FWVERSION	"2.0.0034"	// SDK°æ±¾ºÅ
 #define DE_ROUTESERVER			"ipc.355fun.com"
 #define	DE_ALBUCKETNAME			"cyq-fyws"	
 #define	DE_ALENDPOINT			"oss-cn-qingdao.aliyuncs.com"

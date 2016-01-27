@@ -50,7 +50,7 @@
 #define   	MAX_AUDIO_PACKETS	8000/5
 
 #define P2PPROCESS			"tutk"
-#define P2PWORKMINVALUE		3
+#define P2PWORKMINVALUE		2.5
 #define STARTUPMINTIME		300*1000
 #define AUDIOUSERLOGININ	"/mnt/mtd/ipc/tmpfs/syflash/audio/userLoginIn.g711"
 #define AUDIOURGENCYEND		"/mnt/mtd/ipc/tmpfs/syflash/audio/urgencyEnd.g711"

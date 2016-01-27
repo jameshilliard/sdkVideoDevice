@@ -4,6 +4,26 @@
 #include "../LogOut/LogOut.h"
 
 
+#define VMRSS_LINE 		15//VMRSS所在行
+#define PROCESS_ITEM 	14//进程CPU时间开始的项数
+typedef struct        //声明一个occupy的结构体
+{
+        unsigned int user;  //从系统启动开始累计到当前时刻，处于用户态的运行时间，不包含 nice值为负进程。
+        unsigned int nice;  //从系统启动开始累计到当前时刻，nice值为负的进程所占用的CPU时间
+        unsigned int system;//从系统启动开始累计到当前时刻，处于核心态的运行时间
+        unsigned int idle;  //从系统启动开始累计到当前时刻，除IO等待时间以外的其它等待时间iowait (12256) 从系统启动开始累计到当前时刻，IO等待时间(since 2.5.41)
+}total_cpu_occupy_t;
+
+typedef struct
+{
+    pid_t pid;//pid号
+    unsigned int utime;  //该任务在用户态运行的时间，单位为jiffies
+    unsigned int stime;  //该任务在核心态运行的时间，单位为jiffies
+    unsigned int cutime;//所有已死线程在用户态运行的时间，单位为jiffies
+    unsigned int cstime;  //所有已死在核心态运行的时间，单位为jiffies
+}process_cpu_occupy_t;
+
+
 #  ifdef __cplusplus
 extern "C" {
 #  endif /* __cplusplus */
@@ -26,8 +46,10 @@ extern "C" {
 	INT32S  rmDirFile(const char *pszDir);
 	INT32S  GetProfileString(char *profile, char *AppName, char *KeyName, char *KeyVal);
 	INT32S 	usSleep(long us);
-	int 	find_pid_by_name(char* ProcName, int* foundpid);
+	int 	find_pid_by_name( char* ProcName, int* foundpid,int num);
 	int 	GetSendSocketTraffic(char* ProcName, unsigned long long* socketNums);
+	float 	get_cpu_process_occupy_name(char* ProcName);
+	float 	get_cpu_process_occupy_name2(char* ProcName);
 #  ifdef __cplusplus
 }
 #  endif /* __cplusplus */

@@ -935,40 +935,23 @@ void playAudio(const char *file)
 
 void * judgeWorkTask(void* param)
 {
-	unsigned long long socketNums = 0;
-	unsigned long long socketNumsLast = 0;
 	unsigned lastFlagP2P=0;
 	char g711aBUffer[100*1024]={0};
 	unsigned int length=0;
-	DWORD lastTimeMs=0;
-	DWORD nowTimeMs=0;
-	DWORD diffTimeS=0;
-	DWORD averNetWorkKs=0;
 	int iRet=0;
+	unsigned int count=0;
 	while(1)
 	{
-		GetSendSocketTraffic(P2PPROCESS, &socketNums);
-		socketNums=socketNums/1024;
-		if(socketNumsLast==0)
+
+		float cpuOccupy=get_cpu_process_occupy_name2(P2PPROCESS);
+		if(cpuOccupy > P2PWORKMINVALUE)
 		{
-			socketNumsLast=socketNums;
-			lastTimeMs=getTickCountMs();
-		}
-		nowTimeMs=getTickCountMs();
-		diffTimeS=(nowTimeMs-lastTimeMs)/1000;
-		if(diffTimeS==0)
-			averNetWorkKs=0;
-		else
-			averNetWorkKs=(socketNums-socketNumsLast)/diffTimeS;
-		//LOGOUT("-----------socketNums=%lld socketNumsLast=%lld",socketNums,socketNumsLast);
-		//LOGOUT("-----------nowTimeMs=%ld lastTimeMs=%ld",nowTimeMs,lastTimeMs);
-		lastTimeMs=nowTimeMs;
-		if(averNetWorkKs > P2PWORKMINVALUE)
-		{
-			if(lastFlagP2P==0)
+			count++;
+			if(lastFlagP2P==0 && count>=2)
 			{
-				LOGOUT("tutk process network open is %ld diffTimes=%ld",averNetWorkKs,diffTimeS);
+				LOGOUT("tutk process network open cpu occupy %f",cpuOccupy);
 				lastFlagP2P=1;
+				count=0;
 				if(g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bLoginInEnable==DE_ENABLE
 					&&g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bEnable==DE_ENABLE)
 				{
@@ -982,13 +965,13 @@ void * judgeWorkTask(void* param)
 		}
 		else
 		{
+			count=0;
 			if(lastFlagP2P==1)
 			{
-				LOGOUT("tutk process network close is %ld diffTimes=%d",averNetWorkKs,diffTimeS);
+				LOGOUT("tutk process network close cpu occupy %f",cpuOccupy);
 			}
 			lastFlagP2P=0;
-		}
-		socketNumsLast=socketNums;	
+		}	
 		if(g_workTimeMs!=0)
 		{
 			if((getTickCountMs()-g_workTimeMs)>30*1000)
@@ -999,7 +982,7 @@ void * judgeWorkTask(void* param)
 				#endif
 			}
 		}
-		sleep(2);
+		sleep(1);
 	}
 }
 
@@ -1262,8 +1245,8 @@ void reloveUrgencyMotion(DWORD nowTime,HI_U32 u32DataType,HI_U8* pu8Buffer,HI_U3
 						}
 					}
 					mStartSoundSize=mStartSoundSize/k;
-					LOGOUT("mStartSumArea=%d mStartSumDetect=%d mStartSoundSize=%d m_uStartFlag=%d",
-						mStartSumArea,mStartSumDetect,mStartSoundSize,g_UrgencyMotion_Data.m_uStartFlag);
+					//LOGOUT("mStartSumArea=%d mStartSumDetect=%d mStartSoundSize=%d m_uStartFlag=%d",
+					//	mStartSumArea,mStartSumDetect,mStartSoundSize,g_UrgencyMotion_Data.m_uStartFlag);
 					if(mStartSumArea >= g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSumArea 
 					   && mStartSumDetect >= g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSumDetect
 					   && mStartSoundSize >= g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSoundSize)
@@ -1534,7 +1517,7 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 				motionCount=motionData.m_stMotionData.videoMotionTotal_Dist1+motionData.m_stMotionData.videoMotionTotal_Dist2+
 							motionData.m_stMotionData.videoMotionTotal_Dist3+motionData.m_stMotionData.videoMotionTotal_Dist4;
 				LOGOUT("continue:motionCount is %d",motionCount);
-				if(motionCount>=motionData.m_u32MotionTimesIsValid || (g_UrgencyMotion_Data.m_uOverFlag!=1))
+				if(motionCount>=motionData.m_u32MotionTimesIsValid || (g_UrgencyMotion_Data.m_uOverFlag!=1 && g_UrgencyMotion_Data.m_uStartFlag==1))
 				{
 					motionData.m_u32MotionStatus=2;
 					motionData.m_u32MotionStartTime=getTickCountMs();

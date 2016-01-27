@@ -662,7 +662,7 @@ char * SY_base64Encode(const char *text)
 }
 
 //#define 	PATH_MAX	256
-int find_pid_by_name( char* ProcName, int* foundpid)
+int find_pid_by_name( char* ProcName, int* foundpid,int num)
 {
     DIR             *dir;
     struct dirent   *d;
@@ -710,20 +710,186 @@ int find_pid_by_name( char* ProcName, int* foundpid)
             if(s[pnlen] == ' ' || s[pnlen] == '\0') 
 			{
                 foundpid[i] = pid;
+				//printf("%d---pid---\n",pid);
                 i++;
+				if(i>num)
+				{
+					break;
+				}
             }
         }
     }
-    foundpid[i] = 0;
     closedir(dir);
-    return  0;
+    return  i;
 }
+
+const char* get_items(const char* buffer,int ie)
+{
+    assert(buffer);
+    char* p = buffer;//指向缓冲区
+    int len = strlen(buffer);
+    int count = 0;//统计空格数
+    if (1 == ie || ie < 1)
+    {
+        return p;
+    }
+    int i;
+    
+    for (i=0; i<len; i++)
+    {
+        if (' ' == *p)
+        {
+            count++;
+            if (count == ie-1)
+            {
+                p++;
+                break;
+            }
+        }
+        p++;
+    }
+
+    return p;
+}
+
+unsigned int get_cpu_process_occupy(const pid_t p)
+{
+    char file[64] = {0};//文件名
+    process_cpu_occupy_t t;
+  
+    FILE *fd;         //定义文件指针fd
+    char line_buff[1024] = {0};  //读取行的缓冲区
+    sprintf(file,"/proc/%d/stat",p);//文件中第11行包含着
+    //fprintf (stderr, "current pid:%d\n", p);                                                                                                  
+    fd = fopen (file, "r"); //以R读的方式打开文件再赋给指针fd
+	if(fd<0)
+	{
+		printf("do not open file %s",file);
+		return 0;
+	}
+    fgets (line_buff, sizeof(line_buff), fd); //从fd文件中读取长度为buff的字符串再存到起始地址为buff这个空间里
+
+    sscanf(line_buff,"%u",&t.pid);//取得第一项
+    char* q = get_items(line_buff,PROCESS_ITEM);//取得从第14项开始的起始指针
+    int iRet=sscanf(q,"%u %u %u %u",&t.utime,&t.stime,&t.cutime,&t.cstime);//格式化第14,15,16,17项
+	if(iRet!=4)
+	{
+		return 0;
+	}
+    //fprintf (stderr, "====pid%u:%u %u %u %u====\n", t.pid, t.utime,t.stime,t.cutime,t.cstime);
+    fclose(fd);     //关闭文件fd
+    return (t.utime + t.stime + t.cutime + t.cstime);
+}
+
+
+unsigned int get_cpu_total_occupy()
+{
+    FILE *fd;         //定义文件指针fd
+    char buff[1024] = {0};  //定义局部变量buff数组为char类型大小为1024
+    total_cpu_occupy_t t;
+                                                                                                             
+    fd = fopen ("/proc/stat", "r"); //以R读的方式打开stat文件再赋给指针fd
+    fgets (buff, sizeof(buff), fd); //从fd文件中读取长度为buff的字符串再存到起始地址为buff这个空间里
+    /*下面是将buff的字符串根据参数format后转换为数据的结果存入相应的结构体参数 */
+    char name[16];//暂时用来存放字符串
+    sscanf (buff, "%s %u %u %u %u", name, &t.user, &t.nice,&t.system, &t.idle);
+    //fprintf (stderr, "====%s:%u %u %u %u====\n", name, t.user, t.nice,t.system, t.idle);
+    fclose(fd);     //关闭文件fd
+    return (t.user + t.nice + t.system + t.idle);
+}
+
+
+float get_pcpu(pid_t p)
+{
+    unsigned int totalcputime1,totalcputime2;
+    unsigned int procputime1,procputime2;
+    totalcputime1 = get_cpu_total_occupy();
+    procputime1 = get_cpu_process_occupy(p);
+	
+    usleep(500000);//延迟500毫秒
+    totalcputime2 = get_cpu_total_occupy();
+    procputime2 = get_cpu_process_occupy(p);
+    float pcpu = 100.0*(procputime2 - procputime1)/(totalcputime2 - totalcputime1);
+    fprintf(stderr,"pid:%d pcpu:%.6f---\n",p,pcpu);
+    return pcpu;
+}
+
+float get_cpu_process_occupy_name(char* ProcName)
+{  
+	int iRet=0;
+	int p[10]={0,};
+  	iRet=find_pid_by_name(ProcName,p,sizeof(p));
+	if(iRet < 0)
+	{
+		printf("find_pid_by_name is error %d\n",iRet);
+        return -2;	
+	}
+	if(iRet>10)
+	{
+		iRet=10;
+	}
+	int i=0;
+	float cpuData=0;
+	for(i=0;i<iRet;i++)
+	{
+		cpuData+=get_pcpu(p[i]);
+	}
+	return cpuData/iRet;
+}
+
+float get_pcpu2(pid_t p,pid_t p1)
+{
+    unsigned int totalcputime1,totalcputime2;
+    unsigned int procputime1,procputime2;
+    unsigned int procputime11,procputime12;
+    totalcputime1 = get_cpu_total_occupy();
+    procputime1 = get_cpu_process_occupy(p);
+	procputime11 = get_cpu_process_occupy(p1);
+    usleep(500000);//延迟500毫秒
+    totalcputime2 = get_cpu_total_occupy();
+    procputime2 = get_cpu_process_occupy(p);
+	procputime12 = get_cpu_process_occupy(p1);
+    float pcpu = 50.0*((procputime2 - procputime1)+(procputime12 - procputime11))/(totalcputime2 - totalcputime1);
+	//fprintf(stderr,"pid0:%d pid1:%d pcpu:%.6f---\n",p,p1,pcpu);
+    return pcpu;
+}
+
+float get_cpu_process_occupy_name2(char* ProcName)
+{  
+	int iRet=0;
+	int p[10]={0,};
+  	iRet=find_pid_by_name(ProcName,p,sizeof(p));
+	if(iRet < 0)
+	{
+		printf("find_pid_by_name is error %d\n",iRet);
+        return -2;	
+	}
+	if(iRet==2)
+	{
+		return  get_pcpu2(p[0],p[1]);
+	}
+	else
+	{
+		if(iRet>10)
+		{
+			iRet=10;
+		}
+		int i=0;
+		float cpuData=0;
+		for(i=0;i<iRet;i++)
+		{
+			cpuData+=get_pcpu(p[i]);
+		}
+		return cpuData/iRet;
+	}
+}
+
 
 int GetSendSocketTraffic(char* ProcName, unsigned long long* socketNums)
 {
 	int iRet=0;
 	unsigned long long socketNum=0;
-	int foundPid=0;
+	int foundPid[10]={0,};
 	char path[PATH_MAX+1]={0,};
 	char data[4096]={0,};
 	char buffer[4096]={0,};
@@ -735,14 +901,14 @@ int GetSendSocketTraffic(char* ProcName, unsigned long long* socketNums)
 	    printf("param is error\n");
         return -1;	
 	}
-	iRet=find_pid_by_name(ProcName,&foundPid);
+	iRet=find_pid_by_name(ProcName,foundPid,sizeof(foundPid));
 	if(iRet < 0)
 	{
 		printf("find_pid_by_name is error %d\n",iRet);
         return -2;	
 	}
 	memset(path,0,sizeof(path));
-	sprintf(path,"/proc/%d/net/dev",foundPid);
+	sprintf(path,"/proc/%d/net/dev",foundPid[0]);
 	iRet=isDeviceAccess(path);
 	if(iRet < 0)
 	{
@@ -777,7 +943,7 @@ int GetSendSocketTraffic(char* ProcName, unsigned long long* socketNums)
 						,&socketNum,&test,&test,&test,&test,&test,&test,&test);
 				if(strstr(buffer,"eth0")!=NULL || strstr(buffer,"ra0")!=NULL)
 				{
-					//printf("iRet=%d network=%s packetNum=%llu--\n",iRet,networkName,socketNum);
+					printf("iRet=%d network=%s packetNum=%llu foundPid=%d--\n",iRet,networkName,socketNum,foundPid[0]);
 					*socketNums+=socketNum;
 				}
 			}
