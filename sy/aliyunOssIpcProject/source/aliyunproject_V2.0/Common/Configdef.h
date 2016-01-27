@@ -25,6 +25,10 @@
 
 #define SDK_PROCESS_NAME        "aliyunOss.bin"
 
+//#define DEBUG_FILE_VIDEO		1
+#define DEBUG_OTHER_RUN			1
+
+
 
 #define 	COMMVER1 					1
 #define 	COMMVER2 					2

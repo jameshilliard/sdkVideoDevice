@@ -117,13 +117,15 @@ int main()
 	Init_LogOut(LOGSIZE,LOGDIR,TRUE,TEMPDIR);	
 	LOGOUT("Init_LogOut %s %s", SDK_HARD_FWVERSION, SDK_SYSTEM_FWVERSION);
 	//InitConServer();
+	#if 1
 	iRet=InitHiSDKVideoAllChannel();
 	LOGOUT("InitHiSDKVideoAllChannel iRet=%d over",iRet);
 	if(iRet!=0)
 	{
 		LOGOUT("error and return");
-		//return -1;
+		return -1;
 	}
+	#endif
 	iRet=initAliyunOssTask();
 	LOGOUT("initAliyunOssTask iRet=%d over",iRet);
 	iRet=InitUdpSearch();

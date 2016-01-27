@@ -129,7 +129,6 @@ static INT32S resolveCmd1002(S_Data *v_pSData,S_Data *v_pstData,char *v_szDevHwM
 	}
 	if(isValidPacket==1)
 	{
-		LOGOUT("test");
 		strncpy(g_szServerNO,deviceId,sizeof(g_szServerNO));
 		SetServerNo(DEVICECONFIGDIR,g_szServerNO,strlen(g_szServerNO));
 		//if(0!=strcmp(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,server) ||

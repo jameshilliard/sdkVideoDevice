@@ -346,6 +346,8 @@ int joseph_get_g711a_frame(JOSEPH_MP4_CONFIG* joseph_mp4_config, unsigned char *
 }
 
 
+
+
 int CloseMp4Encoder(JOSEPH_MP4_CONFIG* joseph_mp4_config)
 {
 	if(joseph_mp4_config==NULL)

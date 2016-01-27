@@ -517,9 +517,11 @@ void * makeMp4Task(void* param)
 						g_szServerNO,day,timeString);
 				sprintf(joseph_mp4_config.nOssJpgName,"%s/%s/%s/%s.jpg",
 						g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szJPGPath,
-						g_szServerNO,day,timeString);		
+						g_szServerNO,day,timeString);	
+				#ifndef DEBUG_FILE_VIDEO
 				iRet=takePicture(u32HandleHight,joseph_mp4_config.nPictureName);
 				LOGOUT("takePiture %s is %d",joseph_mp4_config.nPictureName,iRet);
+				#endif
 				iRet=InitMp4Module(&joseph_aac_config,&joseph_mp4_config);
 				if(iRet!=0)
 				{
@@ -558,6 +560,8 @@ void * makeMp4Task(void* param)
 						int flag=(nowTime-g_UrgencyMotion_Data.m_u32MotionStartTime)/1000;
 						if(flag<=0)
 							flag=0;
+						else if(flag>=119)
+							flag=119;
 						g_UrgencyMotion_Data.m_u32SoundSize[flag]=power;
 						char tempString[32]={0};
 						sprintf(tempString,"%x,",power);
@@ -956,8 +960,8 @@ void * judgeWorkTask(void* param)
 			averNetWorkKs=0;
 		else
 			averNetWorkKs=(socketNums-socketNumsLast)/diffTimeS;
-		LOGOUT("-----------socketNums=%lld socketNumsLast=%lld",socketNums,socketNumsLast);
-		LOGOUT("-----------nowTimeMs=%ld lastTimeMs=%ld",nowTimeMs,lastTimeMs);
+		//LOGOUT("-----------socketNums=%lld socketNumsLast=%lld",socketNums,socketNumsLast);
+		//LOGOUT("-----------nowTimeMs=%ld lastTimeMs=%ld",nowTimeMs,lastTimeMs);
 		lastTimeMs=nowTimeMs;
 		if(averNetWorkKs > P2PWORKMINVALUE)
 		{
@@ -990,7 +994,9 @@ void * judgeWorkTask(void* param)
 			if((getTickCountMs()-g_workTimeMs)>30*1000)
 			{
 				LOGOUT("the dataCallBack is unconnect- reboot APP");
+				#ifndef DEBUG_OTHER_RUN
 				exit(0);
+				#endif
 			}
 		}
 		sleep(2);
@@ -1036,6 +1042,81 @@ void * playAudioTask(void* param)
 		}
 		usleep(1000000);
 	}
+}
+
+void * sendVideoFile(void* param)
+{
+	int test=0;
+	const char *G711A_AUDIO_FILE="./av_file/test1.g711a";
+	const char *H264_VIDEO_FILE="./av_file/%d";
+	int ret=g_quene->pushData(g_quene->_this,(void *)&test,sizeof(test),RECORDSTART,0);
+	if(ret!=0)
+	{
+		LOGOUT("pushData is error is %d!",ret);
+	}
+	LOGOUT("moni RECORDSTART");
+	char *g711aBuffer=malloc(1024*1024);
+	if(g711aBuffer==NULL)
+	{
+		LOGOUT("malloc g711aBuffer is error");
+	}
+	char *videoBuffer=malloc(512*1024);
+	if(videoBuffer==NULL)
+	{
+		LOGOUT("malloc videoBuffer is error");
+	}
+	DWORD fileSize=0;
+	DWORD fileVideoSize=0;
+	ret=readFile(G711A_AUDIO_FILE,g711aBuffer,1024*1024,&fileSize);
+	if(ret!=0)
+	{
+		LOGOUT("read file %d is error",G711A_AUDIO_FILE);	
+	}
+	char videoPath[256]={0,};
+	DWORD sendSize=0;
+	int  packetSize=0;
+	int i=0;
+	while((fileSize-sendSize)>0)
+	{
+		if((fileSize-sendSize)>160)
+		{
+			packetSize=160;
+		}
+		else
+		{
+			packetSize=(fileSize-sendSize);
+		}
+		ret=g_quene->pushData(g_quene->_this,(void*)(g711aBuffer+sendSize),packetSize,RECORDAUDIO,0);
+		if(ret!=0)
+		{
+			LOGOUT("pushData is error");
+		}
+		sendSize+=packetSize;
+		memset(videoPath,0,sizeof(videoPath));
+		sprintf(videoPath,H264_VIDEO_FILE,i);
+		i++;
+		ret=readFile(videoPath,videoBuffer,512*1024,&fileVideoSize);
+		if(ret!=0)
+		{
+			LOGOUT("read file %d is error",videoPath);
+			break;
+		}
+		else
+		{
+			ret=g_quene->pushData(g_quene->_this,(void*)(videoBuffer),fileVideoSize,RECORDVIDEO,0);
+			if(ret!=0)
+			{
+				LOGOUT("pushData is error");
+			}
+		}
+		usleep(100*1000);
+	}
+	ret=g_quene->pushData(g_quene->_this,(void *)&test,sizeof(test),RECORDSTOP,0);
+	if(ret!=0)
+	{
+		LOGOUT("pushData is error is %d!",ret);
+	}
+	LOGOUT("moni RECORDSTOP");
 }
 
 void reloveUrgencyMotion(DWORD nowTime,HI_U32 u32DataType,HI_U8* pu8Buffer,HI_U32 u32Length)
@@ -2081,7 +2162,9 @@ int InitHiSDKVideoAllChannel()
 	if(iRet!=0)
 	{
 		LOGOUT("InitHiSDKServer Hight is faliure,iRet=%d",iRet);
+		#ifndef DEBUG_OTHER_RUN
 		return -1;
+		#endif
 	}
 	g_motionString=malloc(MAX_MOTION_STRING);
 	if(!g_motionString)
@@ -2109,7 +2192,7 @@ int InitHiSDKVideoAllChannel()
 	if(iRet != 0)
 	{
 		LOGOUT("can't create judgeWorkTask thread: %s",strerror(iRet));
-		return -2;
+		return -3;
 	}
 
 	pthread_t m_playAudioTask;
@@ -2117,8 +2200,17 @@ int InitHiSDKVideoAllChannel()
 	if(iRet != 0)
 	{
 		LOGOUT("can't create playAudioTask thread: %s",strerror(iRet));
-		return -2;
+		return -4;
 	}
+	#ifdef DEBUG_FILE_VIDEO
+	pthread_t m_sendVideoFileTask;
+	iRet = pthread_create(&m_sendVideoFileTask, NULL, sendVideoFile, NULL);
+	if(iRet != 0)
+	{
+		LOGOUT("can't create sendVideoFile thread: %s",strerror(iRet));
+		return -5;
+	}
+	#endif
 	g_workTimeMs=getTickCountMs();
 		
 	memset(g_controlMd,0,sizeof(g_controlMd));
@@ -2135,7 +2227,7 @@ int InitHiSDKVideoAllChannel()
 		if(iRet != 0)
 		{
 			LOGOUT("can't create thread: %s",strerror(iRet));
-			return -2;
+			return -6;
 		}
 		else
 		{
@@ -2173,17 +2265,19 @@ int InitHiSDKVideoAllChannel()
 	if(getTickCountMs()>STARTUPMINTIME)
 	{
 		LOGOUT("do not play start audio,getTimeMs is %d",getTickCountMs());
-		return;
-	}
-	if(g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bStartUpEnable==DE_ENABLE 
-		&& g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bEnable==DE_ENABLE)
-	{
-		 playAudio(AUDIOSTARTUP);
 	}
 	else
 	{
-		LOGOUT("config m_bStartUpEnable is disable");
-	};
+		if(g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bStartUpEnable==DE_ENABLE 
+			&& g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bEnable==DE_ENABLE)
+		{
+			 playAudio(AUDIOSTARTUP);
+		}
+		else
+		{
+			LOGOUT("config m_bStartUpEnable is disable");
+		};
+	}
 	return iRet;
 }  
 

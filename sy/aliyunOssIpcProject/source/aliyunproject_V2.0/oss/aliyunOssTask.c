@@ -163,15 +163,16 @@ void * aliyunOssTask(void* param)
 						fileSize=0;
 						iRet=readFile(file2Path,(LPCTSTR)(motionString),MAX_MOTION_STRING,&fileSize);
 						//LOGOUT("send:%s motionString:%s",filePath,motionString);
-						if(iRet==0 && fileSize!=0)
+						if(iRet==0 && fileSize>=0)
 						{
 							fileSize=0;
 							iRet=readFile(file3Path,(LPCTSTR)(soundString),MAX_SOUND_STRING,&fileSize);
-							if(iRet==0 && fileSize!=0)
+							if(iRet==0 && fileSize>=0)
 							{
 								//LOGOUT("send:%s soundString:%s",file2Path,soundString);
 								mRecordData.m_mMotionData.motionDetectInfo=motionString;
 								mRecordData.m_mMotionData.soundVolumeInfo=soundString;
+								LOGOUT("mRecordData.m_iUrencyFlag=%d",mRecordData.m_iUrencyFlag);
 								if(mRecordData.m_iUrencyFlag==1)
 								{
 									iRet=reportUrgencyRecord(mRecordData.m_server,mRecordData.m_id,mRecordData.m_videoPath,
