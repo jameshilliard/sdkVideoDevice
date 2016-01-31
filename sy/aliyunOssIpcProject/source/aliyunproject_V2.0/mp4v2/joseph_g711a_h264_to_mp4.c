@@ -499,6 +499,8 @@ int Mp4VEncode(JOSEPH_MP4_CONFIG* joseph_mp4_config, unsigned char* naluData, in
 				//if(!MP4WriteSample(joseph_mp4_config->hFile, joseph_mp4_config->video, IFrameData, naluSize+1, m_vFrameDur/8000*90000, 0, 1))
 				if(!MP4WriteSample(joseph_mp4_config->hFile, joseph_mp4_config->video, IFrameData, naluSize, MP4_INVALID_DURATION, 0, 1))
 				{  
+					free(IFrameData); 
+					IFrameData = NULL;
 					return -1;  
 				}  
 				

@@ -24,6 +24,7 @@ jpgFilePath=%s&videoTimeLength=%d&videoMotionTotal_Dist1=%d&\
 videoMotionTotal_Dist2=%d&videoMotionTotal_Dist3=%d&videoMotionTotal_Dist4=%d&\
 voiceAlarmTotal=%d"*/
 #define 	STRING_RECORD_CONSERVER		"ipc_id=%s&videoPath=%s&creatTimeInMilSecond=%lld&videoFileSize=%d&jpgFilePath=%s&videoTimeLength=%d&motionDetectInfo=%s&soundVolumeInfo=%s"
+#define 	STRING_URGENCYRECORD_CONSERVER		"ipc_id=%s&pwd=%s&videoPath=%s&creatTimeInMilSecond=%lld&videoFileSize=%d&jpgFilePath=%s&videoTimeLength=%d&motionDetectInfo=%s&soundVolumeInfo=%s"
 
 
 
@@ -71,9 +72,9 @@ extern "C" {
 	int dataRecord(const char *server,const char *v_szId, char *videoPath, 
 			   long long creatTimeInMilSecond, int videoFileSize,char *jpgFilePath, 
 			   int videoTimeLength,Motion_Data mMotionData);
-	int reportUrgencyRecord(const char *server,const char *v_szId, char *videoPath, 
-			   long long creatTimeInMilSecond, int videoFileSize,char *jpgFilePath, 
-			   int videoTimeLength,Motion_Data mMotionData);
+	int reportUrgencyRecord(const char *server,const char *v_szId,const char *v_szPwd, char *videoPath, 
+				   long long creatTimeInMilSecond, int videoFileSize,char *jpgFilePath, 
+				   int videoTimeLength,Motion_Data mMotionData);
 #  ifdef __cplusplus
 }
 #  endif /* __cplusplus */

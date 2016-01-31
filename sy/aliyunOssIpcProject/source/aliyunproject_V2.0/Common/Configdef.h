@@ -35,7 +35,7 @@
 #define 	SDKVERSION 					COMMVER1 
 
 #if   SDKVERSION == COMMVER1
-#define SDK_SYSTEM_FWVERSION	"1.0.0034"	// SDK°æ±¾ºÅ
+#define SDK_SYSTEM_FWVERSION	"1.0.0035"	// SDK°æ±¾ºÅ
 
 #define DE_ROUTESERVER			"ipc.100memory.com"
 #define	DE_ALBUCKETNAME			"memory100"	
@@ -44,7 +44,7 @@
 #define	DE_ALACCESSSECRET		"mwpC5hLaYOIR3obMkqJ4uKoPCvwupf"
 
 #elif SDKVERSION == COMMVER2 
-#define SDK_SYSTEM_FWVERSION	"2.0.0034"	// SDK°æ±¾ºÅ
+#define SDK_SYSTEM_FWVERSION	"2.0.0035"	// SDK°æ±¾ºÅ
 #define DE_ROUTESERVER			"ipc.355fun.com"
 #define	DE_ALBUCKETNAME			"cyq-fyws"	
 #define	DE_ALENDPOINT			"oss-cn-qingdao.aliyuncs.com"
@@ -196,7 +196,8 @@ typedef struct __attribute__((packed, aligned(8))) tagUrgencyMotionCfg_
 	
 	INT32U		m_iEndRecTime;
 	char		m_bEnable;
-	char 		m_szReserver[43];
+	char        m_bInvalid;
+	char 		m_szReserver[42];
 }tagUrgencyMotionCfg;
 
 typedef struct __attribute__((packed, aligned(8))) tagSoundEableCfg_
@@ -209,7 +210,8 @@ typedef struct __attribute__((packed, aligned(8))) tagSoundEableCfg_
 	char		m_bUrgencyStartEnable;
 	char		m_bUrgencyOverEnable;
 	char		m_bEnable;
-	char 		m_szReserver[72];
+	char  		m_bInvalid;
+	char 		m_szReserver[71];
 }tagSoundEableCfg;
 
 /*typedef struct __attribute__((packed, aligned(8))) tagVersionCfg_

@@ -504,7 +504,7 @@ int dataRecord(const char *server,const char *v_szId, char *videoPath,
 	return result;
 }
 //
-int reportUrgencyRecord(const char *server,const char *v_szId, char *videoPath, 
+int reportUrgencyRecord(const char *server,const char *v_szId,const char *v_szPwd, char *videoPath, 
 			   long long creatTimeInMilSecond, int videoFileSize,char *jpgFilePath, 
 			   int videoTimeLength,Motion_Data mMotionData)
 {
@@ -527,11 +527,11 @@ int reportUrgencyRecord(const char *server,const char *v_szId, char *videoPath,
 	/*sprintf(sendBuf,STRING_RECORD_CONSERVER, v_szId, videoPath, creatTimeInMilSecond, videoFileSize,jpgFilePath, videoTimeLength,
 					 mMotionData.videoMotionTotal_Dist1,mMotionData.videoMotionTotal_Dist2,
 		             mMotionData.videoMotionTotal_Dist3, mMotionData.videoMotionTotal_Dist4,mMotionData.voiceAlarmTotal);*/
-	sprintf(sendBuf,STRING_RECORD_CONSERVER, v_szId, videoPath, creatTimeInMilSecond, videoFileSize,jpgFilePath, videoTimeLength,
+	sprintf(sendBuf,STRING_URGENCYRECORD_CONSERVER, v_szId,v_szPwd,videoPath, creatTimeInMilSecond, videoFileSize,jpgFilePath, videoTimeLength,
 					 mMotionData.motionDetectInfo, mMotionData.soundVolumeInfo);
 	sprintf(strUrl,STRING_GENCYCORD_CONSERVER,server);
 	int iRet=Post_head(strUrl, sendBuf, strResponse);
-	printf("-sendBuf=%s strUrl=%s---\n",sendBuf,strUrl);
+	LOGOUT("sendBuf=%s strUrl=%s---\n",sendBuf,strUrl);
 	if(iRet!=0)
 	{
 		LOGOUT("%s %s failure",strUrl,sendBuf);
@@ -539,7 +539,7 @@ int reportUrgencyRecord(const char *server,const char *v_szId, char *videoPath,
 		return -2;
 	}
 	free(sendBuf);
-	printf("strResponse---%s---", strResponse);
+	LOGOUT("strResponse---%s---", strResponse);
 	if(NULL == strResponse)
 	{
 		LOGOUT("pMsg null");

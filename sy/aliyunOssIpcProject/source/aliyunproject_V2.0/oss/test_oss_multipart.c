@@ -155,7 +155,9 @@ int test_oss_local_from_buf(char *object_name,char *data, int dataSize, int file
     s = oss_append_object_from_buffer(oss_request_options, &bucket, &object, filePos, &buffer, headers, &resp_headers);
 	if(s->code != 200)
 	{
-		//zss++LOGOUT("oss_append_object_from_buffer failure:s->code:%d error_msg:%s size:%d", s->code,s->error_msg,filePos);
+		aos_pool_destroy(p);
+		aos_http_io_deinitialize();
+		LOGOUT("oss_append_object_from_buffer failure:s->code:%d error_msg:%s size:%d", s->code,s->error_msg,filePos);
 		return s->code;
 	}
 	else
@@ -163,7 +165,7 @@ int test_oss_local_from_buf(char *object_name,char *data, int dataSize, int file
 		//LOGOUT("oss_append_object_from_buffer success:s->code:%d error_msg:%s size:%d", s->code,s->error_msg,filePos);
 	}
 	aos_pool_destroy(p);
-	//aos_http_io_deinitialize();
+	aos_http_io_deinitialize();
     return 0;
 }
 

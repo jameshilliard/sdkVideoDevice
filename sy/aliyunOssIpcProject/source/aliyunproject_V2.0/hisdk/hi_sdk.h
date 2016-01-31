@@ -50,7 +50,7 @@
 #define   	MAX_AUDIO_PACKETS	8000/5
 
 #define P2PPROCESS			"tutk"
-#define P2PWORKMINVALUE		2.5
+#define P2PWORKMINVALUE		6
 #define STARTUPMINTIME		300*1000
 #define AUDIOUSERLOGININ	"/mnt/mtd/ipc/tmpfs/syflash/audio/userLoginIn.g711"
 #define AUDIOURGENCYEND		"/mnt/mtd/ipc/tmpfs/syflash/audio/urgencyEnd.g711"
@@ -75,14 +75,11 @@ typedef struct
 typedef struct 
 {
 	DWORD  		m_u32MotionStartTime;
-	HI_U32 		m_u32StartAreaTimes[120][16];
-	HI_U32 		m_u32SoundSize[120];
-	HI_U32		m_uNowFlag;
-	HI_U32		m_uLastFlag;
+	HI_U32 		m_u32StartAreaTimes[1200][16];
+	HI_U32 		m_u32SoundSize[1200];
 	HI_U32		m_uStartFlag;
-	HI_U32		m_uStartSoundFlag;
 	HI_U32		m_uOverFlag;
-	HI_U32		m_uOverSoundFlag;
+	HI_U32      m_uInvalidFlag;
 } HI_UrgencyMotion_Data;
 
 typedef struct 

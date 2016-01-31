@@ -293,6 +293,38 @@ INT32S InitDeviceConfig(const char *v_szFlashPath,tagConfigCfg *g_pstConfigCfg)
 		LOGOUT("InitCfgMng is failure");
 		iRet=1<<1;
 	}
+	if(g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bInvalid==DE_DISABLE)
+	{
+		g_pstConfigCfg->m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartPeriod=DE_START_PREIOD;
+		g_pstConfigCfg->m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSumDetect=DE_START_SUM_DETECT;
+		g_pstConfigCfg->m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSumArea=DE_START_SUM_AREA;
+		g_pstConfigCfg->m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSoundSize=DE_START_SOUND_SIZE;
+		
+		g_pstConfigCfg->m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverPeriod=DE_OVER_PREIOD;
+		g_pstConfigCfg->m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverSumDetect=DE_OVER_SUM_DETECT;
+		g_pstConfigCfg->m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverSumArea=DE_OVER_SUM_AREA;
+		g_pstConfigCfg->m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverSoundSize=DE_OVER_SOUND_SIZE;
+		
+		g_pstConfigCfg->m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iEndRecTime=DE_URGENCY_REC_TIME;
+		g_pstConfigCfg->m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_bEnable=DE_ENABLE;
+		g_pstConfigCfg->m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_bInvalid=DE_ENABLE;
+		SetUrgencyMotionCfg(DEVICECONFIGDIR,g_pstConfigCfg->m_unUrgencyMotionCfg.m_objUrgencyMotionCfg);
+
+	}
+	if(g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bInvalid==DE_DISABLE)
+	{
+		g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bStartUpEnable=DE_ENABLE;
+		g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bServerSuccessEnable=DE_DISABLE;
+		g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bServerFailureEnable=DE_DISABLE;
+		g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bUpgradeEnable=DE_DISABLE;
+		g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bLoginInEnable=DE_ENABLE;
+		g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bUrgencyStartEnable=DE_ENABLE;
+		g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bUrgencyOverEnable=DE_ENABLE;
+		g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bEnable=DE_ENABLE;
+		g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bInvalid=DE_ENABLE;
+		SetSoundEableCfg(DEVICECONFIGDIR,g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg);
+	}
+	
 	return -iRet;
 }
 

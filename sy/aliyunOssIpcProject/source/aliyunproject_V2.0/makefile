@@ -1,5 +1,5 @@
-LIB = -L /hisi3518/madplayer/libz/lib -L./liball/libarm -lmad -lNetLib -loss_c_sdk -lvo-aacenc -laprutil-1 -lapr-1 -lcurl -lxml2 -lmp4v2 -ldl -lrt -lpthread  -lm -Wl,--rpath=./liball/libarm
-#LIB = -L./liball/libarm -lNetLib -loss_c_sdk -lutf8proc  -laprutil-1 -lapr-1 -lcurl -lxml2 -lfaac -ldl -lrt -lpthread -lm -Wl,--rpath=./liball/libarm
+LIB = -L./liball/libarm -lNetLib -loss_c_sdk -lvo-aacenc -laprutil-1 -lapr-1 -lcurl -lxml2 -lmp4v2 -ldl -lrt -lpthread  -lm -Wl,--rpath=./liball/libarm
+#LIB = -L./liball/libx86 -lNetLib -loss_c_sdk -lvo-aacenc -laprutil-1 -lapr-1 -lcurl -lxml2 -lmp4v2 -ldl -lrt -lpthread -lm -Wl,--rpath=./liball/libx86
 
 INCLUDES = -I./include\
 		   -I./include/libxml2\
@@ -8,13 +8,11 @@ INCLUDES = -I./include\
 		   -I./include/mp4v2\
 		   -I./include/curl\
 		   -I./include/openssl\
-		   -I./include/vo-aacenc\
-		   -I./include/mad\
-		   -I /hisi3518/madplayer/libz/include/
-#关闭所有 未使用变量、printf格式化、警告 
+		   -I./include/vo-aacenc
+#关闭所有 未使用变量、printf格式化、警告  yehxm9xt
 #FLAGS = -m32 -O2 -Wall -Wno-unused -Wno-format -fstrength-reduce -DHI_OS_LINUX
 FLAGS = -g -O3 -Wall -Wno-unused -Wno-format -fstrength-reduce -DHI_OS_LINUX -DCPU_ARM
-FLAGS += -g -rdynamic
+#FLAGS += -g -rdynamic
 
 #GXX = g++ $(INCLUDES) $(FLAGS)
 #GCC = gcc $(INCLUDES) $(FLAGS)

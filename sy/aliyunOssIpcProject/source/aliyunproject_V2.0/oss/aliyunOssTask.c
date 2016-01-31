@@ -31,6 +31,27 @@ int getFilePath(char *videoPath,char *jpgPath,char *ipcId,char *fullName, char *
 	return -2;
 }
 
+int sendVideoToOss(const char *filePath,const char *videoPath)
+{
+	int iRet=0;
+	iRet=upLoadFile(filePath,videoPath);
+	if(iRet==0)
+	{
+		unlink(filePath);
+		LOGOUT("upLoadFile %s %s success and unlink",filePath,videoPath);
+	}
+	else if(iRet==409)//file was exist
+	{
+		unlink(filePath);
+		LOGOUT("filePath %s %s was exist and unlink",filePath,videoPath); 					
+	}
+	else
+	{
+		LOGOUT("upload file %d is error iRet=%d",filePath,iRet);
+	}
+	return iRet;
+}
+
 //Videos/Ipcid/yymmdd/yyyymmddhhmmss.mp4
 void * aliyunOssTask(void* param)
 {
@@ -40,6 +61,7 @@ void * aliyunOssTask(void* param)
 	char file1Path[MAX_PATH];
 	char file2Path[MAX_PATH];
 	char file3Path[MAX_PATH];
+	char file4Path[MAX_PATH];
 	char aliyunFilePath[MAX_PATH];
 	DWORD fileSize=0;
 	RecordData mRecordData;
@@ -93,17 +115,18 @@ void * aliyunOssTask(void* param)
 		memset(filePath,0,sizeof(filePath));
 		memset(file2Path,0,sizeof(file2Path));
 		memset(file3Path,0,sizeof(file2Path));
+		memset(file4Path,0,sizeof(file2Path));
 		memset(motionString,0,MAX_MOTION_STRING);
 		memset(soundString,0,MAX_SOUND_STRING);
 		memset(aliyunFilePath,0,sizeof(aliyunFilePath));
 		iRet=readMediaFile(SYSTEM_MEDIA_SENDFILEPATH,fileName);
-		if(iRet==1 || iRet==2)
+		if(iRet==1)
 		{
 			fileType=iRet;
-			iRet=getFilePath(g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szVideoPath,
-							 g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szJPGPath,
-							 g_szServerNO,aliyunFilePath,fileName);
-			if(iRet==0)
+			//iRet=getFilePath(g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szVideoPath,
+			//				 g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szJPGPath,
+			//				 g_szServerNO,aliyunFilePath,fileName);
+			//if(iRet==0)
 			{
 				sprintf(filePath,"%s/%s",SYSTEM_MEDIA_SENDFILEPATH,fileName);
 				if(strlen(filePath)!=0)
@@ -115,13 +138,14 @@ void * aliyunOssTask(void* param)
 						LOGOUT("upLoadFile %s %s is null and unlink",filePath,aliyunFilePath);
 						continue;
 					}
-					if(fileType==2)
+					if(fileType==1)
 					{
 						memset(fileDataName,0,sizeof(fileDataName));
 						sscanf(fileName,"%[^.]",fileDataName);
 						sprintf(file1Path,"%s/%s.dat",SYSTEM_MEDIA_SENDFILEPATH,fileDataName);
 						sprintf(file2Path,"%s/%s.mot",SYSTEM_MEDIA_SENDFILEPATH,fileDataName);
 						sprintf(file3Path,"%s/%s.sou",SYSTEM_MEDIA_SENDFILEPATH,fileDataName);
+						sprintf(file4Path,"%s/%s.jpg",SYSTEM_MEDIA_SENDFILEPATH,fileDataName);
 						iRet=isMp4File(filePath);
 						if(iRet!=0)
 						{
@@ -134,30 +158,17 @@ void * aliyunOssTask(void* param)
 							continue;
 						}
 					}
-					iRet=upLoadFile(filePath,aliyunFilePath);
-					if(iRet==0)
-					{
-						unlink(filePath);
-						LOGOUT("upLoadFile %s %s success and unlink",filePath,aliyunFilePath);
-					}
-					else if(iRet==409)//file was exist
-					{
-						unlink(filePath);
-						LOGOUT("filePath %s %s was exist and unlink",filePath,aliyunFilePath);						
-					}
-					else
-					{
-						LOGOUT("upload file %d is error iRet=%d",filePath,iRet);
-					}
-					if(fileType==2)
+					if(fileType==1)
 					{
 						iRet=readFile(file1Path,(LPCTSTR)(&mRecordData),sizeof(mRecordData),&fileSize);
 						if(iRet!=0)
 						{
+							unlink(filePath);
 							unlink(file1Path);
 							unlink(file2Path);
 							unlink(file3Path);
-							LOGOUT("filePath %s and %s and %s was error and unlink iRet=%d",file1Path,file2Path,file3Path,iRet);	
+							unlink(file4Path);
+							LOGOUT("filePath %s and %s and %s and %s and %s was error and unlink iRet=%d",filePath,file4Path,file1Path,file2Path,file3Path,iRet);	
 							continue;
 						}
 						fileSize=0;
@@ -173,9 +184,12 @@ void * aliyunOssTask(void* param)
 								mRecordData.m_mMotionData.motionDetectInfo=motionString;
 								mRecordData.m_mMotionData.soundVolumeInfo=soundString;
 								LOGOUT("mRecordData.m_iUrencyFlag=%d",mRecordData.m_iUrencyFlag);
+								sendVideoToOss(filePath,mRecordData.m_videoPath);
+								sendVideoToOss(file4Path,mRecordData.m_jpgPath);
 								if(mRecordData.m_iUrencyFlag==1)
 								{
-									iRet=reportUrgencyRecord(mRecordData.m_server,mRecordData.m_id,mRecordData.m_videoPath,
+
+									iRet=reportUrgencyRecord(mRecordData.m_server,mRecordData.m_id,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,mRecordData.m_videoPath,
 																	mRecordData.m_creatTimeInMilSecond,mRecordData.m_videoFileSize,
 																	mRecordData.m_jpgPath,mRecordData.m_videoTimeLength,mRecordData.m_mMotionData);
 								}

@@ -140,7 +140,8 @@ BOOL InitConfigFile(tagConfigCfg *v_pstConfigCfg)
 	
 	objConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iEndRecTime=DE_URGENCY_REC_TIME;
 	objConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_bEnable=DE_ENABLE;
-
+	objConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_bInvalid=DE_ENABLE;
+	
 	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bStartUpEnable=DE_ENABLE;
 	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bServerSuccessEnable=DE_DISABLE;
 	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bServerFailureEnable=DE_DISABLE;
@@ -149,6 +150,7 @@ BOOL InitConfigFile(tagConfigCfg *v_pstConfigCfg)
 	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bUrgencyStartEnable=DE_ENABLE;
 	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bUrgencyOverEnable=DE_ENABLE;
 	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bEnable=DE_ENABLE;
+	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bInvalid=DE_ENABLE;
 
 	strncpy(objConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,DE_SECRET,sizeof(objConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword));
 	

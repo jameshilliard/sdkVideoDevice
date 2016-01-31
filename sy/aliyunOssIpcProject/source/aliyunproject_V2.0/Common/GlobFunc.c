@@ -487,10 +487,6 @@ INT32S readMediaFile(const char *pszDir,char fileName[MAX_PATH])
 		switch(ptr->d_type)
 		{
 			case DT_REG:
-				if(strstr(ptr->d_name,"jpg"))
-				{
-					iRet=1;
-				}
 				if(strstr(ptr->d_name,"mp4"))
 				{
 					//memset(otherFileName,0,sizeof(otherFileName));
@@ -502,8 +498,12 @@ INT32S readMediaFile(const char *pszDir,char fileName[MAX_PATH])
 					//	i++;
 					//	printf("otherFileName 2 %s i=%d\n",otherFileName,i);
 					//}
-					iRet=2;
+					iRet=1;
 				}
+				//if(strstr(ptr->d_name,"jpg"))
+				//{
+				//	iRet=1;
+				//}
 				//if(strstr(ptr->d_name,"dat"))
 				//{
 				//	iRet=3;
@@ -845,12 +845,15 @@ float get_pcpu2(pid_t p,pid_t p1)
     totalcputime1 = get_cpu_total_occupy();
     procputime1 = get_cpu_process_occupy(p);
 	procputime11 = get_cpu_process_occupy(p1);
-    usleep(500000);//—”≥Ÿ500∫¡√Î
+    sleep(1);//—”≥Ÿ500∫¡√Î
     totalcputime2 = get_cpu_total_occupy();
     procputime2 = get_cpu_process_occupy(p);
 	procputime12 = get_cpu_process_occupy(p1);
-    float pcpu = 50.0*((procputime2 - procputime1)+(procputime12 - procputime11))/(totalcputime2 - totalcputime1);
-	//fprintf(stderr,"pid0:%d pid1:%d pcpu:%.6f---\n",p,p1,pcpu);
+    float pcpu = 100.0*(procputime2 - procputime1)/(totalcputime2 - totalcputime1);
+	float pcpu1 = 100.0*(procputime12 - procputime11)/(totalcputime2 - totalcputime1);
+	//fprintf(stderr,"pid0:%d pid1:%d pcpu:%.6f pcpu1:%.6f---\n",p,p1,pcpu,pcpu1);
+	if(pcpu<=pcpu1)
+		pcpu=pcpu1;
     return pcpu;
 }
 
