@@ -1,4 +1,5 @@
 #include "GlobFunc.h"
+#include "curl/curl.h"
 
 const char b64_alphabet[65] = { 
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -1089,5 +1090,125 @@ INT32S GetProfileString(char *profile, char *AppName, char *KeyName, char *KeyVa
 		return(-1);
 }
 
+int postHttpServer(char *strUrl, char *strPost,char *strResponse,curlWriteData fuction)  
+{  
+	if(strUrl==NULL || strPost==NULL || strResponse==NULL || fuction==NULL)
+	{
+		LOGOUT("param is null");
+		return -1;
+	}
+	CURL *curl;  
+    CURLcode res;  
+    FILE* fptr;  
+	int iRet=0;
+    struct curl_slist *http_header = NULL;
+    curl = curl_easy_init();  
+    if (!curl)  
+    {  
+        LOGOUT("curl init failed");  
+        return -2;  
+    }  
+	curl_easy_setopt(curl,CURLOPT_URL,strUrl); //url地址  
+	http_header = curl_slist_append(NULL, "Content-Type:application/x-www-form-urlencoded");
+	curl_easy_setopt(curl,CURLOPT_HTTPHEADER, http_header);  
+	curl_easy_setopt(curl,CURLOPT_POSTFIELDS,strPost);
+	curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,fuction); //对返回的数据进行操作的函数地址  
+ 	curl_easy_setopt(curl,CURLOPT_WRITEDATA,strResponse);
+   	curl_easy_setopt(curl,CURLOPT_POST,1); //设置问非0表示本次操作为post  
+    curl_easy_setopt(curl,CURLOPT_VERBOSE,1); //打印调试信息  
+    curl_easy_setopt(curl,CURLOPT_HEADER,0); //将响应头信息和相应体一起传给write_data  
+    curl_easy_setopt(curl,CURLOPT_FOLLOWLOCATION,1); //设置为非0,响应头信息location  
+    curl_easy_setopt(curl,CURLOPT_COOKIEFILE,"/Users/zhu/CProjects/curlposttest.cookie");  
+    res = curl_easy_perform(curl);  
+    if (res != CURLE_OK)  
+    {  
+		switch(res)  
+        {  
+		case CURLE_UNSUPPORTED_PROTOCOL:  
+            LOGOUT("no support protocol,URL,CURLE_UNSUPPORTED_PROTOCOL");
+			break;
+        case CURLE_COULDNT_CONNECT:   
+            LOGOUT("no connet remote host,URL,CURLE_COULDNT_CONNECT");
+			break;
+        case CURLE_HTTP_RETURNED_ERROR:  
+            LOGOUT("http return error,CURLE_HTTP_RETURNED_ERROR");
+			break;
+        case CURLE_READ_ERROR:  
+            LOGOUT("read local file error,CURLE_READ_ERROR");
+			break;
+        default:  
+			LOGOUT("error curl %d",res);
+			break;
+        }  
+		iRet=-1;  
+	}
+	else
+	{
+		iRet=0;
+	}
+	curl_easy_cleanup(curl); 
+	return iRet;
+
+} 
+int getHttpServer(char *strUrl,char *strPost,char *strResponse,curlWriteData fuction) 
+{ 
+	if(strUrl==NULL || strPost==NULL || strResponse==NULL || fuction==NULL)
+	{
+		LOGOUT("param is null");
+		return -1;
+	}
+	CURL *curl;  
+    CURLcode res;  
+    FILE* fptr; 
+	int iRet=0;
+    struct curl_slist *http_header = NULL;  
+    curl = curl_easy_init();  
+    if (!curl)  
+    {  
+        LOGOUT("curl init failed");   
+        return -2;  
+    }  
+	curl_easy_setopt(curl,CURLOPT_URL,strUrl); //url地址  
+	http_header = curl_slist_append(NULL, "Content-Type:application/x-www-form-urlencoded");
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, http_header); 
+	
+	curl_easy_setopt(curl,CURLOPT_HTTPGET,strPost);
+	curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,fuction); //对返回的数据进行操作的函数地址  
+  	curl_easy_setopt(curl,CURLOPT_WRITEDATA,strResponse);
+   	curl_easy_setopt(curl,CURLOPT_HTTPGET,1); //设置问非0表示本次操作为post  
+    curl_easy_setopt(curl,CURLOPT_VERBOSE,1); //打印调试信息  
+    curl_easy_setopt(curl,CURLOPT_HEADER,0); //将响应头信息和相应体一起传给write_data  
+    curl_easy_setopt(curl,CURLOPT_FOLLOWLOCATION,1); //设置为非0,响应头信息location  
+    curl_easy_setopt(curl,CURLOPT_COOKIEFILE,"/Users/zhu/CProjects/curlposttest.cookie");  
+    res = curl_easy_perform(curl);  
+    if (res != CURLE_OK)  
+    {  
+		switch(res) 
+        {  
+		case CURLE_UNSUPPORTED_PROTOCOL:  
+            LOGOUT("no support protocol,URL,CURLE_UNSUPPORTED_PROTOCOL");
+			break;
+        case CURLE_COULDNT_CONNECT:   
+            LOGOUT("no connet remote host,URL,CURLE_COULDNT_CONNECT");
+			break;
+        case CURLE_HTTP_RETURNED_ERROR:  
+            LOGOUT("http return error,CURLE_HTTP_RETURNED_ERROR");
+			break;
+        case CURLE_READ_ERROR:  
+            LOGOUT("read local file error,CURLE_READ_ERROR");
+			break;
+        default:  
+			LOGOUT("error curl %d",res);
+			break;
+        }  
+        iRet=-1;  
+    }
+	else
+	{
+		iRet=0;
+	}
+    curl_easy_cleanup(curl); 
+	return iRet;
+} 
 
 

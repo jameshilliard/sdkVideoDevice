@@ -155,9 +155,7 @@ int test_oss_local_from_buf(char *object_name,char *data, int dataSize, int file
     s = oss_append_object_from_buffer(oss_request_options, &bucket, &object, filePos, &buffer, headers, &resp_headers);
 	if(s->code != 200)
 	{
-		aos_pool_destroy(p);
-		aos_http_io_deinitialize();
-		LOGOUT("oss_append_object_from_buffer failure:s->code:%d error_msg:%s size:%d", s->code,s->error_msg,filePos);
+		//zss++LOGOUT("oss_append_object_from_buffer failure:s->code:%d error_msg:%s size:%d", s->code,s->error_msg,filePos);
 		return s->code;
 	}
 	else
@@ -165,7 +163,7 @@ int test_oss_local_from_buf(char *object_name,char *data, int dataSize, int file
 		//LOGOUT("oss_append_object_from_buffer success:s->code:%d error_msg:%s size:%d", s->code,s->error_msg,filePos);
 	}
 	aos_pool_destroy(p);
-	aos_http_io_deinitialize();
+	//aos_http_io_deinitialize();
     return 0;
 }
 
@@ -251,7 +249,7 @@ int upLoadFile(char *filePath,char *fileName)
 	free(data);
 	return upResult;
 }
-void 	InitOSSConfig(const char *v_szBucketName,const char *v_szOssEndPoint,
+int 	InitOSSConfig(const char *v_szBucketName,const char *v_szOssEndPoint,
 					  const char *v_szAccessKeyId,const char *v_szAccessKeySecret)
 {
 	memset(bucket_name,0,sizeof(bucket_name));
@@ -263,5 +261,10 @@ void 	InitOSSConfig(const char *v_szBucketName,const char *v_szOssEndPoint,
 	memset(access_key_secret,0,sizeof(access_key_secret));
 	strncpy(access_key_secret,v_szAccessKeySecret,sizeof(access_key_secret));
 	
+}
+
+int 	ReleaseOSSConfig()
+{
+
 }
 

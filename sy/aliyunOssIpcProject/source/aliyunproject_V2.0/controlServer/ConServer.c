@@ -19,67 +19,6 @@ size_t write_data(void* buffer,size_t size,size_t nmemb,void *stream)
     return size*nmemb;  
 } 
 
-int Post_head(char *strUrl, char *strPost, char *strResponse)  
-{  
-	CURL *curl;  
-    CURLcode res;  
-    FILE* fptr;  
-    struct curl_slist *http_header = NULL;  
-    if ((fptr = fopen(CURLFILENAME,"w")) == NULL)  
-    {  
-        fprintf(stderr,"fopen file error:%s\n",CURLFILENAME);  
-        return -1;  
-    }  
-  
-    curl = curl_easy_init();  
-    if (!curl)  
-    {  
-        fprintf(stderr,"curl init failed\n");  
-        return -1;  
-    }  
-	curl_easy_setopt(curl,CURLOPT_URL,strUrl); //url地址  
-	LOGOUT("url:%s post:%s",strUrl,strPost);
-	//http_header = curl_slist_append(NULL, "Content-Type:application/json;charset=UTF-8");
-	http_header = curl_slist_append(NULL, "Content-Type:application/x-www-form-urlencoded");
-	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, http_header); 
-
-	//char sendBuf[] = "id=LB1GB29HYM3M8HJ7111C&pwd=123456";
-	//printf("sendBuf-----%s----\n", sendBuf);
-	//curl_easy_setopt(curl,CURLOPT_POSTFIELDS,strPost); //post参数  
-	curl_easy_setopt(curl,CURLOPT_POSTFIELDS,strPost);
-	curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,write_data); //对返回的数据进行操作的函数地址  
-	//curl_easy_setopt(curl,CURLOPT_WRITEDATA,fptr); //这是write_data的第四个参数值  
-	curl_easy_setopt(curl,CURLOPT_WRITEDATA,strResponse);
-	curl_easy_setopt(curl,CURLOPT_POST,1); //设置问非0表示本次操作为post  
-	curl_easy_setopt(curl,CURLOPT_VERBOSE,1); //打印调试信息  
-	curl_easy_setopt(curl,CURLOPT_HEADER,0); //将响应头信息和相应体一起传给write_data  
-	curl_easy_setopt(curl,CURLOPT_FOLLOWLOCATION,1); //设置为非0,响应头信息location  
-	curl_easy_setopt(curl,CURLOPT_COOKIEFILE,"/Users/zhu/CProjects/curlposttest.cookie");  
-	res = curl_easy_perform(curl);  
-  
-    if (res != CURLE_OK)  
-    {  
-		printf("send error---\n");
-		switch(res)  
-        {  
-            case CURLE_UNSUPPORTED_PROTOCOL:  
-                fprintf(stderr,"不支持的协议,由URL的头部指定\n");  
-            case CURLE_COULDNT_CONNECT:  
-                fprintf(stderr,"不能连接到remote主机或者代理\n");  
-            case CURLE_HTTP_RETURNED_ERROR:  
-                fprintf(stderr,"http返回错误\n");  
-            case CURLE_READ_ERROR:  
-                fprintf(stderr,"读本地文件错误\n");  
-            default:  
-                fprintf(stderr,"返回值:%d\n",res);  
-        }  
-        return -1;  
-    }  
-    curl_easy_cleanup(curl);  
-	return 0;
-} 
-
-
 void parseJson(char * pMsg)
 {
 	if(NULL == pMsg)
@@ -298,7 +237,7 @@ int loginCtrl(const char *server,const char *v_szId,const char *v_szPwd,LOGINRET
 	}
 	sprintf(sendBuf,"id=%s&pwd=%s&HWVersion=%s&SWVersion=%s",v_szId,v_szPwd,hardwareVersion,softwareVersion);
 	sprintf(strUrl,STRING_LOGIN_CONSERVER,server);
-	iRet=Post_head(strUrl, sendBuf, strResponse);
+	iRet=postHttpServer(strUrl, sendBuf, strResponse,write_data);
 	if(iRet!=0)
 	{
 		LOGOUT("%s %d failure",strUrl,sendBuf);
@@ -390,7 +329,7 @@ int exitCtrl(const char *server,const char *v_szId,const char *v_szPwd)
 	sprintf(sendBuf,"id=%s&pwd=%s",v_szId,v_szPwd);
 	sprintf(strUrl,STRING_LOGOUT_CONSERVER,server);
 	
-	int iRet=Post_head(strUrl, sendBuf, strResponse);
+	int iRet=postHttpServer(strUrl, sendBuf, strResponse,write_data);
 	if(iRet!=0)
 	{
 		LOGOUT("%s %d failure",strUrl,sendBuf);
@@ -454,7 +393,7 @@ int dataRecord(const char *server,const char *v_szId, char *videoPath,
 	sprintf(sendBuf,STRING_RECORD_CONSERVER, v_szId, videoPath, creatTimeInMilSecond, videoFileSize,jpgFilePath, videoTimeLength,
 					 mMotionData.motionDetectInfo, mMotionData.soundVolumeInfo);
 	sprintf(strUrl,STRING_DATARECORD_CONSERVER,server);
-	int iRet=Post_head(strUrl, sendBuf, strResponse);
+	int iRet=postHttpServer(strUrl, sendBuf, strResponse,write_data);
 	printf("-sendBuf=%s strUrl=%s---\n",sendBuf,strUrl);
 	if(iRet!=0)
 	{
@@ -503,7 +442,7 @@ int dataRecord(const char *server,const char *v_szId, char *videoPath,
 	}
 	return result;
 }
-//
+
 int reportUrgencyRecord(const char *server,const char *v_szId,const char *v_szPwd, char *videoPath, 
 			   long long creatTimeInMilSecond, int videoFileSize,char *jpgFilePath, 
 			   int videoTimeLength,Motion_Data mMotionData)
@@ -530,8 +469,8 @@ int reportUrgencyRecord(const char *server,const char *v_szId,const char *v_szPw
 	sprintf(sendBuf,STRING_URGENCYRECORD_CONSERVER, v_szId,v_szPwd,videoPath, creatTimeInMilSecond, videoFileSize,jpgFilePath, videoTimeLength,
 					 mMotionData.motionDetectInfo, mMotionData.soundVolumeInfo);
 	sprintf(strUrl,STRING_GENCYCORD_CONSERVER,server);
-	int iRet=Post_head(strUrl, sendBuf, strResponse);
-	LOGOUT("sendBuf=%s strUrl=%s---\n",sendBuf,strUrl);
+	int iRet=postHttpServer(strUrl, sendBuf, strResponse,write_data);
+	LOGOUT("sendBuf=%s strUrl=%s",sendBuf,strUrl);
 	if(iRet!=0)
 	{
 		LOGOUT("%s %s failure",strUrl,sendBuf);
@@ -539,7 +478,7 @@ int reportUrgencyRecord(const char *server,const char *v_szId,const char *v_szPw
 		return -2;
 	}
 	free(sendBuf);
-	LOGOUT("strResponse---%s---", strResponse);
+	LOGOUT("strResponse %s", strResponse);
 	if(NULL == strResponse)
 	{
 		LOGOUT("pMsg null");
@@ -566,6 +505,260 @@ int reportUrgencyRecord(const char *server,const char *v_szId,const char *v_szPw
 	return result;
 }
 
+static void setUrgencyCondition(cJSON *pJson,int cmdType,const char *strResponse, ServerCmdInfo *returnInfo)
+{
+	cJSON * pSub=NULL;
+	int value=-1;
+	
+	pSub = cJSON_GetObjectItem(pJson, "timeCycle");
+	if(NULL == pSub)
+	{
+		value=-1;
+		LOGOUT("timeCycle null"); 
+	}
+	else
+	{
+		value=atoi(pSub->valuestring);
+		LOGOUT("timeCycle: %d", value);
+	}
+	
+	if(cmdType==SERVERID_START_URGENCYCONDITION)
+		returnInfo->m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iStartPeriod = value;
+	else
+		returnInfo->m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iOverPeriod = value;
+	pSub = cJSON_GetObjectItem(pJson, "motionTotal");
+	if(NULL == pSub)
+	{
+		value=-1;
+		LOGOUT("motionTotal null");
+	}
+	else
+	{
+		value=atoi(pSub->valuestring);
+		LOGOUT("motionTotal : %d",value);
+	}
+	
+	if(cmdType==SERVERID_START_URGENCYCONDITION)
+		returnInfo->m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iStartSumDetect = value;
+	else
+		returnInfo->m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iOverSumDetect = value;
+	pSub = cJSON_GetObjectItem(pJson, "motionDiscTotal");
+	if(NULL == pSub)
+	{
+		 value=-1;
+		 LOGOUT("motionDiscTotal null");
+	}
+	else
+	{
+		value=atoi(pSub->valuestring);
+		LOGOUT("motionDiscTotal : %d", value);
+	}
+	if(cmdType==SERVERID_START_URGENCYCONDITION)
+		returnInfo->m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iStartSumArea = value;
+	else
+		returnInfo->m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iOverSumArea = value;
+	pSub = cJSON_GetObjectItem(pJson, "volumeAverage");
+	if(NULL == pSub)
+	{
+		value=-1;
+		LOGOUT("volumeAverage null");
+	}
+	else
+	{
+		value=atoi(pSub->valuestring);
+		LOGOUT("volumeAverage : %d", value);
+	}
+	if(cmdType==SERVERID_START_URGENCYCONDITION)
+		returnInfo->m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iStartSoundSize = value;
+	else
+		returnInfo->m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iOverSoundSize = value;
+	if(cmdType!=SERVERID_START_URGENCYCONDITION)
+	{
+		pSub = cJSON_GetObjectItem(pJson, "maxVideoRecordTime");
+		if(NULL == pSub)
+		{
+			value=-1;
+			LOGOUT("maxVideoRecordTime null"); 
+		}
+		else
+		{
+			value=atoi(pSub->valuestring);
+			LOGOUT("maxVideoRecordTime: %d", value);
+		}
+		returnInfo->m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iEndRecTime = value;
+		pSub = cJSON_GetObjectItem(pJson, "isEnable");
+		if(NULL == pSub)
+		{
+			value=-1;
+			LOGOUT("isEnable null"); 
+		}
+		else
+		{
+			value=atoi(pSub->valuestring);
+			LOGOUT("isEnable: %d", value);
+		}
+		returnInfo->m_unServerCmdInfo.m_objUrgencyMotionCfg.m_bEnable = value;
+	}
+}
+
+static void setMotionRecordCondition(cJSON *pJson,int cmdType,const char *strResponse, ServerCmdInfo *returnInfo)
+{
+	cJSON * pSub=NULL;
+	int value=-1;
+	
+	pSub = cJSON_GetObjectItem(pJson, "phase1TimeCycle");
+	if(NULL == pSub)
+	{
+		value=-1;
+		LOGOUT("phase1TimeCycle null"); 
+	}
+	else
+	{
+		value=atoi(pSub->valuestring);
+		LOGOUT("phase1TimeCycle: %d", value);
+	} 
+	returnInfo->m_unServerCmdInfo.m_objMotionCfg.m_iBefRecLastTime = value;
+
+	pSub = cJSON_GetObjectItem(pJson, "phase1MotionTotal");
+	if(NULL == pSub)
+	{
+		value=-1;
+		LOGOUT("phase1MotionTotal null"); 
+	}
+	else
+	{
+		value=atoi(pSub->valuestring);
+		LOGOUT("phase1MotionTotal: %d", value);
+	} 
+	returnInfo->m_unServerCmdInfo.m_objMotionCfg.m_iBefRecTimes = value;
+
+	pSub = cJSON_GetObjectItem(pJson, "phase2TimeCycle");
+	if(NULL == pSub)
+	{
+		value=-1;
+		LOGOUT("phase2TimeCycle null"); 
+	}
+	else
+	{
+		value=atoi(pSub->valuestring);
+		LOGOUT("phase2TimeCycle: %d", value);
+	} 
+	returnInfo->m_unServerCmdInfo.m_objMotionCfg.m_iConRecLastTime = value;
+
+	pSub = cJSON_GetObjectItem(pJson, "phase2MotionTotal");
+	if(NULL == pSub)
+	{
+		value=-1;
+		LOGOUT("phase2MotionTotal null"); 
+	}
+	else
+	{
+		value=atoi(pSub->valuestring);
+		LOGOUT("phase2MotionTotal: %d", value);
+	} 
+	returnInfo->m_unServerCmdInfo.m_objMotionCfg.m_iConRecTimes = value;
+
+	pSub = cJSON_GetObjectItem(pJson, "maxVideoRecordTime");
+	if(NULL == pSub)
+	{
+		value=-1;
+		LOGOUT("maxVideoRecordTime null"); 
+	}
+	else
+	{
+		value=atoi(pSub->valuestring);
+		LOGOUT("maxVideoRecordTime: %d", value);
+	} 
+	returnInfo->m_unServerCmdInfo.m_objMotionCfg.m_iEndRecTime = value;
+
+	pSub = cJSON_GetObjectItem(pJson, "isEnable");
+	if(NULL == pSub)
+	{
+		value=-1;
+		LOGOUT("isEnable null"); 
+	}
+	else
+	{
+		value=atoi(pSub->valuestring);
+		LOGOUT("isEnable: %d", value);
+	} 
+	returnInfo->m_unServerCmdInfo.m_objMotionCfg.m_bEnable = value;
+	
+}
+
+int GetCheckAndLoadFromServerInfo(const char *strResponse, ServerCmdInfo *returnInfo)
+{
+	int cmdType = 0;
+	int voiceFilePlayDelay = 0;
+	char voiceFilePath[1024] = {0};
+
+	if(NULL == strResponse)
+	{
+		LOGOUT("pMsg null");
+		return -1;
+	}
+	cJSON * pJson = cJSON_Parse(strResponse);
+	if(NULL == pJson)																						 
+	{
+		LOGOUT("pJson null");
+		return -2;
+	}
+	cJSON * pSub = cJSON_GetObjectItem(pJson, "cmdType");
+	if(NULL == pSub)
+	{
+	   LOGOUT("result null");
+	   return -3;
+	}
+	else
+	{
+		cmdType = atoi(pSub->valuestring);
+		LOGOUT("result: %d", atoi(pSub->valuestring));
+	}
+	returnInfo->cmdType = cmdType;
+	int iRet=0;
+	int value=0;
+	switch (cmdType)
+	{
+		case SERVERID_START_URGENCYCONDITION:
+		case SERVERID_END_URGENCYCONDITION:
+		{
+			setUrgencyCondition(pJson,cmdType,strResponse,returnInfo);
+		}
+			break;	
+		case SERVERID_MOTION_RECORDCONDITION:
+		{
+			setMotionRecordCondition(pJson,cmdType,strResponse,returnInfo);	
+		}
+			break;
+		case SERVERID_IGNORE:			
+		case SERVERID_DOWNLOAD_AUDIOFILE:
+		default:
+			iRet=-1;
+			break;
+
+	}
+	cJSON_Delete(pJson);
+	return iRet;
+}
+
+int checkAndLoadCmdFromServer(ServerCmdInfo *type)
+{
+	char sendBuf[256] = {0};
+	char strUrl[] = "http://ipc.100memory.com/ipccmd_1p5.php?act=checkAndLoadCmdFromServer";
+	char strResponse[1024] = {0};
+	sprintf(sendBuf, "ipc_id=%s&pwd=%s",g_szServerNO,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword);
+	int iRet=postHttpServer(strUrl, sendBuf, strResponse,write_data);
+	if(strResponse == NULL)
+	{
+		LOGOUT("Post_head,return error,iRet=%d",iRet);
+		return -1;
+	}
+	//memset(strResponse,0,sizeof(strResponse));
+	//strcpy(strResponse,"{\"cmdType\":\"2\",\"timeCycle\":\"100\",\"motionTotal\":\"100\",\"motionDiscTotal\":\"100\",\"volumeAverage\":\"100\"}");
+	LOGOUT("strResponse:%s", strResponse);
+	iRet=GetCheckAndLoadFromServerInfo(strResponse, type);
+	return iRet;
+}
 
 int InitConServer()
 {

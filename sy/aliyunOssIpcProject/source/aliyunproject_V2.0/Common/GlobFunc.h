@@ -23,6 +23,7 @@ typedef struct
     unsigned int cstime;  //所有已死在核心态运行的时间，单位为jiffies
 }process_cpu_occupy_t;
 
+typedef size_t curlWriteData(void* buffer,size_t size,size_t nmemb,void *stream);
 
 #  ifdef __cplusplus
 extern "C" {
@@ -50,6 +51,8 @@ extern "C" {
 	int 	GetSendSocketTraffic(char* ProcName, unsigned long long* socketNums);
 	float 	get_cpu_process_occupy_name(char* ProcName);
 	float 	get_cpu_process_occupy_name2(char* ProcName);
+	int 	postHttpServer(char *strUrl, char *strPost,char *strResponse,curlWriteData fuction);
+	int 	getHttpServer(char *strUrl, char *strPost,char *strResponse,curlWriteData fuction);
 #  ifdef __cplusplus
 }
 #  endif /* __cplusplus */

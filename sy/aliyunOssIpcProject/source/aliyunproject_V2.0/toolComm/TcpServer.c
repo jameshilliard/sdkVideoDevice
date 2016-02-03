@@ -133,7 +133,7 @@ void *P_TcpServerSocketThread()
 						g_iConnectHost[i].m_iSocketType =-1;
 						g_iConnectNum ++;
 						TcpRecvBufInit(i);
-						LOGOUT("get socket %d %d\n",i,g_iConnectHost[i].m_iSocket);
+						LOGOUT("get socket %d %d",i,g_iConnectHost[i].m_iSocket);
 						break;
 					}
 				}
@@ -320,7 +320,7 @@ void SetAlgorithmParam(int v_iSocket, S_Data *v_pSData)
 	strncpy(stDataEnCode.szCommandName,v_pSData->szCommandName,sizeof(stDataEnCode.szCommandName));
 	strcpy(stDataEnCode.szType , CONNETTYPE);
 	int i=0;
-	tagMotionCfg objMotionCfg;
+	tagMotionCfg objMotionCfg=g_stConfigCfg.m_unMotionCfg.m_objMotionCfg;
 	memset(&objMotionCfg,0,sizeof(tagMotionCfg));
 	for(i=0;i<v_pSData->iParamCount;i++)
 	{
@@ -396,7 +396,7 @@ void SetOSSConfigmParam(int v_iSocket, S_Data *v_pSData)
 	strncpy(stDataEnCode.szCommandName,v_pSData->szCommandName,sizeof(stDataEnCode.szCommandName));
 	strcpy(stDataEnCode.szType , CONNETTYPE);
 	int i=0;
-	tagAliyunOssCfg objAliyunOssCfg;
+	tagAliyunOssCfg objAliyunOssCfg=g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg;
 	memset(&objAliyunOssCfg,0,sizeof(tagAliyunOssCfg));
 	for(i=0;i<v_pSData->iParamCount;i++)
 	{
@@ -478,7 +478,7 @@ void SetVideoParam(int v_iSocket, S_Data *v_pSData)
 	char wBuffer[80]={0};
 	char hBuffer[80]={0};
 	int i=0;
-	tagCapParamCfg objCapParamCfg;
+	tagCapParamCfg objCapParamCfg=g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg[0];
 	memset(&objCapParamCfg,0,sizeof(tagCapParamCfg));
 	
 	for(i=0;i<v_pSData->iParamCount;i++)
@@ -512,7 +512,7 @@ void SetVideoParam(int v_iSocket, S_Data *v_pSData)
 			objCapParamCfg.m_wBitRate=atoi(v_pSData->params[i].szValue);
 		}
 	}
-	//if(0!=memcmp(&objCapParamCfg,&g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg,sizeof(objCapParamCfg)))
+	if(0!=memcmp(&objCapParamCfg,&g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg,sizeof(objCapParamCfg)))
 	{
 		SetCapParamCfg(DEVICECONFIGDIR,objCapParamCfg);
 		memcpy(&g_stConfigCfg.m_unCapParamCfg.m_objCapParamCfg,&objCapParamCfg,sizeof(objCapParamCfg));
@@ -544,6 +544,7 @@ void GetUrgencyMotionParam(int v_iSocket, S_Data *v_stDeCodeData)
 	SetXmlIntValue(&stDataEnCode, "OverSumArea",g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverSumArea);
 	SetXmlIntValue(&stDataEnCode, "OverSoundSize",g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverSoundSize);
 	SetXmlIntValue(&stDataEnCode, "EndRecTime",g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iEndRecTime);
+	SetXmlIntValue(&stDataEnCode, "CommServerTime",g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iCommServerTime);
 	SetXmlIntValue(&stDataEnCode, "Enable",g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_bEnable);
 	SetXmlValue(&stDataEnCode, "result","10000");
 	TcpSendCmdData(v_iSocket, &stDataEnCode);
@@ -567,7 +568,7 @@ void SetUrgencyMotionParam(int v_iSocket, S_Data *v_pSData)
 	char wBuffer[80]={0};
 	char hBuffer[80]={0};
 	int i=0;
-	tagUrgencyMotionCfg objUrgencyMotionCfg;
+	tagUrgencyMotionCfg objUrgencyMotionCfg=g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg;
 	memset(&objUrgencyMotionCfg,0,sizeof(tagUrgencyMotionCfg));
 	
 	for(i=0;i<v_pSData->iParamCount;i++)
@@ -604,16 +605,18 @@ void SetUrgencyMotionParam(int v_iSocket, S_Data *v_pSData)
 		{
 			objUrgencyMotionCfg.m_iOverSoundSize=atoi(v_pSData->params[i].szValue);
 		}
-
 		if(strcmp(v_pSData->params[i].szKey,"EndRecTime")==0)
 		{
 			objUrgencyMotionCfg.m_iEndRecTime=atoi(v_pSData->params[i].szValue);
+		}
+		if(strcmp(v_pSData->params[i].szKey,"CommServerTime")==0)
+		{
+			objUrgencyMotionCfg.m_iCommServerTime=atoi(v_pSData->params[i].szValue);
 		}
 		if(strcmp(v_pSData->params[i].szKey,"Enable")==0)
 		{
 			objUrgencyMotionCfg.m_bEnable=atoi(v_pSData->params[i].szValue);
 		}
-
 	}
 	if(0!=memcmp(&objUrgencyMotionCfg,&g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg,sizeof(objUrgencyMotionCfg)))
 	{
@@ -669,7 +672,7 @@ void SetSoundEableParam(int v_iSocket, S_Data *v_pSData)
 	char wBuffer[80]={0};
 	char hBuffer[80]={0};
 	int i=0;
-	tagSoundEableCfg objSoundEableCfg;
+	tagSoundEableCfg objSoundEableCfg=g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg;
 	memset(&objSoundEableCfg,0,sizeof(tagSoundEableCfg));
 	
 	for(i=0;i<v_pSData->iParamCount;i++)
@@ -707,6 +710,7 @@ void SetSoundEableParam(int v_iSocket, S_Data *v_pSData)
 			objSoundEableCfg.m_bEnable=atoi(v_pSData->params[i].szValue);
 		}
 	}
+	objSoundEableCfg.m_bInvalid=DE_ENABLE;
 	if(0!=memcmp(&objSoundEableCfg,&g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg,sizeof(objSoundEableCfg)))
 	{
 		SetSoundEableCfg(DEVICECONFIGDIR,objSoundEableCfg);

@@ -52,7 +52,6 @@ int sendVideoToOss(const char *filePath,const char *videoPath)
 	return iRet;
 }
 
-//Videos/Ipcid/yymmdd/yyyymmddhhmmss.mp4
 void * aliyunOssTask(void* param)
 {
 	char fileName[MAX_PATH];
@@ -68,9 +67,6 @@ void * aliyunOssTask(void* param)
 	int iRet=-1;
 	int fileType=-1;
 	LOGINRETURNINFO returnInfo;
-	//loginCtrl(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,//g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort,
-	//	      g_szServerNO,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,
-	//	      &returnInfo);
 	time_t oldTime;
 	time_t newTime;
 	time((time_t *)&oldTime);
@@ -123,10 +119,6 @@ void * aliyunOssTask(void* param)
 		if(iRet==1)
 		{
 			fileType=iRet;
-			//iRet=getFilePath(g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szVideoPath,
-			//				 g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szJPGPath,
-			//				 g_szServerNO,aliyunFilePath,fileName);
-			//if(iRet==0)
 			{
 				sprintf(filePath,"%s/%s",SYSTEM_MEDIA_SENDFILEPATH,fileName);
 				if(strlen(filePath)!=0)
@@ -149,12 +141,13 @@ void * aliyunOssTask(void* param)
 						iRet=isMp4File(filePath);
 						if(iRet!=0)
 						{
-							unlink(filePath);
 							LOGOUT("upLoadFile %s %s is no mp4 file and unlink",filePath,aliyunFilePath);
+							unlink(filePath);
 							unlink(file1Path);
 							unlink(file2Path);
 							unlink(file3Path);
-							LOGOUT("error mp4 file unlink %s and %s and %s",file1Path,file2Path,file3Path);
+							unlink(file4Path);
+							LOGOUT("filePath %s and %s and %s and %s and %s was error and unlink iRet=%d",filePath,file4Path,file1Path,file2Path,file3Path,iRet);	
 							continue;
 						}
 					}
@@ -195,7 +188,6 @@ void * aliyunOssTask(void* param)
 								}
 								else
 								{
-									//LOGOUT("server:%s id:%s",mRecordData.m_server,mRecordData.m_id);
 									iRet=dataRecord(mRecordData.m_server,mRecordData.m_id,mRecordData.m_videoPath,
 													mRecordData.m_creatTimeInMilSecond,mRecordData.m_videoFileSize,
 													mRecordData.m_jpgPath,mRecordData.m_videoTimeLength,mRecordData.m_mMotionData);
@@ -239,6 +231,131 @@ void * aliyunOssTask(void* param)
 	
 }
 
+
+void resloveServerUrgencyMotion(ServerCmdInfo mServerCmdInfo)
+{
+	tagUrgencyMotionCfg objUrgencyMotionCfg=g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg;
+	if(mServerCmdInfo.cmdType==SERVERID_START_URGENCYCONDITION)
+	{
+		if(mServerCmdInfo.m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iStartPeriod!=-1)
+			objUrgencyMotionCfg.m_iStartPeriod=mServerCmdInfo.m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iStartPeriod;
+
+		if(mServerCmdInfo.m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iStartSumDetect!=-1)
+			objUrgencyMotionCfg.m_iStartSumDetect=mServerCmdInfo.m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iStartSumDetect;
+
+		if(mServerCmdInfo.m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iStartSumArea!=-1)
+			objUrgencyMotionCfg.m_iStartSumArea=mServerCmdInfo.m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iStartSumArea;
+
+		if(mServerCmdInfo.m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iStartSoundSize!=-1)
+			objUrgencyMotionCfg.m_iStartSoundSize=mServerCmdInfo.m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iStartSoundSize;
+	}
+	else
+	{
+		if(mServerCmdInfo.m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iOverPeriod!=-1)
+			objUrgencyMotionCfg.m_iOverPeriod=mServerCmdInfo.m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iOverPeriod;
+
+		if(mServerCmdInfo.m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iOverSumDetect!=-1)
+			objUrgencyMotionCfg.m_iOverSumDetect=mServerCmdInfo.m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iOverSumDetect;
+
+		if(mServerCmdInfo.m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iOverSumArea!=-1)
+			objUrgencyMotionCfg.m_iOverSumArea=mServerCmdInfo.m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iOverSumArea;						
+
+		if(mServerCmdInfo.m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iOverSoundSize!=-1)
+			objUrgencyMotionCfg.m_iOverSoundSize=mServerCmdInfo.m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iOverSoundSize;
+
+		if(mServerCmdInfo.m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iEndRecTime!=-1)
+			objUrgencyMotionCfg.m_iEndRecTime=mServerCmdInfo.m_unServerCmdInfo.m_objUrgencyMotionCfg.m_iEndRecTime;
+
+		if(mServerCmdInfo.m_unServerCmdInfo.m_objUrgencyMotionCfg.m_bEnable!=-1)
+			objUrgencyMotionCfg.m_bEnable=mServerCmdInfo.m_unServerCmdInfo.m_objUrgencyMotionCfg.m_bEnable;
+	}
+	if(0!=memcmp(&objUrgencyMotionCfg,&g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg,sizeof(objUrgencyMotionCfg)))
+	{
+		SetUrgencyMotionCfg(DEVICECONFIGDIR,objUrgencyMotionCfg);
+		memcpy(&g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg,&objUrgencyMotionCfg,sizeof(objUrgencyMotionCfg));
+		LOGOUT("SetUrgencyMotionCfg success");
+	}
+	else
+	{
+		LOGOUT("SetUrgencyMotionCfg same");
+	}
+}
+
+void resloveMotionRecordCondition(ServerCmdInfo mServerCmdInfo)
+{
+	tagMotionCfg objMotionCfg=g_stConfigCfg.m_unMotionCfg.m_objMotionCfg;
+	if(mServerCmdInfo.m_unServerCmdInfo.m_objMotionCfg.m_iBefRecLastTime!=-1)
+		objMotionCfg.m_iBefRecLastTime=mServerCmdInfo.m_unServerCmdInfo.m_objMotionCfg.m_iBefRecLastTime;
+
+	if(mServerCmdInfo.m_unServerCmdInfo.m_objMotionCfg.m_iBefRecTimes!=-1)
+		objMotionCfg.m_iBefRecTimes=mServerCmdInfo.m_unServerCmdInfo.m_objMotionCfg.m_iBefRecTimes;
+	
+	if(mServerCmdInfo.m_unServerCmdInfo.m_objMotionCfg.m_iConRecLastTime!=-1)
+		objMotionCfg.m_iConRecLastTime=mServerCmdInfo.m_unServerCmdInfo.m_objMotionCfg.m_iConRecLastTime;
+	
+	if(mServerCmdInfo.m_unServerCmdInfo.m_objMotionCfg.m_iConRecTimes!=-1)
+		objMotionCfg.m_iConRecTimes=mServerCmdInfo.m_unServerCmdInfo.m_objMotionCfg.m_iConRecTimes;
+	
+	if(mServerCmdInfo.m_unServerCmdInfo.m_objMotionCfg.m_iEndRecTime!=-1)
+		objMotionCfg.m_iEndRecTime=mServerCmdInfo.m_unServerCmdInfo.m_objMotionCfg.m_iEndRecTime;
+
+	if(mServerCmdInfo.m_unServerCmdInfo.m_objMotionCfg.m_bEnable!=-1)
+		objMotionCfg.m_bEnable=mServerCmdInfo.m_unServerCmdInfo.m_objMotionCfg.m_bEnable;
+	
+	if(0!=memcmp(&objMotionCfg,&g_stConfigCfg.m_unMotionCfg.m_objMotionCfg,sizeof(objMotionCfg)))
+	{
+		SetMotionCfg(DEVICECONFIGDIR,objMotionCfg);
+		memcpy(&g_stConfigCfg.m_unMotionCfg.m_objMotionCfg,&objMotionCfg,sizeof(objMotionCfg));
+		LOGOUT("SetMotionCfg success");
+	}
+	else
+	{
+		LOGOUT("SetMotionCfg same");
+	}
+
+}
+
+void *  commucicateTask(void* param)
+{
+	ServerCmdInfo mServerCmdInfo;
+	int iRet=0;
+	while(1)
+	{
+		if(g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iCommServerTime==0)
+		{
+			sleep(3);
+		}
+		else
+		{
+			memset(&mServerCmdInfo,0,sizeof(mServerCmdInfo));
+			iRet=checkAndLoadCmdFromServer(&mServerCmdInfo);	
+			if(iRet==0)
+			{
+				LOGOUT("server Id is %d",mServerCmdInfo.cmdType);
+				switch(mServerCmdInfo.cmdType)
+				{
+				case SERVERID_START_URGENCYCONDITION:
+				case SERVERID_END_URGENCYCONDITION:
+					{
+						resloveServerUrgencyMotion(mServerCmdInfo);
+					}
+					break;
+				case SERVERID_MOTION_RECORDCONDITION:
+					{
+						resloveMotionRecordCondition(mServerCmdInfo);
+					}
+					break;
+				default:
+					break;
+				}
+			}
+			sleep(g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iCommServerTime);
+		}
+		usleep(100000);
+	}
+
+}
+
 int initAliyunOssTask()
 {
 	int iRet;
@@ -249,11 +366,18 @@ int initAliyunOssTask()
 		LOGOUT("can't create thread: %s",strerror(iRet));
 		return -1;
 	}
+	pthread_t m_commucicateTask;//实时播放，过程控制线程
+	iRet = pthread_create(&m_commucicateTask, NULL, commucicateTask, NULL);
+	if(iRet != 0)
+	{
+		LOGOUT("can't create thread: %s",strerror(iRet));
+		return -1;
+	}
 	return 0;	
 }
 
 int ReleaseAliyunOssTask()
 {
-
+	ReleaseOSSConfig();
 	return 0;
 }

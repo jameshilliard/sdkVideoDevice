@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/mman.h>
 #include "hi_type.h"
 #include "hi_net_dev_sdk.h"
 #include "hi_net_dev_errors.h"
@@ -13,6 +14,11 @@
 #include "../Common/GlobVariable.h"
 #include "../controlServer/ConServer.h"
 
+
+#define 	MAP_SIZE 							4096UL
+#define	 	MAP_MASK 							(MAP_SIZE - 1)
+#define 	GPIO8DATA_ADDR						0x201803FC
+#define 	GETIMAGEATTR 						"getimageattr"
 
 #define		DEVICEWIDTHBIG						1280
 #define		DEVICEHIGHHBIG						960

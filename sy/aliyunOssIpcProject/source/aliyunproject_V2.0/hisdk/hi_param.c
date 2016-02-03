@@ -163,4 +163,31 @@ int getUnameAndPassWord(char * path,char uname[64],char password[64])
 		fclose(fp);
 	return iRet;
 }
+int getParam(const char *paramString,char paramName[64],char paramValue[64])
+{ 
+	if(paramString==NULL)
+	{
+		printf("param is NULL\n");
+		return -1;
+	}
+   	char *findPtr=NULL;
+	char *paramPtr=NULL;
+	paramPtr=strstr(paramString,paramName);
+	if(paramPtr==NULL)
+	{
+		printf("paramString no have %s\n",paramName);
+		return -2;
+	}
+	findPtr=strchr(paramPtr,'"');
+	if(findPtr==NULL)
+	{
+		printf("paramString no have %s \"\n",paramName);
+		return -2;
+	}
+	int iRet=sscanf(findPtr+1,"%[^\"]s",paramValue);
+	//printf("paramValue=%s--\n",paramValue);
+	if(iRet==1)
+		iRet=0;
+	return iRet;
+}
 

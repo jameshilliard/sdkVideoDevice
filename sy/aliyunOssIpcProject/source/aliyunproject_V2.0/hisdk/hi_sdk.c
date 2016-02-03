@@ -46,7 +46,14 @@ static HI_U32				g_uStartFlag=0;
 static HI_U32				g_uStartSoundFlag=0;
 static HI_U32				g_uOverSoundFlag=0;
 
-char softwareVersion[256]={0};
+static char 				ip[64]={0,};
+static char 				port[64]={0,};
+static char					uname[64]={0,};
+static char 				password[64]={0,};
+static int 					g_changeDisplayModeFlag=0;
+
+
+char 	softwareVersion[256]={0};
 
 
 
@@ -271,7 +278,7 @@ static void getTimeNameString(int timeStamp,char *timeStr,int size)
 	timeinfo = gmtime_r( (time_t *)&timeStamp,&utc_tm );
 	strftime(timeStr,size,("%Y%m%d%H%M%S"),timeinfo);
 	sprintf(timeStr,"%s_%08x",timeStr,rand());
-	printf("timeStr=%s-----\n",timeStr);
+	//printf("timeStr=%s-----\n",timeStr);
 	return;
 }
 
@@ -978,15 +985,94 @@ void playAudio(const char *file)
 		free(g711aBUffer);
 }
 
+int readMem(off_t target, unsigned long *read_result) 
+{
+	int fd;
+	void *map_base, *virt_addr; 
+	if((fd = open("/dev/mem", O_RDWR | O_SYNC)) == -1) {
+		LOGOUT("/dev/mem opened failure"); 
+		return -1;
+	}
+	map_base = mmap(0, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, target & ~MAP_MASK);
+	if(map_base == (void *) -1) {
+		LOGOUT("/dev/mem mmap failure"); 
+		return -1;
+	}
+	LOGOUT("/dev/mem unmmap start"); 
+	virt_addr = (unsigned char *)map_base + (target & MAP_MASK);
+	LOGOUT("/dev/mem unmmap start2 0x%x",virt_addr); 
+	*read_result = *((unsigned long *) virt_addr);
+	//LOGOUT("Value at address 0x%X (%p): 0x%X\n", target, virt_addr, *read_result); 
+	LOGOUT("/dev/mem unmmap start2 %d",*read_result); 
+	if(munmap(map_base, MAP_SIZE) == -1) {
+		LOGOUT("/dev/mem unmmap failure"); 
+		return -1;
+	}
+	close(fd);
+	return 0;
+}
+
+size_t curlGetLocalWriteData(void* buffer,size_t size,size_t nmemb,void *stream)
+{
+    memcpy(stream, buffer, size*nmemb);
+    return size*nmemb; 
+}
+
+int getDisplayModeFromHttpServer(curlWriteData fuction,int *value)
+{
+	if(fuction==NULL || value==NULL)
+	{
+		LOGOUT("param is NULL");
+		return -1;
+	}
+	char strUrl[512]={0,};
+	char strGet[512]={0,};
+	sprintf(strUrl,"http://192.168.1.104:%s/cgi-bin/hi3510/param.cgi?cmd=%s&-usr=%s&-pwd=%s",port,GETIMAGEATTR,uname,password);
+	char *strResponse=malloc(10*1024);
+	if(strResponse==NULL)
+	{
+		LOGOUT("strRespone is NULL");
+		return -2;
+	}
+	int iRet=getHttpServer(strUrl,strGet,strResponse,curlGetLocalWriteData);
+	if(iRet!=0)
+	{
+		LOGOUT("get http server %s failure %d",GETIMAGEATTR,iRet);
+		iRet=-3;
+	}
+	else
+	{
+		char paramName[ 64 ]={0,};
+		char paramValue[ 64 ]={0,};
+		iRet=getParam(strResponse,paramName,paramValue);
+		if(iRet==0)
+		{
+			*value=atoi(paramValue);
+			//LOGOUT("value is %d",*value);
+		}
+	}
+	if(strResponse)
+		free(strResponse);
+	return iRet;
+}
+
 void * judgeWorkTask(void* param)
 {
 	unsigned lastFlagP2P=0;
 	unsigned int length=0;
 	int iRet=0;
 	unsigned int count=0;
+	unsigned int read_result=0;
+	unsigned int last_result=0;
+	DWORD lastTime;
+	iRet=getDisplayModeFromHttpServer(curlGetLocalWriteData,&read_result);
+	if(iRet==0)
+	{
+		last_result=read_result;
+	}
 	while(1)
 	{
-
+		#if 0
 		float cpuOccupy=get_cpu_process_occupy_name2(P2PPROCESS);
 		if(cpuOccupy > P2PWORKMINVALUE)
 		{
@@ -1016,6 +1102,7 @@ void * judgeWorkTask(void* param)
 			}
 			lastFlagP2P=0;
 		}	
+		#endif
 		if(g_workTimeMs!=0)
 		{
 			if((getTickCountMs()-g_workTimeMs)>30*1000)
@@ -1026,6 +1113,27 @@ void * judgeWorkTask(void* param)
 				#endif
 			}
 		}
+		iRet=getDisplayModeFromHttpServer(curlGetLocalWriteData,&read_result);
+		if(iRet==0)
+		{
+			if(read_result!=last_result)
+			{
+				g_changeDisplayModeFlag=1;
+				lastTime=getTickCountMs();
+				LOGOUT("change disPlayModeFlag %d",read_result);
+			}
+			last_result=read_result;
+		}
+		if(g_changeDisplayModeFlag==1)
+		{
+			DWORD nowTime=getTickCountMs();
+			if((nowTime-lastTime)>2000)
+			{
+				g_changeDisplayModeFlag=0;
+				LOGOUT("close disPlayModeFlag %d",read_result);
+			}
+		}
+		//iRet=readMem(GPIO8DATA_ADDR,&read_result);
 		sleep(1);
 	}
 }
@@ -1033,13 +1141,24 @@ void * judgeWorkTask(void* param)
 void * playAudioTask(void* param)
 {
 	int iRet=0;
+	HI_S32 s32Ret = HI_SUCCESS;
 	while(1)
 	{
 		if(g_uStartSoundFlag==1)
 		{
 			g_uStartSoundFlag=0;
+			s32Ret=HI_NET_DEV_PTZ_Ctrl_StandardEx(u32HandleHight,HI_NET_DEV_CTRL_PTZ_LEFT);
+			if (s32Ret != HI_SUCCESS)
+			{
+				LOGOUT("HI_NET_DEV_PTZ_Ctrl_Standard LEFT is failure handle:%u,failcode:0x%x",u32HandleHight,s32Ret);
+			}
+			s32Ret=HI_NET_DEV_PTZ_Ctrl_StandardEx(u32HandleHight,HI_NET_DEV_CTRL_PTZ_RIGHT);
+			if (s32Ret != HI_SUCCESS)
+			{
+				LOGOUT("HI_NET_DEV_PTZ_Ctrl_Standard Right is failure handle:%u,failcode:0x%x",u32HandleHight,s32Ret);
+			}
 			if(g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bUrgencyStartEnable==DE_ENABLE
-				&&g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bEnable==DE_ENABLE)
+			   &&g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bEnable==DE_ENABLE)
 			{
 				playAudio(AUDIOURGENCYSTART);
 			}
@@ -1051,6 +1170,16 @@ void * playAudioTask(void* param)
 		if(g_uOverSoundFlag==1)
 		{
 			g_uOverSoundFlag=0;
+			s32Ret=HI_NET_DEV_PTZ_Ctrl_StandardEx(u32HandleHight,HI_NET_DEV_CTRL_PTZ_RIGHT);
+			if (s32Ret != HI_SUCCESS)
+			{
+				LOGOUT("HI_NET_DEV_PTZ_Ctrl_Standard LEFT is failure handle:%u,failcode:0x%x",u32HandleHight,s32Ret);
+			}
+			s32Ret=HI_NET_DEV_PTZ_Ctrl_StandardEx(u32HandleHight,HI_NET_DEV_CTRL_PTZ_LEFT);
+			if (s32Ret != HI_SUCCESS)
+			{
+				LOGOUT("HI_NET_DEV_PTZ_Ctrl_Standard Right is failure handle:%u,failcode:0x%x",u32HandleHight,s32Ret);
+			}
 			if(g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bUrgencyOverEnable==DE_ENABLE
 				&&g_stConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bEnable==DE_ENABLE)
 			{
@@ -1171,6 +1300,8 @@ void reloveMotion(HI_U8* pu8Buffer,HI_U32 u32Length)
 		
 	}
 }
+
+
 
 void reloveUrgencyMotion(DWORD nowTime,HI_U32 u32DataType,HI_U8* pu8Buffer,HI_U32 u32Length)
 {
@@ -1337,9 +1468,9 @@ void reloveUrgencyMotion(DWORD nowTime,HI_U32 u32DataType,HI_U8* pu8Buffer,HI_U3
 				int mOverSoundSize=0;
 				int k=0;
 				int secondFlag=0;
-				if(flag<(g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverPeriod-1))
+				if(flag<(g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverPeriod+20-1))
 					return;
-				int i=g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverPeriod-1;
+				int i=g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverPeriod+20-1;
 				unsigned char areaTime[16]={0,};
 				for(;i>=0;i--)
 				{
@@ -1374,7 +1505,7 @@ void reloveUrgencyMotion(DWORD nowTime,HI_U32 u32DataType,HI_U8* pu8Buffer,HI_U3
 					g_UrgencyMotion_Data.m_uOverFlag=1;
 					g_uOverSoundFlag=1;
 					LOGOUT("g_UrgencyMotion_Data.g_uOverSoundFlag=1");
-					if(flag==(g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverPeriod-1))
+					if(flag==(g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverPeriod+20-1))
 						g_UrgencyMotion_Data.m_uInvalidFlag;
 				}				
 			}
@@ -1487,7 +1618,7 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 			}
 			if(g_UrgencyMotion_Data.m_uStartFlag==1)
 			{
-				if(g_UrgencyMotion_Data.m_uInvalidFlag==1)
+				if(g_UrgencyMotion_Data.m_uInvalidFlag==1 || g_changeDisplayModeFlag==1)
 				{
 					u32RecordCmd=RECORDDELETE;
 				}
@@ -1644,8 +1775,6 @@ int InitHiSDKServer(HI_U32 *u32Handle,HI_U32 u32Stream)
 	HI_U32 a;
 	HI_S_STREAM_INFO_EXT struStreamInfo;
 	
-	char uname[64]={0,};
-	char password[64]={0,};
 	memset(&motionData,0,sizeof(motionData));
 	memset(uname,0,sizeof(uname));
 	memset(password,0,sizeof(password));
@@ -1658,9 +1787,7 @@ int InitHiSDKServer(HI_U32 *u32Handle,HI_U32 u32Stream)
 	}
 	if(strlen(uname)==0)
 		memcpy(uname,UNAME,MIN(sizeof(uname),strlen(UNAME)));
-
-	char ip[64]={0,};
-	char port[64]={0,};
+	
 	memset(ip,0,sizeof(ip));
 	memset(port,0,sizeof(port));
 	#ifdef CPU_ARM

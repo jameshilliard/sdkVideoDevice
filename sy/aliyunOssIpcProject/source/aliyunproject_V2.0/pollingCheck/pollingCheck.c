@@ -391,7 +391,7 @@ int GetCheckAndLoadFromServerInfo(const char *strResponse, CHECKSERVERINFO *retu
 	cJSON_Delete(pJson);
 	return 1;
 }
-//
+
 int checkAndLoadCmdFromServer(CHECKSERVERINFO *type)
 {
 	//char sendBuf[] = {0};

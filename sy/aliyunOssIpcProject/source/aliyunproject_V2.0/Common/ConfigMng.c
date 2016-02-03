@@ -139,6 +139,7 @@ BOOL InitConfigFile(tagConfigCfg *v_pstConfigCfg)
 	objConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverSoundSize=DE_OVER_SOUND_SIZE;
 	
 	objConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iEndRecTime=DE_URGENCY_REC_TIME;
+	objConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iCommServerTime=DE_COMMSERVER_TIME;
 	objConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_bEnable=DE_ENABLE;
 	objConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_bInvalid=DE_ENABLE;
 	
@@ -146,9 +147,9 @@ BOOL InitConfigFile(tagConfigCfg *v_pstConfigCfg)
 	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bServerSuccessEnable=DE_DISABLE;
 	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bServerFailureEnable=DE_DISABLE;
 	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bUpgradeEnable=DE_DISABLE;
-	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bLoginInEnable=DE_ENABLE;
-	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bUrgencyStartEnable=DE_ENABLE;
-	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bUrgencyOverEnable=DE_ENABLE;
+	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bLoginInEnable=DE_DISABLE;
+	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bUrgencyStartEnable=DE_DISABLE;
+	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bUrgencyOverEnable=DE_DISABLE;
 	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bEnable=DE_ENABLE;
 	objConfigCfg.m_unSoundEableCfg.m_objSoundEableCfg.m_bInvalid=DE_ENABLE;
 

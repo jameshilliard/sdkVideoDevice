@@ -62,6 +62,23 @@ typedef struct recordData_
 	char 	m_szReserver[76];
 }RecordData;//服务器返回信息列表
 
+#define SERVERID_IGNORE 					0
+#define SERVERID_DOWNLOAD_AUDIOFILE 		1
+#define SERVERID_START_URGENCYCONDITION 	2
+#define SERVERID_END_URGENCYCONDITION 		3
+#define SERVERID_MOTION_RECORDCONDITION 	4
+
+
+typedef struct __attribute__((packed, aligned(8))) ServerCmdInfo_
+{
+	int 	cmdType;
+	union
+	{
+		char					m_szReserved[LCM_80(sizeof(tagMasterServerCfg))];
+		tagUrgencyMotionCfg 	m_objUrgencyMotionCfg;
+		tagMotionCfg 			m_objMotionCfg;
+	} m_unServerCmdInfo;	
+}ServerCmdInfo;
 
 #  ifdef __cplusplus
 extern "C" {
@@ -72,6 +89,7 @@ extern "C" {
 	int dataRecord(const char *server,const char *v_szId, char *videoPath, 
 			   long long creatTimeInMilSecond, int videoFileSize,char *jpgFilePath, 
 			   int videoTimeLength,Motion_Data mMotionData);
+	int checkAndLoadCmdFromServer(ServerCmdInfo *type);
 	int reportUrgencyRecord(const char *server,const char *v_szId,const char *v_szPwd, char *videoPath, 
 				   long long creatTimeInMilSecond, int videoFileSize,char *jpgFilePath, 
 				   int videoTimeLength,Motion_Data mMotionData);

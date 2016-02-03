@@ -118,18 +118,19 @@
 #define	DE_DISABLE								0
 
 
-#define DE_START_PREIOD							1
-#define DE_START_SUM_DETECT						10
-#define DE_START_SUM_AREA						8
-#define DE_START_SOUND_SIZE						0x300
+#define DE_START_PREIOD							13
+#define DE_START_SUM_DETECT						28
+#define DE_START_SUM_AREA						16
+#define DE_START_SOUND_SIZE						0x1
 
-#define DE_OVER_PREIOD							5
+#define DE_OVER_PREIOD							30
 #define DE_OVER_SUM_DETECT						2
-#define DE_OVER_SUM_AREA						1
-#define DE_OVER_SOUND_SIZE						0x300
+#define DE_OVER_SUM_AREA						2
+#define DE_OVER_SOUND_SIZE						1000
 
-#define DE_URGENCY_REC_TIME						60
+#define DE_URGENCY_REC_TIME						30
 
+#define DE_COMMSERVER_TIME						0
 
 
 #define LCM_80(x) ((0==(x)%80) ? (x) : (80*(((x)+80)/80)))   //80的最小整数倍
@@ -195,9 +196,10 @@ typedef struct __attribute__((packed, aligned(8))) tagUrgencyMotionCfg_
 	INT32U		m_iOverSoundSize;
 	
 	INT32U		m_iEndRecTime;
+	INT32U 		m_iCommServerTime;
 	char		m_bEnable;
 	char        m_bInvalid;
-	char 		m_szReserver[42];
+	char 		m_szReserver[38];
 }tagUrgencyMotionCfg;
 
 typedef struct __attribute__((packed, aligned(8))) tagSoundEableCfg_
