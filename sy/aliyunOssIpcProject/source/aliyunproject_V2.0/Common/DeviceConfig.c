@@ -319,8 +319,8 @@ INT32S InitDeviceConfig(const char *v_szFlashPath,tagConfigCfg *g_pstConfigCfg)
 		g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bServerFailureEnable=DE_DISABLE;
 		g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bUpgradeEnable=DE_DISABLE;
 		g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bLoginInEnable=DE_DISABLE;
-		g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bUrgencyStartEnable=DE_DISABLE;
-		g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bUrgencyOverEnable=DE_DISABLE;
+		g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bUrgencyStartEnable=DE_ENABLE;
+		g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bUrgencyOverEnable=DE_ENABLE;
 		g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bEnable=DE_ENABLE;
 		g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bInvalid=DE_ENABLE;
 		SetSoundEableCfg(DEVICECONFIGDIR,g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg);

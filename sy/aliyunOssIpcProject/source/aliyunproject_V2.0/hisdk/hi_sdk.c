@@ -1557,7 +1557,15 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 				LOGOUT("echo 3 >/proc/sys/vm/drop_caches");
 				iRet=isFileSystemBigger(SYSTEM_SD_SAVEFILEPATH,3*1024);
 				if(iRet!=0)
-					break;
+				{
+					iRet=rmDirFile(SYSTEM_MEDIA_SENDFILEPATH);
+					if(iRet>0)
+					{
+						LOGOUT("rmdir %s iRet=%d error=%s",SYSTEM_MEDIA_SENDFILEPATH,iRet,strerror(errno));
+					}
+					LOGOUT("memory too small and clean and restart");
+					exit(0);
+				}	
 				LOGOUT("getFreeMemory start record");
 			}
 			initMotionData();
