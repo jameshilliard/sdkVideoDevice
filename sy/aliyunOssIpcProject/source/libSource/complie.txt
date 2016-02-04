@@ -26,6 +26,7 @@ make -j4 CC=arm-hisiv100nptl-linux-gcc
     -I/home/erreur/workSpace/workSource/AliYun/arm/libarmOs/include/libxml2\
     -I/home/erreur/workSpace/workSource/AliYun/arm/libarmOs/include/apr-1
 
+make CC=arm-hisiv100nptl-linux-gcc CXX=arm-hisiv100nptl-linux-g++
 优化
 在不修改源码的情况下，faac的内存占用非常高，每路音频在13M左右。如果多路音频的话，内存将很快耗尽。
 搜索MAX_CHANNELS的定义，默认是6 和64，全部改成1（一般都是单声道）。

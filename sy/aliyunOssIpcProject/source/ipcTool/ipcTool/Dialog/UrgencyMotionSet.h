@@ -36,6 +36,7 @@ public:
 	CString		m_csUrgOverSumArea;		
 	CString		m_csUrgOverSoundSize;
 	CString		m_csUrgEndRecTime;
+	CString		m_csCommServerTime;
 
 	DECLARE_MESSAGE_MAP()
 };

@@ -1027,7 +1027,7 @@ int getDisplayModeFromHttpServer(curlWriteData fuction,int *value)
 	}
 	char strUrl[512]={0,};
 	char strGet[512]={0,};
-	sprintf(strUrl,"http://192.168.1.104:%s/cgi-bin/hi3510/param.cgi?cmd=%s&-usr=%s&-pwd=%s",port,GETIMAGEATTR,uname,password);
+	sprintf(strUrl,"http://127.0.0.1:%s/cgi-bin/hi3510/param.cgi?cmd=%s&-usr=%s&-pwd=%s",port,GETIMAGEATTR,uname,password);
 	char *strResponse=malloc(10*1024);
 	if(strResponse==NULL)
 	{

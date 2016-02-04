@@ -33,7 +33,6 @@
 #define IDC_BUTTON_ALGORITHMSET         1014
 #define IDC_EDIT_PASSWORD               1015
 #define IDC_BUTTON_OSSSET               1015
-#define IDC_BUTTON_OSSSET2              1016
 #define IDC_COMBO_LANGUAGE              1017
 #define IDC_EDIT_USER2                  1019
 #define IDC_EDIT_HTTPPROT               1019
@@ -75,6 +74,8 @@
 #define IDC_EDIT_URGSTARTSUMAREA        1050
 #define IDC_EDIT_URGSTARTSOUNDSIZE      1051
 #define IDC_EDIT_URGOVERPERIOD          1052
+#define IDC_EDIT_URGOVERSOUNDSIZE2      1053
+#define IDC_EDIT_COMMSERVERTIME         1053
 
 // Next default values for new objects
 // 

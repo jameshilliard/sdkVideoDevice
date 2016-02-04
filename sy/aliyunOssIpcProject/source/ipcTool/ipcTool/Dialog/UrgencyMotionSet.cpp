@@ -34,6 +34,7 @@ void CUrgencyMotionSet::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_URGOVERSOUNDSIZE,m_csUrgOverSoundSize);
 
 	DDX_Text(pDX, IDC_EDIT_URGENDRECTIME,m_csUrgEndRecTime);
+	DDX_Text(pDX, IDC_EDIT_COMMSERVERTIME,m_csCommServerTime);
 
 	DDX_Control(pDX, IDC_COMBO_URGEBABLE,m_cbUrgEnable);
 }
@@ -70,6 +71,7 @@ BOOL CUrgencyMotionSet::OnInitDialog()
 		m_csUrgOverSumArea		=	mapofResult["OverSumArea"];	
 		m_csUrgOverSoundSize	=	mapofResult["OverSoundSize"];
 		m_csUrgEndRecTime		=	mapofResult["EndRecTime"];	
+		m_csCommServerTime		=	mapofResult["CommServerTime"];
 	}
 	UpdateData(FALSE);
 	return TRUE;  // return TRUE unless you set the focus to a control
@@ -96,6 +98,7 @@ void CUrgencyMotionSet::OnBnClickedOk()
 	mapofparam["OverSumArea"]		=	m_csUrgOverSumArea;
 	mapofparam["OverSoundSize"]		=	m_csUrgOverSoundSize;
 	mapofparam["EndRecTime"]		=	m_csUrgEndRecTime;
+	mapofparam["CommServerTime"]	=	m_csCommServerTime;
 	bool bRet=m_objTcpClient.TcpPost(mapofparam, mapofResult, 4007);
 	if(bRet)
 	{
