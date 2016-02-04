@@ -293,6 +293,7 @@ INT32S InitDeviceConfig(const char *v_szFlashPath,tagConfigCfg *g_pstConfigCfg)
 		LOGOUT("InitCfgMng is failure");
 		iRet=1<<1;
 	}
+	
 	if(g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bInvalid==DE_DISABLE)
 	{
 		g_pstConfigCfg->m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartPeriod=DE_START_PREIOD;
@@ -306,8 +307,8 @@ INT32S InitDeviceConfig(const char *v_szFlashPath,tagConfigCfg *g_pstConfigCfg)
 		g_pstConfigCfg->m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iOverSoundSize=DE_OVER_SOUND_SIZE;
 		
 		g_pstConfigCfg->m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iEndRecTime=DE_URGENCY_REC_TIME;
-		g_pstConfigCfg->m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iCommServerTime=DE_COMMSERVER_TIME;
-		g_pstConfigCfg->m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_bEnable=DE_ENABLE;
+		g_pstConfigCfg->m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iCommServerTime=DE_COMMSERVERTIME;
+		g_pstConfigCfg->m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_bEnable=DE_URGENCY_ENABLE;
 		g_pstConfigCfg->m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_bInvalid=DE_ENABLE;
 		SetUrgencyMotionCfg(DEVICECONFIGDIR,g_pstConfigCfg->m_unUrgencyMotionCfg.m_objUrgencyMotionCfg);
 
@@ -321,7 +322,7 @@ INT32S InitDeviceConfig(const char *v_szFlashPath,tagConfigCfg *g_pstConfigCfg)
 		g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bLoginInEnable=DE_DISABLE;
 		g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bUrgencyStartEnable=DE_ENABLE;
 		g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bUrgencyOverEnable=DE_ENABLE;
-		g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bEnable=DE_ENABLE;
+		g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bEnable=DE_SOUND_ENABLE;
 		g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg.m_bInvalid=DE_ENABLE;
 		SetSoundEableCfg(DEVICECONFIGDIR,g_pstConfigCfg->m_unSoundEableCfg.m_objSoundEableCfg);
 	}

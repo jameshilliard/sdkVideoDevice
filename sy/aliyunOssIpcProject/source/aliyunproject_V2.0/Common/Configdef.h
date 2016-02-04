@@ -29,13 +29,15 @@
 //#define DEBUG_OTHER_RUN			1
 
 
+#define	DE_ENABLE						1
+#define	DE_DISABLE						0
 
 #define 	COMMVER1 					1
 #define 	COMMVER2 					2
-#define 	SDKVERSION 					COMMVER1 
+#define 	SDKVERSION 					COMMVER2 
 
 #if   SDKVERSION == COMMVER1
-#define SDK_SYSTEM_FWVERSION	"1.0.0036"	// SDK版本号
+#define SDK_SYSTEM_FWVERSION	"1.0.0037"	// SDK版本号
 
 #define DE_ROUTESERVER			"ipc.100memory.com"
 #define	DE_ALBUCKETNAME			"memory100"	
@@ -43,14 +45,20 @@
 #define DE_ALACCESSKEYID		"FNbJ4XFhi337eObw"
 #define	DE_ALACCESSSECRET		"mwpC5hLaYOIR3obMkqJ4uKoPCvwupf"
 
+#define DE_URGENCY_ENABLE		1
+#define DE_SOUND_ENABLE			1
+#define DE_COMMSERVERTIME		0
+
 #elif SDKVERSION == COMMVER2 
-#define SDK_SYSTEM_FWVERSION	"2.0.0036"	// SDK版本号
+#define SDK_SYSTEM_FWVERSION	"2.0.0037"	// SDK版本号
 #define DE_ROUTESERVER			"ipc.355fun.com"
 #define	DE_ALBUCKETNAME			"cyq-fyws"	
 #define	DE_ALENDPOINT			"oss-cn-qingdao.aliyuncs.com"
 #define DE_ALACCESSKEYID		"QyPpDQ2ZRTaO9R4G"
 #define	DE_ALACCESSSECRET		"L3gqCggwtaH3byJipRTTZdXs1bTSt8"
-
+#define DE_URGENCY_ENABLE		0
+#define DE_SOUND_ENABLE			0
+#define DE_COMMSERVERTIME		3
 #endif
 
 // 设备编号和产品型号配置文件名字
@@ -114,8 +122,7 @@
 #define DE_CONTINUES_RECORD_MOTION_LASTTIME		5
 #define DE_CONTINUES_RECORD_MOTION_TIMES		5
 #define	DE_END_RECORD_MOTION_TIME				100
-#define	DE_ENABLE								1
-#define	DE_DISABLE								0
+
 
 
 #define DE_START_PREIOD							13
@@ -129,8 +136,6 @@
 #define DE_OVER_SOUND_SIZE						1000
 
 #define DE_URGENCY_REC_TIME						30
-
-#define DE_COMMSERVER_TIME						0
 
 
 #define LCM_80(x) ((0==(x)%80) ? (x) : (80*(((x)+80)/80)))   //80的最小整数倍
