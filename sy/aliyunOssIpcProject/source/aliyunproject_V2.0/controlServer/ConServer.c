@@ -394,7 +394,7 @@ int dataRecord(const char *server,const char *v_szId, char *videoPath,
 					 mMotionData.motionDetectInfo, mMotionData.soundVolumeInfo);
 	sprintf(strUrl,STRING_DATARECORD_CONSERVER,server);
 	int iRet=postHttpServer(strUrl, sendBuf, strResponse,write_data);
-	printf("-sendBuf=%s strUrl=%s---\n",sendBuf,strUrl);
+	LOGOUT("sendBuf=%s strUrl=%s",sendBuf,strUrl);
 	if(iRet!=0)
 	{
 		LOGOUT("%s %s failure",strUrl,sendBuf);
@@ -404,7 +404,7 @@ int dataRecord(const char *server,const char *v_szId, char *videoPath,
 		}
 		return -2;
 	}
-	printf("strResponse---%s---", strResponse);
+	LOGOUT("strResponse:%s strUrl:%s", strResponse,strUrl);
 	if(NULL == strResponse)
 	{
 		LOGOUT("pMsg null");
@@ -433,7 +433,7 @@ int dataRecord(const char *server,const char *v_szId, char *videoPath,
 	else
 	{
 		result = pSub->valueint;
-		LOGOUT("result : %d", pSub->valueint);
+		//LOGOUT("result : %d", pSub->valueint);
 	}
 	cJSON_Delete(pJson);
 	if(sendBuf)
@@ -470,7 +470,7 @@ int reportUrgencyRecord(const char *server,const char *v_szId,const char *v_szPw
 					 mMotionData.motionDetectInfo, mMotionData.soundVolumeInfo);
 	sprintf(strUrl,STRING_GENCYCORD_CONSERVER,server);
 	int iRet=postHttpServer(strUrl, sendBuf, strResponse,write_data);
-	LOGOUT("sendBuf=%s strUrl=%s",sendBuf,strUrl);
+	printf("sendBuf=%s strUrl=%s",sendBuf,strUrl);
 	if(iRet!=0)
 	{
 		LOGOUT("%s %s failure",strUrl,sendBuf);
@@ -499,7 +499,7 @@ int reportUrgencyRecord(const char *server,const char *v_szId,const char *v_szPw
 	else
 	{
 		result = pSub->valueint;
-		LOGOUT("result : %d", pSub->valueint);
+		//LOGOUT("result : %d", pSub->valueint);
 	}
 	cJSON_Delete(pJson);
 	return result;

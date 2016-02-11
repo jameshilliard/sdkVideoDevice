@@ -37,17 +37,16 @@ int sendVideoToOss(const char *filePath,const char *videoPath)
 	iRet=upLoadFile(filePath,videoPath);
 	if(iRet==0)
 	{
-		unlink(filePath);
 		LOGOUT("upLoadFile %s %s success and unlink",filePath,videoPath);
 	}
 	else if(iRet==409)//file was exist
 	{
-		unlink(filePath);
+		iRet=0;
 		LOGOUT("filePath %s %s was exist and unlink",filePath,videoPath); 					
 	}
 	else
 	{
-		LOGOUT("upload file %d is error iRet=%d",filePath,iRet);
+		LOGOUT("upload file %s is error iRet=%d",filePath,iRet);
 	}
 	return iRet;
 }
@@ -119,51 +118,22 @@ void * aliyunOssTask(void* param)
 		if(iRet==1)
 		{
 			fileType=iRet;
+			sprintf(filePath,"%s/%s",SYSTEM_MEDIA_SENDFILEPATH,fileName);
+			memset(fileDataName,0,sizeof(fileDataName));
+			sscanf(fileName,"%[^.]",fileDataName);
+			sprintf(file1Path,"%s/%s.dat",SYSTEM_MEDIA_SENDFILEPATH,fileDataName);
+			sprintf(file2Path,"%s/%s.mot",SYSTEM_MEDIA_SENDFILEPATH,fileDataName);
+			sprintf(file3Path,"%s/%s.sou",SYSTEM_MEDIA_SENDFILEPATH,fileDataName);
+			sprintf(file4Path,"%s/%s.jpg",SYSTEM_MEDIA_SENDFILEPATH,fileDataName);
+			DWORD fileSize=getFileSize(filePath);
+			if(strlen(filePath)!=0 && fileSize>0 && fileType==1)
 			{
-				sprintf(filePath,"%s/%s",SYSTEM_MEDIA_SENDFILEPATH,fileName);
-				if(strlen(filePath)!=0)
+				iRet=isMp4File(filePath);
+				if(iRet==0)
 				{
-					DWORD fileSize=getFileSize(filePath);
-					if(fileSize<=0)
+					iRet=readFile(file1Path,(LPCTSTR)(&mRecordData),sizeof(mRecordData),&fileSize);
+					if(iRet==0)
 					{
-						unlink(filePath);
-						LOGOUT("upLoadFile %s %s is null and unlink",filePath,aliyunFilePath);
-						continue;
-					}
-					if(fileType==1)
-					{
-						memset(fileDataName,0,sizeof(fileDataName));
-						sscanf(fileName,"%[^.]",fileDataName);
-						sprintf(file1Path,"%s/%s.dat",SYSTEM_MEDIA_SENDFILEPATH,fileDataName);
-						sprintf(file2Path,"%s/%s.mot",SYSTEM_MEDIA_SENDFILEPATH,fileDataName);
-						sprintf(file3Path,"%s/%s.sou",SYSTEM_MEDIA_SENDFILEPATH,fileDataName);
-						sprintf(file4Path,"%s/%s.jpg",SYSTEM_MEDIA_SENDFILEPATH,fileDataName);
-						iRet=isMp4File(filePath);
-						if(iRet!=0)
-						{
-							LOGOUT("upLoadFile %s %s is no mp4 file and unlink",filePath,aliyunFilePath);
-							unlink(filePath);
-							unlink(file1Path);
-							unlink(file2Path);
-							unlink(file3Path);
-							unlink(file4Path);
-							LOGOUT("filePath %s and %s and %s and %s and %s was error and unlink iRet=%d",filePath,file4Path,file1Path,file2Path,file3Path,iRet);	
-							continue;
-						}
-					}
-					if(fileType==1)
-					{
-						iRet=readFile(file1Path,(LPCTSTR)(&mRecordData),sizeof(mRecordData),&fileSize);
-						if(iRet!=0)
-						{
-							unlink(filePath);
-							unlink(file1Path);
-							unlink(file2Path);
-							unlink(file3Path);
-							unlink(file4Path);
-							LOGOUT("filePath %s and %s and %s and %s and %s was error and unlink iRet=%d",filePath,file4Path,file1Path,file2Path,file3Path,iRet);	
-							continue;
-						}
 						fileSize=0;
 						iRet=readFile(file2Path,(LPCTSTR)(motionString),MAX_MOTION_STRING,&fileSize);
 						//LOGOUT("send:%s motionString:%s",filePath,motionString);
@@ -177,49 +147,52 @@ void * aliyunOssTask(void* param)
 								mRecordData.m_mMotionData.motionDetectInfo=motionString;
 								mRecordData.m_mMotionData.soundVolumeInfo=soundString;
 								LOGOUT("mRecordData.m_iUrencyFlag=%d",mRecordData.m_iUrencyFlag);
-								sendVideoToOss(filePath,mRecordData.m_videoPath);
-								sendVideoToOss(file4Path,mRecordData.m_jpgPath);
-								if(mRecordData.m_iUrencyFlag==1)
+								if(mRecordData.m_bUploadVideoFlag==0)
 								{
-
+									iRet=sendVideoToOss(filePath,mRecordData.m_videoPath);
+									if(iRet==0)
+										mRecordData.m_bUploadVideoFlag=1;	
+								}
+								if(mRecordData.m_bUploadJpgFlag==0)
+								{
+									iRet=sendVideoToOss(file4Path,mRecordData.m_jpgPath);
+									if(iRet==0)
+										mRecordData.m_bUploadJpgFlag=1;
+								}
+								if(mRecordData.m_iUrencyFlag==1 && mRecordData.m_bUploadDataFlag==0)
+								{
 									iRet=reportUrgencyRecord(mRecordData.m_server,mRecordData.m_id,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,mRecordData.m_videoPath,
 																	mRecordData.m_creatTimeInMilSecond,mRecordData.m_videoFileSize,
 																	mRecordData.m_jpgPath,mRecordData.m_videoTimeLength,mRecordData.m_mMotionData);
+									if(iRet==1)
+										mRecordData.m_bUploadDataFlag=1;
+
 								}
-								else
+								if(mRecordData.m_iUrencyFlag==0 && mRecordData.m_bUploadDataFlag==0)
 								{
 									iRet=dataRecord(mRecordData.m_server,mRecordData.m_id,mRecordData.m_videoPath,
 													mRecordData.m_creatTimeInMilSecond,mRecordData.m_videoFileSize,
 													mRecordData.m_jpgPath,mRecordData.m_videoTimeLength,mRecordData.m_mMotionData);
+									if(iRet==1)
+										mRecordData.m_bUploadDataFlag=1;
 								}
-								if(iRet==1)
+								if(mRecordData.m_bUploadDataFlag!=1 || mRecordData.m_bUploadJpgFlag!=1 || mRecordData.m_bUploadVideoFlag!=1)
 								{
-									 unlink(file1Path);
-									 unlink(file2Path);
-									 unlink(file3Path);
-									 LOGOUT("upLoadFile %s and %s and %s success and unlink",file1Path,file2Path,file3Path);
+									iRet=writeFile(file1Path,(LPCTSTR)(&mRecordData),sizeof(mRecordData));
+									if(iRet!=0)
+									{
+										LOGOUT("rewrite dataFile is error %d",iRet);
+									}
+									continue;
 								}
 							}
-							else
-							{
-								unlink(file1Path);
-								unlink(file2Path);
-								unlink(file3Path);
-								LOGOUT("filePath %s and %s and %s was error and unlink iRet=%d",file1Path,file2Path,file3Path,iRet);
-							}
 						}
-						else
-						{
-							unlink(file1Path);
-							unlink(file2Path);
-							unlink(file3Path);
-							LOGOUT("filePath %s and %s and %s was error and unlink iRet=%d",file1Path,file2Path,file3Path,iRet);	
-						}
-
-					}		
-				}
+					}
+				}	
+				unlink(filePath);unlink(file1Path);unlink(file2Path);unlink(file3Path);unlink(file4Path);					
+				LOGOUT("filePath %s and %s and %s and %s and %s was unlinked",filePath,file4Path,file1Path,file2Path,file3Path);
 			}
-			sleep(1);
+			//sleep(1);
 		}
 		else
 		{

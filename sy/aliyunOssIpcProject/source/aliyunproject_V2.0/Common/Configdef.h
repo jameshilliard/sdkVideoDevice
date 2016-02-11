@@ -34,10 +34,10 @@
 
 #define 	COMMVER1 					1
 #define 	COMMVER2 					2
-#define 	SDKVERSION 					COMMVER2 
+#define 	SDKVERSION 					COMMVER1 
 
 #if   SDKVERSION == COMMVER1
-#define SDK_SYSTEM_FWVERSION	"1.0.0037"	// SDK°æ±¾ºÅ
+#define SDK_SYSTEM_FWVERSION	"1.0.0039"	// SDK°æ±¾ºÅ
 
 #define DE_ROUTESERVER			"ipc.100memory.com"
 #define	DE_ALBUCKETNAME			"memory100"	
@@ -50,7 +50,7 @@
 #define DE_COMMSERVERTIME		0
 
 #elif SDKVERSION == COMMVER2 
-#define SDK_SYSTEM_FWVERSION	"2.0.0037"	// SDK°æ±¾ºÅ
+#define SDK_SYSTEM_FWVERSION	"2.0.0039"	// SDK°æ±¾ºÅ
 #define DE_ROUTESERVER			"ipc.355fun.com"
 #define	DE_ALBUCKETNAME			"cyq-fyws"	
 #define	DE_ALENDPOINT			"oss-cn-qingdao.aliyuncs.com"

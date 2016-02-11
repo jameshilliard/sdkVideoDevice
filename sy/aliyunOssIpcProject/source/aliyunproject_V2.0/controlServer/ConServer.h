@@ -59,7 +59,10 @@ typedef struct recordData_
 	long long m_creatTimeInMilSecond; 
 	Motion_Data m_mMotionData;
 	int 	m_iUrencyFlag;
-	char 	m_szReserver[76];
+	char    m_bUploadVideoFlag;
+	char    m_bUploadJpgFlag;
+	char    m_bUploadDataFlag;
+	char 	m_szReserver[73];
 }RecordData;//服务器返回信息列表
 
 #define SERVERID_IGNORE 					0

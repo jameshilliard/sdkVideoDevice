@@ -128,6 +128,7 @@ int main()
 	#endif
 	iRet=initAliyunOssTask();
 	LOGOUT("initAliyunOssTask iRet=%d over",iRet);
+	#if 1
 	iRet=InitUdpSearch();
 	LOGOUT("InitUdpSearch iRet=%d over",iRet);
 	if(iRet!=0)
@@ -142,6 +143,7 @@ int main()
 		LOGOUT("error and return");
 		return -1;
 	}
+	#endif
 	#if 0
 	pthread_t pthreadWork;
 	iRet = pthread_create(&pthreadWork, NULL, PollingcheckThread, NULL);

@@ -1133,6 +1133,14 @@ void * judgeWorkTask(void* param)
 				LOGOUT("close disPlayModeFlag %d",read_result);
 			}
 		}
+		#if 1
+		INT32U mem=getFreeMemory();
+		if(mem<5*1024*1024)
+		{	
+			system("echo 3 >/proc/sys/vm/drop_caches");
+			LOGOUT("echo 3 >/proc/sys/vm/drop_caches");
+		}
+		#endif
 		//iRet=readMem(GPIO8DATA_ADDR,&read_result);
 		sleep(1);
 	}
@@ -1550,23 +1558,30 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 	{
 		if(motionData.m_u32MotionStatus==0 && u32DataType==0)
 		{
-			int iRet=isFileSystemBigger(SYSTEM_SD_SAVEFILEPATH,3*1024);
+			int iRet=isFileSystemBigger(SYSTEM_SD_SAVEFILEPATH,2*1024);
 			if(iRet!=0)
 			{	
-				system("echo 3 >/proc/sys/vm/drop_caches");
-				LOGOUT("echo 3 >/proc/sys/vm/drop_caches");
-				iRet=isFileSystemBigger(SYSTEM_SD_SAVEFILEPATH,3*1024);
-				if(iRet!=0)
+				//system("echo 3 >/proc/sys/vm/drop_caches");
+				//LOGOUT("echo 3 >/proc/sys/vm/drop_caches");
+				//iRet=isFileSystemBigger(SYSTEM_SD_SAVEFILEPATH,2*1024);
+				//if(iRet!=0)
 				{
-					iRet=rmDirFile(SYSTEM_MEDIA_SENDFILEPATH);
-					if(iRet>0)
-					{
-						LOGOUT("rmdir %s iRet=%d error=%s",SYSTEM_MEDIA_SENDFILEPATH,iRet,strerror(errno));
-					}
-					LOGOUT("memory too small and clean and restart");
-					exit(0);
-				}	
-				LOGOUT("getFreeMemory start record");
+					//iRet=rmDirFile(SYSTEM_MEDIA_SENDFILEPATH);
+					//if(iRet>0)
+					//{
+					//	LOGOUT("rmdir %s iRet=%d error=%s",SYSTEM_MEDIA_SENDFILEPATH,iRet,strerror(errno));
+					//}
+					//LOGOUT("tmpfs too small and waitUpload");
+					//exit(0);
+					//break;
+				}
+				LOGOUT("tmpfs too small and waitUpload");
+				break;
+			}
+			iRet=rmDirFile(SYSTEM_MEDIA_SAVEFILEPATH);
+			if(iRet>0)
+			{
+				LOGOUT("rmdir %s iRet=%d error=%s",SYSTEM_MEDIA_SAVEFILEPATH,iRet,strerror(errno));
 			}
 			initMotionData();
 			u32RecordCmd=RECORDSTART;
@@ -1707,7 +1722,6 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 		}
 		if(nowTime>endTime)
 		{
-
 			if(g_UrgencyMotion_Data.m_uStartFlag==1)
 			{
 				g_UrgencyMotion_Data.m_uOverFlag=1;
@@ -1726,31 +1740,9 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 			g_motionFlag=0;
 			break;
 		}
-		#if 0
-		INT32U mem=getFreeMemory();
-		if(mem<3*1024*1024)
-		{	
-			system("echo 3 >/proc/sys/vm/drop_caches");
-			LOGOUT("echo 3 >/proc/sys/vm/drop_caches");
-			INT32U mem=getFreeMemory();
-			if(mem>3*1024*1024)
-				break;
-			time_t localTime;
-			time((time_t *)&localTime);
-			localTime+=CHINATIME;
-			joseph_mp4_config.m_overTime=localTime;
-			u32RecordCmd=RECORDSTOP;
-			LOGOUT("getFreeMemory()=%d stop record",mem);
-		}
-		#endif
-		int iRet=isFileSystemBigger(SYSTEM_SD_SAVEFILEPATH,1*1024);
+		int iRet=isFileSystemBigger(SYSTEM_SD_SAVEFILEPATH,512);
 		if(iRet!=0)
 		{	
-			system("echo 3 >/proc/sys/vm/drop_caches");
-			LOGOUT("echo 3 >/proc/sys/vm/drop_caches");
-			iRet=isFileSystemBigger(SYSTEM_SD_SAVEFILEPATH,1*1024);
-			if(iRet==0)
-				break;
 			time_t localTime;
 			time((time_t *)&localTime);
 			localTime+=CHINATIME;
@@ -1759,8 +1751,8 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 				u32RecordCmd=RECORDSTOP;
 			else
 				u32RecordCmd=RECORDDELETE;
-			break;
 			LOGOUT("getFreeMemory small then 1024K stop record Record cmd %d",u32RecordCmd);
+			break;
 		}
 		if(s32Mp4FailFlag<0)
 		{

@@ -14,7 +14,7 @@ INT32U getFreeMemory(void)
     struct sysinfo s_info;
     int error;
     error = sysinfo(&s_info);
-    //printf("getFullMemory %lu kb\n",s_info.freeram);
+    printf("getFullMemory %lu kb\n",s_info.freeram);
     return s_info.freeram;
 }
 
@@ -479,8 +479,6 @@ INT32S readMediaFile(const char *pszDir,char fileName[MAX_PATH])
 	DIR    *dir;
     struct dirent *ptr;
 	unsigned int count=0;
-	//int i=0;
-	//char otherFileName[MAX_PATH]={0};
     dir = opendir(pszDir); ///open the dir
     int iRet=-1;
     while((ptr = readdir(dir)) != NULL) ///read the list of this dir
@@ -490,27 +488,17 @@ INT32S readMediaFile(const char *pszDir,char fileName[MAX_PATH])
 			case DT_REG:
 				if(strstr(ptr->d_name,"mp4"))
 				{
-					//memset(otherFileName,0,sizeof(otherFileName));
-					//sprintf(otherFileName,"%s/%s",pszDir,ptr->d_name);
-					//printf("otherFileName 1 %s i=%d\n",otherFileName,i);
-					//iRet=isMp4File(otherFileName);
-					//if(iRet==0)
-					//{
-					//	i++;
-					//	printf("otherFileName 2 %s i=%d\n",otherFileName,i);
-					//}
 					iRet=1;
 				}
 				//if(strstr(ptr->d_name,"jpg"))
 				//{
-				//	iRet=1;
+				//	iRet=2;
 				//}
 				//if(strstr(ptr->d_name,"dat"))
 				//{
 				//	iRet=3;
 				//}
-				//if(iRet==1 || iRet==2 || iRet==3)
-				if(iRet==1 || iRet==2)
+				if(iRet==1 || iRet==2 || iRet==3)
 				{
 					printf("d_type:%s %d d_name: %s\n",pszDir,ptr->d_type,ptr->d_name);
 					strcpy(fileName,ptr->d_name);
