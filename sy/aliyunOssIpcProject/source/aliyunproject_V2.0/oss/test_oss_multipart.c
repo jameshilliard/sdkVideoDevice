@@ -163,7 +163,7 @@ int test_oss_local_from_buf(char *object_name,char *data, int dataSize, int file
 		//LOGOUT("oss_append_object_from_buffer success:s->code:%d error_msg:%s size:%d", s->code,s->error_msg,filePos);
 	}
 	aos_pool_destroy(p);
-	//aos_http_io_deinitialize();
+	aos_http_io_deinitialize();
     return 0;
 }
 
@@ -222,6 +222,7 @@ int upLoadFile(char *filePath,char *fileName)
 				    if(upResult!=0 && upResult!=409)
 					{
 						LOGOUT("the file %s %s send oss failure %d",filePath,fileName,upResult);
+						delete_object(object_name);
 						break;
 				    }
 					filePos += size;
@@ -267,4 +268,59 @@ int 	ReleaseOSSConfig()
 {
 
 }
+
+int delete_object(char *object_name)
+{
+	if (aos_http_io_initialize("oss_test", 0) != AOSE_OK)
+	{
+		exit(1);
+	}
+	int result = 0;
+	aos_pool_t *p;
+	int is_oss_domain = 1;//是否使用三级域名，可通过is_oss_domain函数初始化
+	oss_request_options_t * oss_request_options;
+	aos_status_t *s;
+	aos_table_t *headers;
+	aos_table_t *resp_headers;
+	aos_string_t bucket;
+	aos_string_t object;
+	aos_list_t buffer;
+	aos_buf_t *content;
+	//char *object_name = "oss_put_get_delete_object_from_file";
+	aos_pool_create(&p, NULL);
+	// init_ oss_request_options
+	int oss_port = 80;
+	printf("delete object oss_delete_object--0\n");
+	oss_request_options = oss_request_options_create(p);
+	oss_request_options->config = oss_config_create(oss_request_options ->pool);
+	aos_str_set(&oss_request_options ->config->host,  oss_endpoint);
+	oss_request_options->config->port=oss_port;
+	aos_str_set(&oss_request_options ->config->id,  access_key_id);
+	aos_str_set(&oss_request_options ->config->key,  access_key_secret );
+	oss_request_options ->config->is_oss_domain = is_oss_domain;
+	oss_request_options ->ctl = aos_http_controller_create(oss_request_options ->pool, 0);
+	printf("delete object oss_delete_object--1\n");
+	
+	aos_str_set(&bucket, bucket_name);
+	aos_str_set(&object, object_name);
+
+	//
+	printf("delete object oss_delete_object\n");
+	 s = oss_delete_object(oss_request_options, &bucket, &object, &resp_headers);
+    if (NULL != s && 204 == s->code) 
+	{
+		LOGOUT("delete object:%s succeeded", object_name);
+    }
+    else 
+	{
+		LOGOUT("delete object:%s failed", object_name);
+		
+    }    
+	result = s->code;
+	aos_pool_destroy(p);
+	aos_http_io_deinitialize();
+	return result;
+	
+}
+
 

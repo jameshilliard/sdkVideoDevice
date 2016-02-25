@@ -9,6 +9,7 @@ extern "C" {
 	int		upLoadFile(char *filePath,char *fileName);
 	int 	test_oss_local_file(char *object_name,char *data, int size, int *upLoadSize);
 	int 	test_oss_local_from_buf(char *object_name,char *data, int dataSize, int filePos);
+	int 	delete_object(char *object_name);
 	void	test_append_object_from_buffer_zmt();
 	int 	InitOSSConfig(const char *v_szBucketName,const char *v_szOssEndPoint,
 						  const char *v_szAccessKeyId,const char *v_szAccessKeySecret);
