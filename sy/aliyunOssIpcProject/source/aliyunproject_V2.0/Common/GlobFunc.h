@@ -53,6 +53,7 @@ extern "C" {
 	float 	get_cpu_process_occupy_name2(char* ProcName);
 	int 	postHttpServer(char *strUrl, char *strPost,char *strResponse,curlWriteData fuction);
 	int 	getHttpServer(char *strUrl, char *strPost,char *strResponse,curlWriteData fuction);
+	int 	calSecret(char uid[80],char passwd[80]);
 #  ifdef __cplusplus
 }
 #  endif /* __cplusplus */

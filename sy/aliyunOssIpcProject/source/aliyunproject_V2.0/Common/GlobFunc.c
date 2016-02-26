@@ -1,4 +1,5 @@
 #include "GlobFunc.h"
+#include "md5.h"
 #include "curl/curl.h"
 
 const char b64_alphabet[65] = { 
@@ -1199,4 +1200,20 @@ int getHttpServer(char *strUrl,char *strPost,char *strResponse,curlWriteData fuc
 	return iRet;
 } 
 
+int calSecret(char uid[80],char passwd[80])
+{
+	int length=strlen(uid);
+	char newUid[80]={0,};
+	int i=0;
+	memset(newUid,0,sizeof(newUid));
+	for(i=0;i<length;i++)
+	{
+		newUid[i]=uid[i]%10+0x30;
+		//printf("-%d-\n",newUid[i]);
+	}
+	char *outString=MDString(newUid);
+	memcpy(passwd,outString,strlen(outString));
+	printf("uid=%s,newuid=%s,passwd=%s-----\n",uid,newUid,passwd);
+	return 0;
+}
 

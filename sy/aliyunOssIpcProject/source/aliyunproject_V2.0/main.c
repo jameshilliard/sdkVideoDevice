@@ -11,6 +11,7 @@
 #include "Common/ClientSocket.h"
 #include "Common/GlobVariable.h"
 #include "hisdk/hi_sdk.h"
+#include "hisdk/hi_param.h"
 #include "toolComm/UdpSearch.h"
 #include "controlServer/ConServer.h"
 //#include "pollingCheck/pollingCheck.h"
@@ -65,12 +66,30 @@ void testMain()
 
 void InitAllConfig()
 {
+	char p2pUidString[64]={0,};
+	char secret[80]={0,};
 	INT32S iRet=InitDeviceConfig(DEVICECONFIGDIR,&g_stConfigCfg);
 	LOGOUT("InitCfgMng over iRet=%d",iRet);
 	iRet=GetServerNo(DEVICECONFIGDIR,g_szServerNO,sizeof(g_szServerNO));
 	if(0==strlen(g_szServerNO))
 	{
 		LOGOUT("GetServerNo over iRet=%d",iRet);
+		memset(p2pUidString,0,sizeof(p2pUidString));
+		iRet=getConfigParam(CONFIGPLATFORM,P2PUID,p2pUidString);
+		if(iRet==0 && strlen(p2pUidString)>0)
+		{
+			strncpy(g_szServerNO,p2pUidString,sizeof(p2pUidString));
+			LOGOUT("new serverNo is %s",g_szServerNO);
+			SetServerNo(DEVICECONFIGDIR,g_szServerNO,strlen(g_szServerNO));
+			iRet=calSecret(g_szServerNO,secret);
+			if(0!=strcmp(g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,secret))
+			{
+				strncpy(g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,secret,sizeof(g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword));
+				LOGOUT("new secret is %s",secret);
+				SetSecret(DEVICECONFIGDIR,secret,sizeof(secret));
+				g_iServerStatus=-1;
+			}
+		}
 	}
 	else
 	{

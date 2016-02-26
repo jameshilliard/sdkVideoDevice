@@ -8,6 +8,7 @@
 #define 	CONFIGPLATFORM				"/mnt/mtd/ipc/conf/config_platform.ini"
 #define 	UNAMEFILE					"/mnt/mtd/ipc/conf/config_user.ini"
 #define 	NETFILE						"/mnt/mtd/ipc/conf/config_net.ini"
+#define 	P2PUID						"uid"
 #define 	ServerNoString				"devname"
 #define 	ServerString1				"sccsvraddr"
 #define 	ServerString2				""
@@ -31,6 +32,7 @@ extern "C"{
 	int getIPAndPort(char * path,char ip[64],char port[64]);
 	int getStringParams(char * path,char *key,char *value,unsigned int size);
 	int getUnameAndPassWord(char * path,char uname[64],char password[64]);
+	int getConfigParam(const char * path,char paramName[64],char paramValue[64]);
 	int getParam(const char *paramString,char paramName[64],char paramValue[64]);
 	
 #ifdef __cplusplus

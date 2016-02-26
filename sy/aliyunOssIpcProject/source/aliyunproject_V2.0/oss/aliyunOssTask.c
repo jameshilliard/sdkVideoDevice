@@ -159,22 +159,22 @@ void * aliyunOssTask(void* param)
 									if(iRet==0)
 										mRecordData.m_bUploadJpgFlag=1;
 								}
-								if(mRecordData.m_iUrencyFlag==1 && mRecordData.m_bUploadDataFlag==0)
+								if(mRecordData.m_iUrencyFlag==1 && mRecordData.m_bUploadDataFlag==0  && mRecordData.m_bUploadJpgFlag==1 && mRecordData.m_bUploadVideoFlag==1)
 								{
 									iRet=reportUrgencyRecord(mRecordData.m_server,mRecordData.m_id,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,mRecordData.m_videoPath,
 																	mRecordData.m_creatTimeInMilSecond,mRecordData.m_videoFileSize,
 																	mRecordData.m_jpgPath,mRecordData.m_videoTimeLength,mRecordData.m_mMotionData);
-									if(iRet==1)
-										mRecordData.m_bUploadDataFlag=1;
+									//if(iRet==1)
+									mRecordData.m_bUploadDataFlag=1;
 
 								}
-								if(mRecordData.m_iUrencyFlag==0 && mRecordData.m_bUploadDataFlag==0)
+								if(mRecordData.m_iUrencyFlag==0 && mRecordData.m_bUploadDataFlag==0 && mRecordData.m_bUploadJpgFlag==1 && mRecordData.m_bUploadVideoFlag==1)
 								{
 									iRet=dataRecord(mRecordData.m_server,mRecordData.m_id,mRecordData.m_videoPath,
 													mRecordData.m_creatTimeInMilSecond,mRecordData.m_videoFileSize,
 													mRecordData.m_jpgPath,mRecordData.m_videoTimeLength,mRecordData.m_mMotionData);
-									if(iRet==1)
-										mRecordData.m_bUploadDataFlag=1;
+									//if(iRet==1)
+									mRecordData.m_bUploadDataFlag=1;
 								}
 								if(mRecordData.m_bUploadDataFlag!=1 || mRecordData.m_bUploadJpgFlag!=1 || mRecordData.m_bUploadVideoFlag!=1)
 								{

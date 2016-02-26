@@ -37,7 +37,7 @@
 #define 	SDKVERSION 					COMMVER1 
 
 #if   SDKVERSION == COMMVER1
-#define SDK_SYSTEM_FWVERSION	"1.0.0039"	// SDK版本号
+#define SDK_SYSTEM_FWVERSION	"1.0.0041"	// SDK版本号
 
 #define DE_ROUTESERVER			"ipc.100memory.com"
 #define	DE_ALBUCKETNAME			"memory100"	
@@ -50,7 +50,7 @@
 #define DE_COMMSERVERTIME		0
 
 #elif SDKVERSION == COMMVER2 
-#define SDK_SYSTEM_FWVERSION	"2.0.0039"	// SDK版本号
+#define SDK_SYSTEM_FWVERSION	"2.0.0041"	// SDK版本号
 #define DE_ROUTESERVER			"ipc.355fun.com"
 #define	DE_ALBUCKETNAME			"cyq-fyws"	
 #define	DE_ALENDPOINT			"oss-cn-qingdao.aliyuncs.com"
@@ -126,16 +126,16 @@
 
 
 #define DE_START_PREIOD							13
-#define DE_START_SUM_DETECT						28
-#define DE_START_SUM_AREA						16
-#define DE_START_SOUND_SIZE						0x1
+#define DE_START_SUM_DETECT						24
+#define DE_START_SUM_AREA						8
+#define DE_START_SOUND_SIZE						2000
 
 #define DE_OVER_PREIOD							30
-#define DE_OVER_SUM_DETECT						2
-#define DE_OVER_SUM_AREA						2
+#define DE_OVER_SUM_DETECT						5
+#define DE_OVER_SUM_AREA						5
 #define DE_OVER_SOUND_SIZE						1000
 
-#define DE_URGENCY_REC_TIME						30
+#define DE_URGENCY_REC_TIME						40
 
 
 #define LCM_80(x) ((0==(x)%80) ? (x) : (80*(((x)+80)/80)))   //80的最小整数倍

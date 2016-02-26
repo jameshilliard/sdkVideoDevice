@@ -163,6 +163,41 @@ int getUnameAndPassWord(char * path,char uname[64],char password[64])
 		fclose(fp);
 	return iRet;
 }
+
+int getConfigParam(const char * path,char paramName[64],char paramValue[64])
+{
+	FILE * fp;  
+	char * line = NULL;  
+	size_t len = 0;  
+	ssize_t read;  
+	char *findPtr=NULL;
+	int iRet=-1;
+	fp = fopen(path, "r");  
+	if(fp == NULL)  
+		return -1;
+	while((read = getline(&line, &len, fp)) != -1) 
+	{    
+		 if(strstr(line,paramName)==line)
+		 {
+			findPtr=strchr(line,'"');
+			if(findPtr!=NULL)
+			{
+				iRet=sscanf(findPtr,"\"%[^\"]s\"",paramValue);
+				//printf("paramValue=%s--\n",paramValue);
+				if(iRet==1)
+				{
+					iRet=0;
+				}
+			}
+		 }
+	}  
+	if (line)  
+	 	free(line);  
+	if(fp != NULL)
+		fclose(fp);
+	return iRet;
+}
+
 int getParam(const char *paramString,char paramName[64],char paramValue[64])
 { 
 	if(paramString==NULL)

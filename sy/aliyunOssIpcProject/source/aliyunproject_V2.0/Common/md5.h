@@ -137,8 +137,7 @@ static void Encode(unsigned char *, UINT4 *, unsigned int);
 static void Decode (UINT4 *, unsigned char *, unsigned int);
 static void MD5_memcpy(POINTER, POINTER, unsigned int);
 static void MD5_memset(POINTER, int, unsigned int);
-
-
+char* MDString (char *string);
 
 #endif
 
