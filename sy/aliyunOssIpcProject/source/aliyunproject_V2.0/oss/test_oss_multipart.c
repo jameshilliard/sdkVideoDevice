@@ -163,7 +163,7 @@ int test_oss_local_from_buf(char *object_name,char *data, int dataSize, int file
 		//LOGOUT("oss_append_object_from_buffer success:s->code:%d error_msg:%s size:%d", s->code,s->error_msg,filePos);
 	}
 	aos_pool_destroy(p);
-	aos_http_io_deinitialize();
+	//aos_http_io_deinitialize();
     return 0;
 }
 
@@ -222,7 +222,6 @@ int upLoadFile(char *filePath,char *fileName)
 				    if(upResult!=0 && upResult!=409)
 					{
 						LOGOUT("the file %s %s send oss failure %d",filePath,fileName,upResult);
-						delete_object(object_name);
 						break;
 				    }
 					filePos += size;

@@ -1113,6 +1113,7 @@ void * judgeWorkTask(void* param)
 				#endif
 			}
 		}
+		#if 0
 		iRet=getDisplayModeFromHttpServer(curlGetLocalWriteData,&read_result);
 		if(iRet==0)
 		{
@@ -1133,6 +1134,7 @@ void * judgeWorkTask(void* param)
 				LOGOUT("close disPlayModeFlag %d",read_result);
 			}
 		}
+		#endif
 		#if 1
 		INT32U mem=getFreeMemory();
 		if(mem<5*1024*1024)
