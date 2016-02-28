@@ -92,7 +92,7 @@ extern "C" {
 	int dataRecord(const char *server,const char *v_szId, char *videoPath, 
 			   long long creatTimeInMilSecond, int videoFileSize,char *jpgFilePath, 
 			   int videoTimeLength,Motion_Data mMotionData);
-	int checkAndLoadCmdFromServer(ServerCmdInfo *type);
+	int checkAndLoadCmdFromServer(const char *server,const char *v_szId,const char *v_szPwd,ServerCmdInfo *type);
 	int reportUrgencyRecord(const char *server,const char *v_szId,const char *v_szPwd, char *videoPath, 
 				   long long creatTimeInMilSecond, int videoFileSize,char *jpgFilePath, 
 				   int videoTimeLength,Motion_Data mMotionData);

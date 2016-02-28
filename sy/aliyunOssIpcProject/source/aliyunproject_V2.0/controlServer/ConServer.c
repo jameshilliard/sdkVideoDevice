@@ -741,12 +741,13 @@ int GetCheckAndLoadFromServerInfo(const char *strResponse, ServerCmdInfo *return
 	return iRet;
 }
 
-int checkAndLoadCmdFromServer(ServerCmdInfo *type)
+int checkAndLoadCmdFromServer(const char *server,const char *v_szId,const char *v_szPwd,ServerCmdInfo *type)
 {
 	char sendBuf[256] = {0};
-	char strUrl[] = "http://ipc.100memory.com/ipccmd_1p5.php?act=checkAndLoadCmdFromServer";
+	char strUrl[1024]={0,};
 	char strResponse[1024] = {0};
-	sprintf(sendBuf, "ipc_id=%s&pwd=%s",g_szServerNO,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword);
+	sprintf(strUrl,"http://%s/ipccmd_1p5.php?act=checkAndLoadCmdFromServer",server);
+	sprintf(sendBuf, "ipc_id=%s&pwd=%s",v_szId,v_szPwd);
 	int iRet=postHttpServer(strUrl, sendBuf, strResponse,write_data);
 	if(strResponse == NULL)
 	{

@@ -301,7 +301,9 @@ void *  commucicateTask(void* param)
 		else
 		{
 			memset(&mServerCmdInfo,0,sizeof(mServerCmdInfo));
-			iRet=checkAndLoadCmdFromServer(&mServerCmdInfo);	
+			iRet=checkAndLoadCmdFromServer(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,
+										   g_szServerNO,g_stConfigCfg.m_unDevInfoCfg.m_objDevInfoCfg.m_szPassword,
+										   &mServerCmdInfo);	
 			if(iRet==0)
 			{
 				LOGOUT("server Id is %d",mServerCmdInfo.cmdType);
