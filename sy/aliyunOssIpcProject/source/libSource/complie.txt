@@ -1,4 +1,5 @@
-﻿1.openssl
+﻿export PATH=$PATH:/opt/hisi-linux-nptl/arm-hisiv100-linux/target/bin
+1.openssl
 ./config --prefix=/home/samba/share/sourceOpen/AliYun/arm/libarmOs no-asm shared  --cross-compile-prefix=arm-hisiv100nptl-linux-
 2.xml2
 ./configure --prefix=/home/samba/share/sourceOpen/AliYun/arm/libarmOs --host=arm-hisiv100nptl-linux CC=arm-hisiv100nptl-linux-gcc --with-minimum --with-xpath --with-tree --with-writer
@@ -15,19 +16,165 @@ make -j4 CC=arm-hisiv100nptl-linux-gcc
 8.libmad
 ./configure --host=arm-hisiv100nptl-linux --prefix=/home/samba/share/sourceOpen/AliYun/arm/libarmOs --disable-debugging  --enable-shared --enable-static 
 ./configure --host=arm-hisiv100nptl-linux --prefix=/home/erreur/workSpace/workSource/AliYun/arm/libarmOs --disable-debugging  --enable-shared --enable-static
-
 1../configure --host=arm-hisiv100nptl-linux --prefix=/home/samba/share/sourceOpen/AliYun/arm/libarmOs
 2.make
 3.make install
-8.liboss_sdk
+
+9.liboss_sdk
 ./configure --host=arm-hisiv100nptl-linux CC=arm-hisiv100nptl-linux-g++ --prefix=/home/erreur/workSpace/workSource/AliYun/arm/libarmOs
 
     -I/home/erreur/workSpace/workSource/AliYun/arm/libarmOs/include\
     -I/home/erreur/workSpace/workSource/AliYun/arm/libarmOs/include/libxml2\
     -I/home/erreur/workSpace/workSource/AliYun/arm/libarmOs/include/apr-1
 
+10.mxml
+
+./configure --prefix=/home/erreur/workSpace/workSource/AliYun/arm/libarmOs --enable-shared CC=arm-hisiv100nptl-linux-gcc AR=arm-hisiv100nptl-linux-ar --host=arm-hisiv100nptl-linux 
+
 make CC=arm-hisiv100nptl-linux-gcc CXX=arm-hisiv100nptl-linux-g++
 优化
 在不修改源码的情况下，faac的内存占用非常高，每路音频在13M左右。如果多路音频的话，内存将很快耗尽。
 搜索MAX_CHANNELS的定义，默认是6 和64，全部改成1（一般都是单声道）。
 重新编译，运行，内存占用降为2.5M左右。
+
+
+
+目前OSS官网上提供的oss c sdk说明文档以及代码的README中简单介绍了编译所需的第三方软件，对于如何安装没有详细介绍，这里简单分享一下嵌入式环境下编译oss c sdk的过程，如有不周全的地方，大家可以各抒己见。 
+首先，对于为什么没有在oss c sdk中直接提供第三方库，我揣测是因为*nix系统的版本比较多，考虑兼容性问题，没有简单的办法直接给出经过编译后的oss c sdk静态库，另外，对于嵌入式环境，sdk静态库的大小也是很重要的一个因素，下面给出我们在嵌入式环境中编译oss c sdk的过程。 
+ 
+ 
+目前，oss c sdk依赖的第三方库包括libcurl、libxml2、apr以及apr-util这个四个第三方库，这几个库的作用分别是： 
+libcurl：封装网络通信，方便用户使用sdk和oss进行交互 
+libxml2：解析oss返回的内容，目前oss返回的信息是xml形式，比如出错时的相关错误信息等，具体可以参考OSS API文档  https://docs.aliyun.com/?spm=5176.383663.9.2.OBvrxr#/pub/oss/api-reference/abstract 
+apr、apr-util：这两个库主要用于封装底层的一些跨平台数据结构，解决c开发时候诸如内存管理等复杂的细节，方便用户编写代码，同时，解决跨平台问题。 
+ 
+ 
+对于这四个第三方库，libxml2库相对来说比较大，建议后面可以使用诸如minixml等轻量级的第三方库替代，减少sdk占用的空间大小。 
+ 
+ 
+好了，言归正传，接下来说一下这四个第三方库如果编译的吧。 
+1、libcurl 
+（1）安装包获取 
+     website: http://curl.haxx.se 
+（2）安装方式 
+     首先可以参考libcurl的一个安装指南： http://curl.haxx.se/docs/install.html， 建议大家抽空看一下，内容还是比较详细的。因为libcurl中包含了很多附加的功能，在嵌入式环境中可以去掉一些用不到的特性。典型的一个编译方式如下： 
+    ./configure CFLAGS='-Os' --prefix=/usr/local/libcurl  --disable-ftp --disable-file --disable-ldap --disable-dict -disable-telnet --disable-tftp --disable-rtsp --disable-pop3 -disable-imap --disable-smtp --disable-gopher --disable-ares -disable-debug --without-ssl --without-zlib --without-libidn  
+    make 
+    make install 
+ 
+ 
+2、libxml2 
+（1）安装包获取 
+     website: http://xmlsoft.org 
+（2）安装方式 
+     首先可以参考libxml2的一个安装指南： http://www.cokco.cn/thread-11777-1-1.html  ，同样建议大家抽空看一下，值得注意的是，文档中给出libxml2针对嵌入式环境的优化选项--with-minimum，经过测试之后，这个选项的确可以很大程度上减少libxml2第三方库的大小，应该是去除了很多不是常用的特性。典型的一个编译方式如下： 
+    ./configure CFLAGS='-Os' --with-minimum  --with-writer --with-tree  --with-xpath 
+     make  
+     make install 
+ 
+ 
+3、apr 
+（1）安装包获取 
+     website: https://apr.apache.org 
+（2）安装方式 
+     apr库安装没有特别需要注意的地方，只是建议安装时候指定prefix，这个在安装apr-util库时会用到。典型的一个编译方式如下： 
+     ./configure CFLAGS='-Os' --prefix=/usr/local/apr/ 
+      make 
+      make install 
+ 
+ 
+4、apr-util 
+（1）安装包获取 
+     website: https://apr.apache.org 
+（2）安装方式 
+     apr-util库安装时候需要注意指定--with-apr选项，该值需要和上面apr库指定的prefix选项值一致。典型的一个编译方式如下： 
+     ./configure  CFLAGS='-Os' --prefix=/usr/local/apr-util   --with-apr=/usr/local/apr 
+     make  
+     make install 
+ 
+ 
+至此，oss c sdk安装需要的第三方库都安装好了，我们注意到README中有一个可选的第三方库utf8proc，这个库的作用是将编码方式变为utf8，因为OSS许多地方要求utf8的编码格式，有需要的用户可以选择采用，如果系统默认的编码方式utf8，那就没必要安装这个库了，这里我们没有选择这个第三方库。 
+ 
+ 
+写了那么多，还有最后一点说明一下，那就是oss c sdk的编译方式，目前sdk的代码中提供了一个自动编译的脚本compile_oss_sdk.sh，打开脚本内容如下： 
+autoheader 
+aclocal 
+autoconf 
+automake --add-missing 
+./configure 
+make 
+ 
+ 
+相信进行C开发的同学对这个应该不会陌生，对了，这个就是使用auto make的方式自动去构建Makefile，免去手动写Makefile的麻烦。值得注意的是，因为我们第三方库可能指定了特定的路径，为了能够顺利通过编译，需要修改一下Makefile.am这个文件： 
+INCLUDES=\ 
+    -I.\ 
+    -I/usr/local/include/\ 
+    -I/usr/include/libxml2\ 
+    -I/usr/local/apr/include/apr-1\ 
+    -I/usr/local/apr-util/include/apr-1 
+ 
+ 
+liboss_c_sdk_a_CFLAGS=\ 
+    -D_LARGEFILE64_SOURCE\ 
+    -fPIC 
+ 
+ 
+注意上面的红色部分，需要改为安装后自己系统上第三方库的路径。 
+ 
+ 
+最后，提一点我们测试后的发现，auto make方式编译时会进行一些重复的编译，导致生成的sdk静态库会偏大，如果对静态库本身的大小比较在意，可以自己手动创建Makefile，给出一个参考的例子： 
+SOURCE_FILES=\ 
+    aos_log.c\ 
+    aos_fstack.c\ 
+    aos_string.c\ 
+    aos_util.c\ 
+    aos_status.c\ 
+    aos_http_io.c\ 
+    aos_buf.c\ 
+    aos_transport.c\ 
+    oss_xml.c\ 
+    oss_define.c\ 
+    oss_auth.c\ 
+    oss_bucket.c\ 
+    oss_multipart.c\ 
+    oss_util.c\ 
+    oss_object.c 
+ 
+ 
+INCLUDES=\ 
+    -I.\ 
+    -I/usr/local/include/\ 
+    -I/usr/include/libxml2\ 
+    -I/usr/local/apr/include/apr-1\ 
+    -I/usr/local/apr-util/include/apr-1 
+ 
+ 
+CFLAGS=\ 
+    -D_LARGEFILE64_SOURCE\ 
+    -fPIC 
+ 
+ 
+OSS_C_SDK_STATIC=./liboss_c_sdk.a 
+OSS_C_SDK_OBJ=./*.o 
+ 
+ 
+all: $(OSS_C_SDK_STATIC) 
+$(OSS_C_SDK_OBJ): $(SOURCE_FILES) 
+    $(CC) -c $(CFLAGS) $(SOURCE_FILES) $(INCLUDES) 
+ 
+ 
+$(OSS_C_SDK_STATIC): $(OSS_C_SDK_OBJ) 
+    $(AR) cqs $@ $(OSS_C_SDK_OBJ) 
+ 
+ 
+install: all 
+    @echo 
+ 
+ 
+clean: 
+    rm -f *.o $(OSS_C_SDK_STATIC) 
+ 
+ 
+好了，说了很多，希望对大家能有一些帮助，如果在具体编译过程中遇到其他问题或者有其他好的建议也请大家提出来，我们一起改进。 
+ 
+[ 此帖被yjseu在2015-10-28 13:47重新编辑 ]

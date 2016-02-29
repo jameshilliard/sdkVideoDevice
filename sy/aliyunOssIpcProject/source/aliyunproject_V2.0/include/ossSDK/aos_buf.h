@@ -29,7 +29,9 @@ aos_file_buf_t *aos_create_file_buf(aos_pool_t *p);
 
 aos_buf_t *aos_buf_pack(aos_pool_t *p, const void *data, int size);
 
-int64_t aos_buf_list_len(aos_list_t *l);
+int64_t aos_buf_list_len(aos_list_t *list);
+
+char *aos_buf_list_content(aos_pool_t *p, aos_list_t *list);
 
 void aos_buf_append_string(aos_pool_t *p, aos_buf_t *b, const char *str, int len);
 

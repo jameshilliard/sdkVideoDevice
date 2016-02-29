@@ -2289,7 +2289,7 @@ int InitHiSDKVideoAllChannel()
 	g_quene = (Queue*)QueueListConstruction();
 	if(g_quene)
 	{	
-		iRet=g_quene->initQueue(g_quene->_this,5*1024*1024);
+		iRet=g_quene->initQueue(g_quene->_this,3*1024*1024);
 		if(iRet!=0)
 		{
 			LOGOUT("InitNetwork initqueue error\n");

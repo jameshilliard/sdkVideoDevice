@@ -378,7 +378,8 @@ int dataRecord(const char *server,const char *v_szId, char *videoPath,
 	}	
 
 	int result = 0;
-	char *sendBuf=malloc(20480);
+	int length=strlen(mMotionData.motionDetectInfo)+strlen(mMotionData.soundVolumeInfo)+10*1024;
+	char *sendBuf=malloc(length);
 	if(!sendBuf)
 	{
 		LOGOUT("malloc is error");

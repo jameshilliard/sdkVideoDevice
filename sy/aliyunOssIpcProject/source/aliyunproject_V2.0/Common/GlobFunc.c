@@ -1096,7 +1096,7 @@ int postHttpServer(char *strUrl, char *strPost,char *strResponse,curlWriteData f
     {  
         LOGOUT("curl init failed");  
         return -2;  
-    }  
+    }   
 	curl_easy_setopt(curl,CURLOPT_URL,strUrl); //url地址  
 	http_header = curl_slist_append(NULL, "Content-Type:application/x-www-form-urlencoded");
 	curl_easy_setopt(curl,CURLOPT_HTTPHEADER, http_header);  
@@ -1108,7 +1108,7 @@ int postHttpServer(char *strUrl, char *strPost,char *strResponse,curlWriteData f
     curl_easy_setopt(curl,CURLOPT_HEADER,0); //将响应头信息和相应体一起传给write_data  
     curl_easy_setopt(curl,CURLOPT_FOLLOWLOCATION,1); //设置为非0,响应头信息location  
     curl_easy_setopt(curl,CURLOPT_COOKIEFILE,"/Users/zhu/CProjects/curlposttest.cookie");  
-    res = curl_easy_perform(curl);  
+    res = curl_easy_perform(curl);    
     if (res != CURLE_OK)  
     {  
 		switch(res)  
@@ -1134,7 +1134,7 @@ int postHttpServer(char *strUrl, char *strPost,char *strResponse,curlWriteData f
 	else
 	{
 		iRet=0;
-	}
+	} 
 	curl_easy_cleanup(curl); 
 	return iRet;
 

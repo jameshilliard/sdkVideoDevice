@@ -147,6 +147,14 @@ aos_status_t *oss_delete_object(const oss_request_options_t *options,
         aos_table_t **resp_headers);
 
 /**
+  * @brief  oss delete objects
+  * @return AOSE_OK success, other failure
+**/
+aos_status_t *oss_delete_objects(const oss_request_options_t *options,
+        const aos_string_t *bucket, aos_list_t *object_list, int is_quiet,
+        aos_table_t **resp_headers, aos_list_t *deleted_object_list);
+
+/**
   * @brief  oss copy object from source object
   * @return AOSE_OK success, other failure
 **/
@@ -306,6 +314,22 @@ aos_status_t *oss_list_multipart_upload(const oss_request_options_t *options,
 aos_status_t *oss_upload_part_copy(const oss_request_options_t *options,
         oss_upload_part_copy_params_t *params, aos_table_t *headers, aos_table_t **resp_headers);
 
+/**
+  * @brief  oss upload file using multipart upload
+  * @param[in]  part_size  the part size for multipart upload
+  * @return AOSE_OK success, other failure
+**/
+aos_status_t *oss_upload_file(oss_request_options_t *options,
+        const aos_string_t *bucket, const aos_string_t *object, aos_string_t *upload_id,
+        aos_string_t *filename, int64_t part_size);
+
+/**
+  * @brief  oss delete objects by prefix
+  * @param[in]  prefix  prefix of delete objects
+  * @return AOSE_OK success, other failure
+**/
+aos_status_t *oss_delete_objects_by_prefix(oss_request_options_t *options,
+        const aos_string_t *bucket, const aos_string_t *prefix);
 
 OSS_CPP_END
 

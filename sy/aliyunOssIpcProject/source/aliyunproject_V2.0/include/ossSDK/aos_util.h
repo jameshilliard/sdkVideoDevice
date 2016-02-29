@@ -6,14 +6,13 @@
 #include "aos_define.h"
 #include "aos_fstack.h"
 
-#include <libxml/parser.h>
-#include <libxml/tree.h>
+#include <mxml.h>
 #include <apr_md5.h>
 #include <apr_sha1.h>
 
 AOS_CPP_START
 
-int aos_parse_xml_body(aos_list_t *bc, xmlDoc **doc, xmlNode **root);
+int aos_parse_xml_body(aos_list_t *bc, mxml_node_t **root);
 
 void aos_gnome_sort(const char **headers, int size);
 
@@ -49,6 +48,10 @@ int aos_base64_encode(const unsigned char *in, int inLen, char *out);
  */
 void HMAC_SHA1(unsigned char hmac[20], const unsigned char *key, int key_len,
                const unsigned char *message, int message_len);
+
+unsigned char* aos_md5(aos_pool_t* pool, const char* in, apr_size_t in_len);
+
+int aos_url_decode(const char *in, char *out);
 
 AOS_CPP_END
 

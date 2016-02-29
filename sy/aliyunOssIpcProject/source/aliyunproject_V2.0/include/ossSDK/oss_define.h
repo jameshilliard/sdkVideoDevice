@@ -53,6 +53,10 @@ extern const char OSS_COPY_SOURCE[];
 extern const char OSS_COPY_SOURCE_RANGE[];
 extern const char OSS_STS_SECURITY_TOKEN[];
 extern const char OSS_LIFECYCLE[];
+extern const char OSS_DELETE[];
+extern const int OSS_MAX_PART_NUM;
+extern const int OSS_PER_RET_NUM;
+extern const int MAX_SUFFIX_LEN;
 
 typedef struct oss_lib_curl_initializer_s oss_lib_curl_initializer_t;
 
@@ -125,6 +129,11 @@ typedef struct {
 } oss_complete_part_content_t;
 
 typedef struct {
+    int part_num;
+    char *etag;
+} oss_upload_part_t;
+
+typedef struct {
     aos_string_t prefix;
     aos_string_t marker;
     aos_string_t delimiter;
@@ -180,5 +189,15 @@ typedef struct {
     int days;
     aos_string_t date;
 } oss_lifecycle_rule_content_t;
+
+typedef struct {
+    aos_list_t node;
+    aos_string_t key;
+} oss_object_key_t;
+
+typedef struct {
+    char *suffix;
+    char *type;
+} oss_content_type_t;
 
 #endif

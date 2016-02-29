@@ -1,7 +1,6 @@
 #ifndef LIBOSS_UTIL_H
 #define LIBOSS_UTIL_H
 
-#include <libxml/xpath.h>
 #include "aos_string.h"
 #include "aos_transport.h"
 #include "aos_status.h"
@@ -167,6 +166,34 @@ void oss_set_multipart_content_type(aos_table_t *headers);
   * @return lifecycle rule content
 **/
 oss_lifecycle_rule_content_t *oss_create_lifecycle_rule_content(aos_pool_t *p);
+
+/**
+  * @brief  create oss object content for delete objects
+  * @return oss object content
+**/
+oss_object_key_t *oss_create_oss_object_key(aos_pool_t *p);
+
+/**
+  * @brief  get part size for multipart upload
+**/
+void oss_get_part_size(int64_t filesize, int64_t *part_size);
+
+/**
+  * @brief  compare function for part sort
+**/
+int part_sort_cmp(const void *a, const void *b);
+
+/**
+  * @brief  set content type for object according to objectname
+  * @return oss content type
+**/
+char *get_content_type(const char *name);
+char *get_content_type_by_suffix(const char *suffix);
+
+/**
+  * @brief  set content type for object according to  filename
+**/
+void set_content_type_for_file(const char* filename, aos_table_t *headers);
 
 OSS_CPP_END
 

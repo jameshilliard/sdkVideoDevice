@@ -2,6 +2,7 @@
 #define LIBAOS_STATUS_H
 
 #include "aos_define.h"
+#include "aos_list.h"
 
 AOS_CPP_START
 
@@ -28,6 +29,8 @@ static inline int aos_http_is_ok(int st)
     (s)->code = c; (s)->error_code = (char *)ec; (s)->error_msg = (char *)es
 
 aos_status_t *aos_status_create(aos_pool_t *p);
+
+aos_status_t *aos_status_dup(aos_pool_t *p, aos_status_t *src);
 
 aos_status_t *aos_status_parse_from_body(aos_pool_t *p, aos_list_t *bc, int code, aos_status_t *s);
 
