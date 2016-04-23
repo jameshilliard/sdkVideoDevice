@@ -15,8 +15,10 @@
 #include "toolComm/UdpSearch.h"
 #include "controlServer/ConServer.h"
 //#include "pollingCheck/pollingCheck.h"
-//#include "mp3ToPcm/mp3ToPcm.h"
 
+#ifdef DECODEMP3TOOL
+#include "mp3ToPcm/mp3ToPcm.h"
+#endif
 BOOL g_main_start=TRUE;
 
 #if 0
@@ -118,23 +120,44 @@ void GetVersionCfg()
 		LOGOUT("GetHardVersion failed over iRet=%d, hardVersion:%s", ret, hardVersion);
 	}
 }
-
-int main()
+#ifdef DECODEMP3TOOL
+void sloveAudioMp3(int argc,char* argv[])
 {
-
+	if(argc<2 || argc!=3)
+		return;
+	InitMp3Decode();
+	LOGOUT("start covert %s to %s",argv[1],argv[2]);
+	playMp3File(argv[1],argv[2]);
+	ReleaseMp3Decode();
+	
+}
+#endif
+int main(int argc,char*   argv[])
+{
+	BOOL bOutToSerial=FALSE;
 	int iRet = 0;
+	#ifdef DECODEMP3TOOL
+	sloveAudioMp3(argc,argv);
+	#endif
 	sigset_t set;
 	sigemptyset(&set);
 	sigaddset(&set, SIGPIPE);
 	sigprocmask(SIG_BLOCK, &set, NULL); 
 	InitAllConfig();
 	GetVersionCfg();//test
+	#ifdef DECODEMP3TOOL
+	bOutToSerial=TRUE;
+	#endif
 	InitOSSConfig(g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szBuctetName,
 				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szOssEndPoint,
 				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeyId,
 				  g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeySecret);
-	Init_LogOut(LOGSIZE,LOGDIR,FALSE,TEMPDIR);	
+	Init_LogOut(LOGSIZE,LOGDIR,bOutToSerial,TEMPDIR);	
 	LOGOUT("Init_LogOut %s %s", SDK_HARD_FWVERSION, SDK_SYSTEM_FWVERSION);
+	#ifdef DECODEMP3TOOL
+	sloveAudioMp3(argc,argv);
+	return 0;
+	#endif
 	//InitConServer();
 	#if 1
 	iRet=InitHiSDKVideoAllChannel();

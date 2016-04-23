@@ -10,6 +10,10 @@
  */
 static int mp3DecodeStatus=DECODENULL;
 static int mp3DecodeControl=DECODENULL;
+static char *outBuffer=NULL;
+static char *outBufferG711=NULL;
+static char dstPath[MAX_PATH]={0};
+
 
 static enum mad_flow input(void *data,struct mad_stream *stream)
 {
@@ -76,10 +80,6 @@ static inline signed int scale(mad_fixed_t sample)
  * MPEG audio data has been completely decoded. The purpose of this callback
  * is to output (or play) the decoded PCM audio.
  */
-
-char outBuffer[10*1024]={0,};
-char outBufferG711[10*1024]={0,};
-
 static enum mad_flow output(void *data,struct mad_header const *header,struct mad_pcm *pcm)
 {
 	unsigned int nchannels, nsamples;  
@@ -109,7 +109,7 @@ static enum mad_flow output(void *data,struct mad_header const *header,struct ma
 	} 
 	int outLength=10*1024;
 	outLength=g711a_encode(outBufferG711,&outLength,outBuffer,realCount*2);
-	writeFileWithFlag("startUp.g711",outBufferG711,outLength,"a+");
+	writeFileWithFlag(dstPath,outBufferG711,outLength,"a+");
 	if(mp3DecodeControl==DECODESTOP)
 	{
 		LOGOUT("file output decode mp3 is stop");
@@ -172,15 +172,34 @@ int getMP3DecodeStatus()
 {
 	return mp3DecodeStatus;
 }
-int playMp3File(const char *stMp3Path)
+int playMp3File(const char *stMp3Path,const char *stDstPath)
 {
 	long flen, fsta, fend;
 	int  dlen;
 	mp3_file mp3fp;
-	
-	if((mp3fp.fp = fopen("startUp.mp3", "r")) == NULL)
+	if(stMp3Path==NULL || stDstPath==NULL)
 	{
-		LOGOUT("can't open source file.\n");
+		LOGOUT("param is error");
+		return -3;
+	}
+	if(strlen(stMp3Path)==0 || strlen(stDstPath)==0)
+	{
+		LOGOUT("param length is error");
+		return -4;
+	}
+	if(strlen(stDstPath)<sizeof(dstPath))
+	{
+		memset(dstPath,0,sizeof(dstPath));
+		strcpy(dstPath,stDstPath);
+	}
+	else
+	{
+		LOGOUT("param is error");
+		return -5;
+	}
+	if((mp3fp.fp = fopen(stMp3Path, "r")) == NULL)
+	{
+		LOGOUT("can't open source file");
 		return -1;
 	}
 	fsta = ftell(mp3fp.fp);
@@ -189,7 +208,7 @@ int playMp3File(const char *stMp3Path)
 	flen = fend - fsta;
 	if(flen<=0)
 	{
-		LOGOUT("file is null\n");
+		LOGOUT("file is null");
 		return -2;
 	}
 	fseek(mp3fp.fp, 0, SEEK_SET);
@@ -213,4 +232,38 @@ int playMp3File(const char *stMp3Path)
 	return 0;
 }
 
+int InitMp3Decode()
+{
+	mp3DecodeStatus=DECODENULL;
+	mp3DecodeControl=DECODENULL;
+	outBuffer=malloc(DECODEBUFSIZE);
+	if(!outBuffer)
+	{
+		LOGOUT("malloc mp3 outBuffer %d failure",DECODEBUFSIZE);
+		return -1;
+	}
+	outBufferG711=malloc(DECODEBUFSIZE);
+	if(!outBufferG711)
+	{
+		LOGOUT("malloc mp3 outBufferG711 %d failure",DECODEBUFSIZE);
+		return -2;
+	}
+	LOGOUT("InitMp3Decode success");
+	return 0;
+
+}
+int ReleaseMp3Decode()
+{
+	if(outBuffer)
+	{
+		free(outBuffer);
+	}
+	if(outBufferG711)
+	{
+		free(outBufferG711);
+	}
+	mp3DecodeStatus=DECODENULL;
+	mp3DecodeControl=DECODENULL;
+	LOGOUT("ReleaseMp3Decode success");
+}
 

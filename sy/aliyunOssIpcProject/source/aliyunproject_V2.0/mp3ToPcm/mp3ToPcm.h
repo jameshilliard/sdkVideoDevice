@@ -3,7 +3,7 @@
 #include "mad.h" 
 #include "../LogOut/LogOut.h"
 
-
+#define DECODEBUFSIZE 100*1024
 #define BUFSIZE 8192
 enum
 {
@@ -33,7 +33,9 @@ extern "C" {
 #  endif /* __cplusplus */
 	int controlMp3Decode(int type);
 	int getMP3DecodeStatus();
-	int playMp3File(const char *stMp3Path);
+	int playMp3File(const char *stMp3Path,const char *stDstPath);
+	int InitMp3Decode();
+	int ReleaseMp3Decode();
 #  ifdef __cplusplus
 }
 #  endif /* __cplusplus */

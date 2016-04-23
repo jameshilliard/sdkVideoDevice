@@ -12,6 +12,10 @@ INCLUDES = -I./include\
 #FLAGS = -m32 -O2 -Wall -Wno-unused -Wno-format -fstrength-reduce -DHI_OS_LINUX
 FLAGS = -g -O3 -Wall -Wno-unused -Wno-format -fstrength-reduce -DHI_OS_LINUX -DCPU_ARM
 FLAGS += -g -rdynamic
+ifeq ($(DECODEMP3TOOL),y)
+LIB += -lmad
+FLAGS += -DDECODEMP3TOOL
+endif
 
 #GXX = g++ $(INCLUDES) $(FLAGS)
 #GCC = gcc $(INCLUDES) $(FLAGS)
@@ -33,9 +37,12 @@ CSRCS += $(wildcard ./mxml/*.c)
 CSRCS += $(wildcard ./controlServer/*.c)
 CSRCS += $(wildcard ./json/*.c)
 #CSRCS += $(wildcard ./pollingCheck/*.c)
-#CSRCS += $(wildcard ./mp3ToPcm/*.c)
-
 VPATH = ./Common:./LogOut:./hisdk:./toolComm:./mxml:./mp4v2:./oss:./controlServer:./json
+
+ifeq ($(DECODEMP3TOOL),y)
+CSRCS += $(wildcard ./mp3ToPcm/*.c)
+VPATH +=:./mp3ToPcm
+endif
 
 OBJDIR := ./objs
 DEPDIR := ./deps
