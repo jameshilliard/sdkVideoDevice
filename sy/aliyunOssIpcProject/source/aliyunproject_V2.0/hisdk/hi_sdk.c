@@ -28,11 +28,9 @@ static	HI_U32 				u32Height=DEVICEHIGHHBIG;	 /* ÊÓÆµ¸ß */
 static  INT32S				s32Mp4FailFlag=0;
 static  HI_U32 				u32WaitIFrame=1;
 static  HI_U32 				g_motionFlag=0;
-static  HI_U32 				g_VideoTPS=0;
 
 
 static Queue *	 			g_quene=NULL;
-static Queue *	 			g_audioQuene=NULL;
 static DWORD				g_nowRecordTime=0;
 static DWORD				g_lastRecordTime=0;
 
@@ -447,8 +445,7 @@ void * makeMp4Task(void* param)
 	}
 	DWORD length=0;
 	DWORD sym=0;
-	HI_U32 u32AVFramePTS=0;
-	HI_U32 u32AudioFramePTS=0;
+	DWORD id=0;
 	int iRet=-1;
 	int successFlag=0;
 	DWORD nextFlag=0;
@@ -467,7 +464,7 @@ void * makeMp4Task(void* param)
 		sym=0;
 		if(g_quene==NULL)
 			goto OUT0;
-		int ret = g_quene->popData(g_quene->_this, (void*)buf,512*1024, &length, &sym, &u32AVFramePTS);
+		int ret = g_quene->popData(g_quene->_this, (void*)buf,512*1024, &length, &sym, &id);
 		if(ret==0)
 		{
 			switch(sym)
@@ -581,59 +578,28 @@ void * makeMp4Task(void* param)
 				}
 
 			}
-				//break;
-			//case RECORDAUDIO:
+				break;
+			case RECORDAUDIO:
 			{
 				if(successFlag==1)
 				{
-					int count=0;
-					int firstFlag=0;
-					HI_U32 u32FirstAudioFramePTS=0;
-					u32AudioFramePTS=0;
-					while(1)
+					unsigned int power=0;
+					Mp4FileAudioEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)buf,length,&power);		
+					if(power!=0)
 					{
-						int ret = g_audioQuene->popData(g_audioQuene->_this, (void*)buf,512*1024, &length, &sym, &u32AudioFramePTS);
-						if(ret==0 && sym==RECORDAUDIO)
-						{
-							firstFlag++;
-							if(firstFlag==1)
-							{
-								u32FirstAudioFramePTS=u32AudioFramePTS;
-							}
-							unsigned int power=0;
-							Mp4FileAudioEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)buf,length,&power);		
-							if(power!=0)
-							{
-								int nowTime=getTickCountMs();
-								int flag=(nowTime-g_UrgencyMotion_Data.m_u32MotionStartTime)/100;
-								if(flag<=0)
-									flag=0;
-								else if(flag>=1199)
-									flag=1199;
-								if(g_UrgencyMotion_Data.m_u32SoundSize[flag]==0)
-									g_UrgencyMotion_Data.m_u32SoundSize[flag]=power;
-								else
-									g_UrgencyMotion_Data.m_u32SoundSize[flag]=(power+g_UrgencyMotion_Data.m_u32SoundSize[flag])/2;
-								char tempString[32]={0};
-								sprintf(tempString,"%x,",power);
-								strcat(g_soundString,tempString);
-							}
-							if(u32AudioFramePTS>(u32AVFramePTS+1000/joseph_mp4_config.fps))
-							{
-								LOGOUT("u32FirstAudioFramePTS=%d u32AudioFramePTS=%d u32AVFramePTS=%d 1000/joseph_mp4_config.fps=%d",u32FirstAudioFramePTS,u32AudioFramePTS,u32AVFramePTS,1000/joseph_mp4_config.fps);
-								//LOGOUT("----------------------------");
-								break;
-							}
-						}
+						int nowTime=getTickCountMs();
+						int flag=(nowTime-g_UrgencyMotion_Data.m_u32MotionStartTime)/100;
+						if(flag<=0)
+							flag=0;
+						else if(flag>=1199)
+							flag=1199;
+						if(g_UrgencyMotion_Data.m_u32SoundSize[flag]==0)
+							g_UrgencyMotion_Data.m_u32SoundSize[flag]=power;
 						else
-						{
-							count++;
-							usleep(20000);
-						}
-						if(count>15)
-						{
-							break;
-						}
+							g_UrgencyMotion_Data.m_u32SoundSize[flag]=(power+g_UrgencyMotion_Data.m_u32SoundSize[flag])/2;
+						char tempString[32]={0};
+						sprintf(tempString,"%x,",power);
+						strcat(g_soundString,tempString);
 					}
 				}
 			}
@@ -756,7 +722,7 @@ static HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 		{
 			*u32Status=RECORDVIDEO;
 			u32WaitIFrame=1;
-			if(g_quene || g_audioQuene)
+			if(g_quene)
 			{
 				int test=0;
 				int ret=g_quene->pushData(g_quene->_this,(void *)&test,sizeof(test),RECORDSTART,0);
@@ -783,7 +749,6 @@ static HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 					u32WaitIFrame=0;
 					g_nowRecordTime=getTickCountMs();
 					g_lastRecordTime=g_nowRecordTime;
-					g_audioQuene->clearData(g_quene->_this);
 					LOGOUT("the video start time is %d",g_lastRecordTime);
 				}
 				else
@@ -792,8 +757,7 @@ static HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 			if(u32WaitIFrame==1)
 				break;
 			if(pstruAV->u32AVFrameFlag==HI_NET_DEV_VIDEO_FRAME_FLAG)
-			{	
-				//LOGOUT("Video u32AVFrameFlag=%x u32AVFramePTS=%d",pstruAV->u32AVFrameFlag,pstruAV->u32AVFramePTS);
+			{
 				//SaveRecordFile("Video.hx", (unsigned char*)(pu8Buffer+sizeof(HI_S_AVFrame)),u32Length-sizeof(HI_S_AVFrame));
 				if(pstruAV->u32VFrameType==1)
 				{
@@ -820,7 +784,7 @@ static HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 					for(i=0;i<(j-1) && h264HeaderPtr[i]!=NULL;i++)
 					{
 						//Mp4FileVideoEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)(h264HeaderPtr[i]),h264HeaderPtr[i+1]-h264HeaderPtr[i]);
-						int ret=g_quene->pushData(g_quene->_this,(void*)(h264HeaderPtr[i]),h264HeaderPtr[i+1]-h264HeaderPtr[i],RECORDVIDEO,pstruAV->u32AVFramePTS);
+						int ret=g_quene->pushData(g_quene->_this,(void*)(h264HeaderPtr[i]),h264HeaderPtr[i+1]-h264HeaderPtr[i],RECORDVIDEO,0);
 						if(ret!=0)
 						{
 							LOGOUT("pushData is error");
@@ -830,7 +794,7 @@ static HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 					if((j-1)>0 && h264HeaderPtr[j-1]!=NULL)
 					{
 						//Mp4FileVideoEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)(h264HeaderPtr[j-1]),u32Length-(h264HeaderPtr[j-1]-pu8Buffer));
-						int ret=g_quene->pushData(g_quene->_this,(void*)(h264HeaderPtr[j-1]),u32Length-(h264HeaderPtr[j-1]-pu8Buffer),RECORDVIDEO,pstruAV->u32AVFramePTS);
+						int ret=g_quene->pushData(g_quene->_this,(void*)(h264HeaderPtr[j-1]),u32Length-(h264HeaderPtr[j-1]-pu8Buffer),RECORDVIDEO,0);
 						if(ret!=0)
 						{
 							LOGOUT("pushData is error");
@@ -840,7 +804,7 @@ static HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 				else
 				{	
 					//Mp4FileVideoEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)(pu8Buffer+sizeof(HI_S_AVFrame)),u32Length-sizeof(HI_S_AVFrame));
-					int ret=g_quene->pushData(g_quene->_this,(void*)(pu8Buffer+sizeof(HI_S_AVFrame)),u32Length-sizeof(HI_S_AVFrame),RECORDVIDEO,pstruAV->u32AVFramePTS);
+					int ret=g_quene->pushData(g_quene->_this,(void*)(pu8Buffer+sizeof(HI_S_AVFrame)),u32Length-sizeof(HI_S_AVFrame),RECORDVIDEO,0);
 					if(ret!=0)
 					{
 						LOGOUT("pushData is error");
@@ -849,18 +813,15 @@ static HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 			}
 			else if(pstruAV->u32AVFrameFlag==HI_NET_DEV_AUDIO_FRAME_FLAG)
 			{
-				if(abs(u32LastStartTPS-pstruAV->u32AVFramePTS)<=10 || pstruAV->u32AVFramePTS>u32LastStartTPS)
+
+				int uSize=(u32Length-sizeof(HI_S_AVFrame)-4);
+				//Mp4FileAudioEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)(pu8Buffer+sizeof(HI_S_AVFrame)+4),u32Length-sizeof(HI_S_AVFrame)-4);
+				int ret=g_quene->pushData(g_quene->_this,(void*)(pu8Buffer+sizeof(HI_S_AVFrame)+4),u32Length-sizeof(HI_S_AVFrame)-4,RECORDAUDIO,0);
+				if(ret!=0)
 				{
-					//LOGOUT("Audio u32AVFrameFlag=%x u32AVFramePTS=%d",pstruAV->u32AVFrameFlag,pstruAV->u32AVFramePTS);
-					int uSize=(u32Length-sizeof(HI_S_AVFrame)-4);
-					//Mp4FileAudioEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)(pu8Buffer+sizeof(HI_S_AVFrame)+4),u32Length-sizeof(HI_S_AVFrame)-4);
-					int ret=g_audioQuene->pushData(g_audioQuene->_this,(void*)(pu8Buffer+sizeof(HI_S_AVFrame)+4),u32Length-sizeof(HI_S_AVFrame)-4,RECORDAUDIO,pstruAV->u32AVFramePTS);
-					if(ret!=0)
-					{
-						LOGOUT("g_audioQuene pushData is error");
-					}
+					LOGOUT("pushData is error");
 				}
-			}
+			}	
 		}
 			break;
 		case RECORDDELETE:
@@ -1498,8 +1459,8 @@ void reloveUrgencyMotion(DWORD nowTime,HI_U32 u32DataType,HI_U8* pu8Buffer,HI_U3
 						mStartSumArea++;
 				}
 				mStartSoundSize=mStartSoundSize/k;
-				//LOGOUT("mStartSumArea=%d mStartSumDetect=%d mStartSoundSize=%d m_uStartFlag=%d",
-				//	mStartSumArea,mStartSumDetect,mStartSoundSize,g_UrgencyMotion_Data.m_uStartFlag);
+				LOGOUT("mStartSumArea=%d mStartSumDetect=%d mStartSoundSize=%d m_uStartFlag=%d",
+					mStartSumArea,mStartSumDetect,mStartSoundSize,g_UrgencyMotion_Data.m_uStartFlag);
 				if(mStartSumArea >= g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSumArea 
 				   && mStartSumDetect >= g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSumDetect
 				   && mStartSoundSize >= g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg.m_iStartSoundSize)
@@ -1602,17 +1563,17 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 			int iRet=isFileSystemBigger(SYSTEM_SD_SAVEFILEPATH,2*1024);
 			if(iRet!=0)
 			{	
-				system("echo 3 >/proc/sys/vm/drop_caches");
+				//system("echo 3 >/proc/sys/vm/drop_caches");
 				//LOGOUT("echo 3 >/proc/sys/vm/drop_caches");
 				//iRet=isFileSystemBigger(SYSTEM_SD_SAVEFILEPATH,2*1024);
 				//if(iRet!=0)
 				{
-					iRet=rmDirFile(SYSTEM_SD_SAVEFILEPATH);
-					if(iRet>0)
-					{
-						LOGOUT("rmdir %s iRet=%d error=%s",SYSTEM_SD_SAVEFILEPATH,iRet,strerror(errno));
-					}
-					LOGOUT("tmpfs too small and waitUpload");
+					//iRet=rmDirFile(SYSTEM_MEDIA_SENDFILEPATH);
+					//if(iRet>0)
+					//{
+					//	LOGOUT("rmdir %s iRet=%d error=%s",SYSTEM_MEDIA_SENDFILEPATH,iRet,strerror(errno));
+					//}
+					//LOGOUT("tmpfs too small and waitUpload");
 					//exit(0);
 					//break;
 				}
@@ -2339,22 +2300,6 @@ int InitHiSDKVideoAllChannel()
 		LOGOUT("InitNetwork QueueListConstruction error\n");
 		return -3;
 	}	
-	g_audioQuene = (Queue*)QueueListConstruction();
-	if(g_audioQuene)
-	{	
-		iRet=g_audioQuene->initQueue(g_audioQuene->_this,1*1024*1024);
-		if(iRet!=0)
-		{
-			LOGOUT("InitNetwork initqueue error\n");
-		}
-	}
-	else
-	{
-		LOGOUT("InitNetwork QueueListConstruction error\n");
-		return -3;
-	}
-
-	
 	HI_NET_DEV_Init();
 	memset(&curVideoParam,0,sizeof(curVideoParam));
 	iRet=InitHiSDKServer(&u32HandleHight,0);
@@ -2507,15 +2452,6 @@ int ReleaseHiSDKVideoAllChannel()
 		free(g_quene);
 		g_quene = NULL;
 	}
-	if(g_audioQuene)
-	{
-		g_audioQuene->release(g_audioQuene->_this);
-	}
-	if(g_audioQuene)
-	{
-		free(g_audioQuene);
-		g_audioQuene = NULL;
-	}	
 	if(g_motionString)
 	{
 		free(g_motionString);

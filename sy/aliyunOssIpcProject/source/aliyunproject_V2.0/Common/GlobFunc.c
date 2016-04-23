@@ -449,14 +449,6 @@ INT32S rmDirFile(const char *pszDir)
 	{
 		return -1;
 	}
-	
-	char cmdBuffer[512]={0};
-	memset(cmdBuffer,0,sizeof(cmdBuffer));
-	sprintf(cmdBuffer,"rm -fr %s/*",pszDir);
-	int iRet=system(cmdBuffer);
-	LOGOUT("unlink %s",pszDir);
-	return iRet;
-	#if  0
 	DIR    *dir;
     struct dirent *ptr;
 	unsigned int count=0;
@@ -473,7 +465,6 @@ INT32S rmDirFile(const char *pszDir)
     }
     closedir(dir);
     return iRet;
-	#endif
 }
 
 INT32S readMediaFile(const char *pszDir,char fileName[MAX_PATH])

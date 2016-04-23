@@ -189,11 +189,7 @@ void * aliyunOssTask(void* param)
 						}
 					}
 				}	
-				unlink(filePath);
-				unlink(file1Path);
-				unlink(file2Path);
-				unlink(file3Path);
-				unlink(file4Path);					
+				unlink(filePath);unlink(file1Path);unlink(file2Path);unlink(file3Path);unlink(file4Path);					
 				LOGOUT("filePath %s and %s and %s and %s and %s was unlinked",filePath,file4Path,file1Path,file2Path,file3Path);
 			}
 			//sleep(1);
