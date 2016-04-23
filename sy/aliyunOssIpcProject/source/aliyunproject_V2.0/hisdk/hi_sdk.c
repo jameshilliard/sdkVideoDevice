@@ -1578,7 +1578,7 @@ HI_S32 OnDataCallback(HI_U32 u32Handle, /* ¾ä±ú */
 					//break;
 				}
 				LOGOUT("tmpfs too small and waitUpload");
-				break;
+				//break;
 			}
 			iRet=rmDirFile(SYSTEM_MEDIA_SAVEFILEPATH);
 			if(iRet>0)
