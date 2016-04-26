@@ -34,6 +34,7 @@ extern "C" {
 	INT32S  ReadConfigFile(char *v_szFilePath, char *v_szReadBuf, int v_iBufLen);
 	INT32U  getFreeMemory(void);
 	DWORD 	getTickCountMs();
+	DWORD 	getTickSecond();
 	void 	squeeze(char *s,int maxSize,int c);
 	DWORD	getFileSize(LPCTSTR path);
 	INT32S  isFileSystemBigger(LPCTSTR sdDir,DWORD size);

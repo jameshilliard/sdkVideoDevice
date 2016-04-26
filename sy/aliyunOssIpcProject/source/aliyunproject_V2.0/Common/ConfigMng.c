@@ -119,7 +119,8 @@ BOOL InitConfigFile(tagConfigCfg *v_pstConfigCfg)
 	strncpy(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeySecret, DE_ALACCESSSECRET,sizeof(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeySecret));
 	strncpy(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szJPGPath, DE_JPGPATH,sizeof(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szJPGPath));
 	strncpy(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szVideoPath, DE_VIDEOPATH,sizeof(objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szVideoPath));
-	
+	objConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_bLogUploadEnable =  DE_ENABLE;
+		
 	objConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iBefRecLastTime = DE_BEFORE_RECORD_MOTION_LASTTIME;
 	objConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iBefRecTimes = DE_BEFORE_RECORD_MOTION_TIMES;
 	objConfigCfg.m_unMotionCfg.m_objMotionCfg.m_iConRecLastTime = DE_CONTINUES_RECORD_MOTION_LASTTIME;

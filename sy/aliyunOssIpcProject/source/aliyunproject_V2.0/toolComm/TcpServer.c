@@ -377,6 +377,7 @@ void GetOSSConfigmParam(int v_iSocket, S_Data *v_stDeCodeData)
 	SetXmlValue(&stDataEnCode, "AccessKeyId", g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeyId);
 	SetXmlValue(&stDataEnCode, "AccessKeySecret", g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeySecret);
 	SetXmlValue(&stDataEnCode, "VideoPath", g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szVideoPath);
+	SetXmlIntValue(&stDataEnCode, "LogUploadEnable", g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_bLogUploadEnable);
 	SetXmlValue(&stDataEnCode, "JpgPath", g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szJPGPath);
 	SetXmlValue(&stDataEnCode, "result","10000");
 	TcpSendCmdData(v_iSocket, &stDataEnCode);
@@ -415,6 +416,10 @@ void SetOSSConfigmParam(int v_iSocket, S_Data *v_pSData)
 		if(strcmp(v_pSData->params[i].szKey,"AccessKeySecret")==0)
 		{
 			strncpy(objAliyunOssCfg.m_szAccessKeySecret,v_pSData->params[i].szValue,sizeof(objAliyunOssCfg.m_szAccessKeySecret));
+		}
+		if(strcmp(v_pSData->params[i].szKey,"LogUploadEnable")==0)
+		{
+			objAliyunOssCfg.m_bLogUploadEnable =atoi(v_pSData->params[i].szValue);
 		}
 		if(strcmp(v_pSData->params[i].szKey,"VideoPath")==0)
 		{

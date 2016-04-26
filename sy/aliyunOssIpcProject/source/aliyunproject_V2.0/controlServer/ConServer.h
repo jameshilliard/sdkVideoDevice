@@ -36,6 +36,7 @@ typedef struct loginReturnInfo_
 	int streamType;//码流控制方式
 	int mainFrameGap;//最大帧间隔
 	int isRequireToReboot;//重启
+	int logUploadEnable;//重启
 	int resolutionRatio;
 	
 	char IPCCmdServerURL[512];

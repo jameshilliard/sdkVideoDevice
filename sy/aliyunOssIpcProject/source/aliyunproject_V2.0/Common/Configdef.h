@@ -80,6 +80,7 @@
 #define DEVICECONFIGDIR			"/mnt/mtd/ipc/sykj"
 #define	LOGDIR					"/mnt/mtd/ipc/tmpfs/syflash"
 #define	LOGUPDATEDIR			"/mnt/mtd/ipc/tmpfs/syflash/updateLog"
+#define	LOGTEMPDIR				"/mnt/mtd/ipc/tmpfs/sytmp/LogTemp"
 #define TEMPDIR 				"/mnt/mtd/ipc/tmpfs/sytmp"
 #define ENCODEFILE 				"/mnt/mtd/ipc/conf/config_encode.ini"
 #define CMDREBOOT 				"killall uipcam;killall aliyunOss.bin;killall ipcUpdate.bin;sleep 3;/mnt/mtd/ipc/sykj/uipcam &"
@@ -166,7 +167,8 @@ typedef struct __attribute__((packed, aligned(8))) tagAliyunOssCfg_
 	char 		m_szAccessKeySecret[80];
 	char 		m_szVideoPath[80];
 	char 		m_szJPGPath[80];
-	char 		m_szReserver[160];
+	char		m_bLogUploadEnable;
+	char 		m_szReserver[159];
 }tagAliyunOssCfg;
 
 

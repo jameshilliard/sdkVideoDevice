@@ -3,35 +3,7 @@
 #include "../LogOut/LogOut.h"
 
 
-int getFilePath(char *videoPath,char *jpgPath,char *ipcId,char *fullName, char *fileName)
-{
-	if(fullName==NULL || fileName==NULL)
-		return -1;
-	char *ptr=NULL;
-	char day[10]={0};
-	memset(day,0,sizeof(day));
-	memcpy(day,fileName,8);
-	ptr=strstr(fileName,".mp4");
-	if(ptr!=NULL)
-	{
-		sprintf(fullName, "%s/%s/%s/%s",videoPath,(strlen(ipcId)==0)?"test":ipcId,day,fileName);	
-		return 0;
-	}
-	else
-	{
-		ptr=strstr(fileName,".jpg");
-		if(ptr!=NULL)
-		{
-			sprintf(fullName, "%s/%s/%s/%s",jpgPath,(strlen(ipcId)==0)?"test":ipcId,day,fileName);
-			return 0;
-		}
-			
-	}
-	printf("file %s is no mp4 or jpg",fileName);
-	return -2;
-}
-
-int sendVideoToOss(const char *filePath,const char *videoPath)
+static int sendVideoToOss(const char *filePath,const char *videoPath)
 {
 	int iRet=0;
 	iRet=upLoadFile(filePath,videoPath);
@@ -50,8 +22,96 @@ int sendVideoToOss(const char *filePath,const char *videoPath)
 	}
 	return iRet;
 }
+static void getLogName(int timeStamp,char *timeStr,int size)
+{
+	struct tm * timeinfo;
+	struct tm utc_tm;
+	srand((int) time(0)); 
+	timeinfo = gmtime_r( (time_t *)&timeStamp,&utc_tm );
+	strftime(timeStr,size,("%Y-%m-%d_%H-%M-%S.tar.gz"),timeinfo);
+	printf("timeStr=%s-----\n",timeStr);
+	return;
+}
 
-void * aliyunOssTask(void* param)
+static int sendLogToOSS(char *ipcId)
+{
+	if(ipcId==NULL || strlen(ipcId)==0)
+		return -1;
+	char *ptr=NULL;
+	char fileName[MAX_PATH]={0,};
+	char filePath[MAX_PATH]={0,};
+	char localPath[MAX_PATH]={0,};
+	char systemCmd[1024]={0,};
+	int  iRet=0;
+	memset(fileName,0,sizeof(fileName));
+	memset(filePath,0,sizeof(filePath));
+	memset(localPath,0,sizeof(localPath));
+	memset(systemCmd,0,sizeof(systemCmd));
+	time_t localTime;
+	time((time_t *)&localTime);
+	localTime+=CHINATIME;
+	getLogName(localTime,fileName,sizeof(fileName));
+	#if 0
+	iRet=isDeviceAccess(LOGTEMPDIR);
+	if(iRet!=0)
+	{
+		memset(systemCmd,0,sizeof(systemCmd));
+		sprintf(systemCmd,"mkdir -p %s",LOGTEMPDIR);
+		iRet=system(systemCmd);
+		if(iRet<0)
+		{
+			LOGOUT("%s failure",systemCmd);
+			return -2;
+		}
+	}
+	memset(systemCmd,0,sizeof(systemCmd));
+	sprintf(systemCmd,"cp -fr %s/%s/* %s",LOGUPDATEDIR,LOGFILEDIR,LOGTEMPDIR);
+	iRet=system(systemCmd);
+	if(iRet<0)
+	{
+		LOGOUT("%s failure %d",systemCmd,iRet);
+		return -3;
+	}
+	memset(systemCmd,0,sizeof(systemCmd));
+	sprintf(systemCmd,"cp -fr %s/%s/* %s",LOGDIR,LOGFILEDIR,LOGTEMPDIR);
+	//iRet=system(systemCmd);
+	if(iRet<0)
+	{
+		LOGOUT("%s failure",systemCmd);
+		return -4;
+	}
+	#endif
+	memset(systemCmd,0,sizeof(systemCmd));
+	sprintf(systemCmd,"tar zcvf %s/%s %s/%s",TEMPDIR,fileName,LOGDIR,LOGFILEDIR);
+	iRet=system(systemCmd);
+	if(iRet<0)
+	{
+		LOGOUT("%s failure",systemCmd);
+		return -5;
+	}
+	sprintf(localPath,"%s/%s",TEMPDIR,fileName);
+	sprintf(filePath, "Log/%s/%s",(strlen(ipcId)==0)?"test":ipcId,fileName);
+	iRet=sendVideoToOss(localPath,filePath);
+	if(iRet!=0)
+	{
+		LOGOUT("sendVideoToOss %s %s is failure %d",localPath,filePath,iRet);
+		return -6;
+	}
+	else
+	{
+		memset(systemCmd,0,sizeof(systemCmd));
+		sprintf(systemCmd,"rm -fr %s/*",TEMPDIR);
+		iRet=system(systemCmd);
+		if(iRet<0)
+		{
+			LOGOUT("%s failure",systemCmd);
+		}
+		LOGOUT("%s success",systemCmd);
+	}
+	return iRet;
+}
+
+static void * aliyunOssTask(void* param)
 {
 	char fileName[MAX_PATH];
 	char fileDataName[MAX_PATH];
@@ -66,10 +126,9 @@ void * aliyunOssTask(void* param)
 	int iRet=-1;
 	int fileType=-1;
 	LOGINRETURNINFO returnInfo;
-	time_t oldTime;
-	time_t newTime;
-	time((time_t *)&oldTime);
-	newTime=oldTime;
+	DWORD oldTime=0;
+	DWORD newTime=0;
+	DWORD lastLogTime=0;
 	char *motionString=NULL;
 	motionString=malloc(MAX_MOTION_STRING);
 	if(!motionString)
@@ -84,9 +143,12 @@ void * aliyunOssTask(void* param)
 		LOGOUT("malloc g_motionString %d",MAX_SOUND_STRING);
 		return -5;
 	}
+	newTime=getTickSecond();
+	oldTime=newTime;
+	lastLogTime=newTime;
 	while(1)
 	{
-		time((time_t *)&newTime);
+		newTime=getTickSecond();
 		if((newTime-oldTime)>12*60*60 || (!(g_iServerStatus==1 || g_iServerStatus==4)))
 		{
 			iRet=loginCtrl(g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_szMasterIP,//g_stConfigCfg.m_unMasterServerCfg.m_objMasterServerCfg.m_iMasterPort,
@@ -103,6 +165,14 @@ void * aliyunOssTask(void* param)
 			oldTime=newTime;
 			if(!(g_iServerStatus==1 || g_iServerStatus==4))
 				sleep(28);
+		}
+		if((newTime-lastLogTime)>24*60*60 && returnInfo.logUploadEnable==1)
+		{
+			iRet=sendLogToOSS(g_szServerNO);
+			if(iRet==0)
+			{
+				lastLogTime=newTime;
+			}
 		}
 		if(!(g_iServerStatus==1 || g_iServerStatus==4))
 			continue;
@@ -205,7 +275,7 @@ void * aliyunOssTask(void* param)
 }
 
 
-void resloveServerUrgencyMotion(ServerCmdInfo mServerCmdInfo)
+static void resloveServerUrgencyMotion(ServerCmdInfo mServerCmdInfo)
 {
 	tagUrgencyMotionCfg objUrgencyMotionCfg=g_stConfigCfg.m_unUrgencyMotionCfg.m_objUrgencyMotionCfg;
 	if(mServerCmdInfo.cmdType==SERVERID_START_URGENCYCONDITION)
@@ -254,7 +324,7 @@ void resloveServerUrgencyMotion(ServerCmdInfo mServerCmdInfo)
 	}
 }
 
-void resloveMotionRecordCondition(ServerCmdInfo mServerCmdInfo)
+static void resloveMotionRecordCondition(ServerCmdInfo mServerCmdInfo)
 {
 	tagMotionCfg objMotionCfg=g_stConfigCfg.m_unMotionCfg.m_objMotionCfg;
 	if(mServerCmdInfo.m_unServerCmdInfo.m_objMotionCfg.m_iBefRecLastTime!=-1)
@@ -288,7 +358,7 @@ void resloveMotionRecordCondition(ServerCmdInfo mServerCmdInfo)
 
 }
 
-void *  commucicateTask(void* param)
+static void *  commucicateTask(void* param)
 {
 	ServerCmdInfo mServerCmdInfo;
 	int iRet=0;

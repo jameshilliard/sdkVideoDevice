@@ -6,8 +6,6 @@ INT32S 	g_iNowFileSize[MAX_LOGFILE] = {0};
 BOOL 	g_bOutToSerial = FALSE;
 // 存放日志文件的路径
 SCHAR 	g_szFlushLogPath[256] = {0};
-// 日志打包的临时路径
-SCHAR  	g_szLogTempPath[256] = {0};
 pthread_mutex_t g_SzyLogFileMutex[MAX_LOGFILE];	// 互斥锁
 
 // 获取文件大小
@@ -35,13 +33,13 @@ static DWORD get_FileSize(LPCTSTR path)
 **备注：
        1). 
 ************************************************************************/
-void Init_LogOut(INT32U v_iLogSize,LPCTSTR v_szFlushPath, BOOL v_bOutToSerial,LPCTSTR v_szTempPath)
+void Init_LogOut(INT32U v_iLogSize,LPCTSTR v_szFlushPath, BOOL v_bOutToSerial)
 {
 #ifdef LOGOUTDEBUG
 	return ;
 #endif
 	if((v_szFlushPath == NULL) /*|| (0 == access(v_szFlushPath, F_OK)) */
-		|| (v_iLogSize < 100*1024) || (NULL == v_szTempPath))
+		|| (v_iLogSize < 100*1024))
 	{
 		printf("%s file or v_iLogSize %d, is error\n",v_szFlushPath, v_iLogSize);
 		return ;
@@ -111,7 +109,6 @@ void Init_LogOut(INT32U v_iLogSize,LPCTSTR v_szFlushPath, BOOL v_bOutToSerial,LP
 		pthread_mutex_init(&g_SzyLogFileMutex[i], NULL);
 	}
 	g_bOutToSerial = v_bOutToSerial;
-	strcpy(g_szLogTempPath, v_szTempPath);
 }
 
 
@@ -200,75 +197,6 @@ void LogOutPut(INT32U v_iLv,LPCTSTR v_szFileName,INT32U v_iFileLine,LPCTSTR v_sz
 		}
 	}
 	pthread_mutex_unlock( &g_SzyLogFileMutex[v_iLv]);
-}
-
-/************************************************************************
-**函数：TarLogFile
-**功能：压缩日志文件
-**参数：
-        [out] - v_szOutPath：压缩完成后的日志的路径
-**返回：
-        
-**作者：沈海波, 2014-05-04
-**备注：
-       1). 
-************************************************************************/
-void TarLogFile(LPTSTR v_szOutPath)
-{
-	if(v_szOutPath == NULL)
-	{
-		return ;
-	}
-	//先压缩所有log文件
-	SCHAR szFilePath[256] = {0};
-	INT32S i = 0;
-	sprintf(szFilePath, "%s/%s/",g_szFlushLogPath, LOGFILEDIR);
-	SCHAR szCmd[256] = {0};
-	SCHAR szTemp[256] = {0};
-	// 创建日志文件夹
-	sprintf(szTemp, "%s/syslog", g_szLogTempPath);
-	if(0 != access(szTemp, F_OK))
-	{
-		sprintf(szCmd, "mkdir -p %s", szTemp);
-		system(szCmd);
-	}
-	memset(szCmd, 0, sizeof(szCmd));
-	sprintf(szCmd, "cp %s/* %s/syslog/", szFilePath, g_szLogTempPath);
-	for (i = 0; i< MAX_LOGFILE; i++)
-	{
-		pthread_mutex_lock( &g_SzyLogFileMutex[i]);
-	}
-	system(szCmd);
-	for (i = 0; i< MAX_LOGFILE; i++)
-	{
-		pthread_mutex_unlock( &g_SzyLogFileMutex[i]);
-	}
-	memset(szCmd, 0, sizeof(szCmd));
-	sprintf(szCmd, 	"tar -cf %s/syslog.tar %s/syslog", g_szLogTempPath, g_szLogTempPath);
-	system(szCmd);
-	memset(szCmd, 0, sizeof(szCmd));
-	sprintf(szCmd,	"gzip -c %s/syslog.tar > %s/syslog.tar.gz", g_szLogTempPath, g_szLogTempPath);
-	system(szCmd);
-	memset(szTemp, 0, sizeof(szTemp));
-	sprintf(szTemp, "%s/syslog.tar.gz", g_szLogTempPath);
-	if( access(szTemp,0)!=0 )
-	{
-		LOGOUT("Create %s/syslog.tar.gz fail", g_szLogTempPath);
-		return ;
-	}
-	memset(szTemp, 0, sizeof(szTemp));
-	sprintf(szTemp, "%s/syslog", g_szLogTempPath);
-	if(0 == access(szTemp, F_OK))
-	{
-		memset(szCmd, 0, sizeof(szCmd));
-		sprintf(szCmd,"rm -rf  %s/syslog", g_szLogTempPath);
-		system(szCmd);
-	}
-	memset(szCmd, 0, sizeof(szCmd));
-	sprintf(szCmd,"rm -rf  %s/syslog.tar", g_szLogTempPath);
-	system(szCmd);
-	sprintf(v_szOutPath, "%s/syslog.tar.gz", g_szLogTempPath);
-	return ;
 }
 
 // 释放日志模块

@@ -198,6 +198,18 @@ int getLoginInfo(const char *strResponse, LOGINRETURNINFO *returnInfo)
 		returnInfo->isRequireToReboot = pSub->valueint;
 		LOGOUT("isRequireToReboot : %d", pSub->valueint);
 	}
+	// get logUploadEnable int from json
+	pSub = cJSON_GetObjectItem(pJson, "logUploadEnable");
+	if(NULL == pSub)
+	{
+		returnInfo->logUploadEnable=-1;
+		LOGOUT("logUploadEnable null");
+	}
+	else
+	{
+		returnInfo->logUploadEnable = pSub->valueint;
+		LOGOUT("logUploadEnable : %d", pSub->valueint);
+	}
 	cJSON_Delete(pJson);
 	return 0;
 }
@@ -261,6 +273,11 @@ int loginCtrl(const char *server,const char *v_szId,const char *v_szPwd,LOGINRET
 				strncpy(g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szOssEndPoint,returnInfo->OSSEndpoint,sizeof(g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szOssEndPoint));
 				strncpy(g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeyId,returnInfo->accessKeyId,sizeof(g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeyId));
 				strncpy(g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeySecret,returnInfo->accesskeySecret,sizeof(g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_szAccessKeySecret));
+				SetAliyunOssCfg(DEVICECONFIGDIR,g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg);
+			}
+			if(returnInfo->logUploadEnable != g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_bLogUploadEnable)
+			{
+				g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg.m_bLogUploadEnable=returnInfo->logUploadEnable;
 				SetAliyunOssCfg(DEVICECONFIGDIR,g_stConfigCfg.m_unAliyunOssCfg.m_objAliyunOssCfg);
 			}
 			tagCapParamCfg objCapParamCfg;

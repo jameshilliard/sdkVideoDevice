@@ -34,10 +34,9 @@ enum
 extern "C" {
 #  endif /* __cplusplus */
 
-	void Init_LogOut(INT32U v_iLogSize,LPCTSTR v_szFlushPath, BOOL v_bOutToSerial,LPCTSTR v_szTempPath);
+	void Init_LogOut(INT32U v_iLogSize,LPCTSTR v_szFlushPath, BOOL v_bOutToSerial);
 	void Release_LogOut();
 	void LogOutPut(INT32U v_iLv,LPCTSTR FileName,INT32U FileLine,LPCTSTR msg, ...);
-	void TarLogFile(LPTSTR v_szOutPath);
 
 #  ifdef __cplusplus
 }
