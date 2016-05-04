@@ -6,6 +6,23 @@
 static int sendVideoToOss(const char *filePath,const char *videoPath)
 {
 	int iRet=0;
+	if(videoPath==NULL || filePath==NULL)
+	{
+		LOGOUT("filePath or videoPath is error");
+		return 0;
+	}
+	if(strlen(filePath)==0 || strlen(videoPath)==0)
+	{
+		LOGOUT("strlen filePath or videoPath is error");
+		return 0;	
+	}
+	iRet=isDeviceAccess(filePath);
+	if(iRet!=0)
+	{
+		iRet=0;
+		LOGOUT("filePath %s was no exist",filePath); 
+		return iRet;
+	}
 	iRet=upLoadFile(filePath,videoPath);
 	if(iRet==0)
 	{
@@ -51,7 +68,7 @@ static int sendLogToOSS(char *ipcId)
 	time((time_t *)&localTime);
 	localTime+=CHINATIME;
 	getLogName(localTime,fileName,sizeof(fileName));
-	#if 0
+	
 	iRet=isDeviceAccess(LOGTEMPDIR);
 	if(iRet!=0)
 	{
@@ -64,6 +81,7 @@ static int sendLogToOSS(char *ipcId)
 			return -2;
 		}
 	}
+	#if 0
 	memset(systemCmd,0,sizeof(systemCmd));
 	sprintf(systemCmd,"cp -fr %s/%s/* %s",LOGUPDATEDIR,LOGFILEDIR,LOGTEMPDIR);
 	iRet=system(systemCmd);
@@ -129,6 +147,7 @@ static void * aliyunOssTask(void* param)
 	DWORD oldTime=0;
 	DWORD newTime=0;
 	DWORD lastLogTime=0;
+	int   uploadLogFlag=0;
 	char *motionString=NULL;
 	motionString=malloc(MAX_MOTION_STRING);
 	if(!motionString)
@@ -165,17 +184,23 @@ static void * aliyunOssTask(void* param)
 			oldTime=newTime;
 			if(!(g_iServerStatus==1 || g_iServerStatus==4))
 				sleep(28);
-		}
-		if((newTime-lastLogTime)>24*60*60 && returnInfo.logUploadEnable==1)
-		{
-			iRet=sendLogToOSS(g_szServerNO);
-			if(iRet==0)
+			else
 			{
 				lastLogTime=newTime;
+				uploadLogFlag=1;
 			}
 		}
 		if(!(g_iServerStatus==1 || g_iServerStatus==4))
 			continue;
+		if((newTime-lastLogTime)>10*60 && returnInfo.logUploadEnable==1 && uploadLogFlag==1)
+		{
+			iRet=sendLogToOSS(g_szServerNO);
+			if(iRet==0)
+			{
+				uploadLogFlag=0;
+				lastLogTime=newTime;
+			}
+		}
 		memset(fileName,0,sizeof(fileName));
 		memset(filePath,0,sizeof(filePath));
 		memset(file2Path,0,sizeof(file2Path));
@@ -261,6 +286,15 @@ static void * aliyunOssTask(void* param)
 				}	
 				unlink(filePath);unlink(file1Path);unlink(file2Path);unlink(file3Path);unlink(file4Path);					
 				LOGOUT("filePath %s and %s and %s and %s and %s was unlinked",filePath,file4Path,file1Path,file2Path,file3Path);
+				iRet=readMediaFile(SYSTEM_MEDIA_SENDFILEPATH,fileName);
+				if(iRet!=1)
+				{
+					iRet=rmDirFile(SYSTEM_MEDIA_SENDFILEPATH);
+					if(iRet>0)
+					{
+						LOGOUT("rmdir %s iRet=%d error=%s",SYSTEM_MEDIA_SENDFILEPATH,iRet,strerror(errno));
+					}
+				}
 			}
 			//sleep(1);
 		}
