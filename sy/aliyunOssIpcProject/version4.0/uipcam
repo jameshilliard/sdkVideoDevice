@@ -93,8 +93,18 @@ watch_ipcUpdate_bin()
 
 while [ 1 ]
 do
-watch_oss_bin
-watch_ipcUpdate_bin
+pingtime=`ping -c 1 www.baidu.com | grep "1 packets received" | wc -l`
+if [ $pingtime -eq 1 ];then
+    	echo "ping www.baidu.com connect"
+	while [ 1 ]
+	do
+	watch_oss_bin
+	watch_ipcUpdate_bin
+	sleep 2
+	done
+else
+	echo "ping www.baidu.com not connnect"
+fi
 sleep 2
 done
 

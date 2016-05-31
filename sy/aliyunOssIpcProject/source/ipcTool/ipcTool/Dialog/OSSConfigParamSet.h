@@ -26,6 +26,7 @@ public:
 	afx_msg void OnBnClickedOk();
 	CSyTcpClient m_objTcpClient;
 
+	CComboBox	m_cbLogUploadEnable;
 	CString		m_szBuctetName;
 	CString 	m_szOssEndPoint;
 	CString 	m_szAccessKeyId;

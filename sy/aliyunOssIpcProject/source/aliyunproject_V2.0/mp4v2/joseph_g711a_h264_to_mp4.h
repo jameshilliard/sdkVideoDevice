@@ -26,6 +26,14 @@
 #define 	RECORDDELETE	0x1003
 #define 	RECORDSTOP      0x1004
 
+
+#define VIDEO_TIME_SCALE 90000
+#define AUDIO_TIME_SCALE 8000
+#define MOVIE_TIME_SCALE VIDEO_TIME_SCALE
+#define PTS2TIME_SCALE(CurPTS, PrevPTS, timeScale) \
+	((MP4Duration)((CurPTS - PrevPTS) * 1.0 / (double)(1e+3) * timeScale))
+	
+
 typedef unsigned int  	uint32_t;
 typedef unsigned char   uint8_t;
 
@@ -90,8 +98,8 @@ extern "C"{
 
 	int InitMp4Module(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *joseph_mp4_config);
 	int CloseMp4Module(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *joseph_mp4_config);
-	int Mp4FileVideoEncode(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *joseph_mp4_config,unsigned char* nBuffer,unsigned int length);
-	int Mp4FileAudioEncode(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *joseph_mp4_config,unsigned char* nBuffer,unsigned int length,unsigned int *power);
+	int Mp4FileVideoEncode(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *joseph_mp4_config,unsigned char* nBuffer,unsigned int length,unsigned int pts);
+	int Mp4FileAudioEncode(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *joseph_mp4_config,unsigned char* nBuffer,unsigned int length,unsigned int *power,unsigned int pts);
 	int g711a_encode(void *pout_buf, int *pout_len, const void *pin_buf, const int in_len);
 #ifdef __cplusplus
 #if __cplusplus

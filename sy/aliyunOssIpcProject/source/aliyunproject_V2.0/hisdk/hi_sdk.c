@@ -445,7 +445,7 @@ void * makeMp4Task(void* param)
 	}
 	DWORD length=0;
 	DWORD sym=0;
-	DWORD id=0;
+	INT32U id=0;
 	int iRet=-1;
 	int successFlag=0;
 	DWORD nextFlag=0;
@@ -467,6 +467,7 @@ void * makeMp4Task(void* param)
 		int ret = g_quene->popData(g_quene->_this, (void*)buf,512*1024, &length, &sym, &id);
 		if(ret==0)
 		{
+			
 			switch(sym)
 			{
 			case RECORDSTART:
@@ -570,9 +571,10 @@ void * makeMp4Task(void* param)
 				break;
 			case RECORDVIDEO:
 			{
+				//printf("new pts=%d---\n",id);
 				if(successFlag==1)
 				{
-					int iRet=Mp4FileVideoEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)buf,length);
+					int iRet=Mp4FileVideoEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)buf,length,id);
 					if(iRet<0)
 						s32Mp4FailFlag=-1;
 				}
@@ -584,7 +586,7 @@ void * makeMp4Task(void* param)
 				if(successFlag==1)
 				{
 					unsigned int power=0;
-					Mp4FileAudioEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)buf,length,&power);		
+					Mp4FileAudioEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)buf,length,&power,id);		
 					if(power!=0)
 					{
 						int nowTime=getTickCountMs();
@@ -716,6 +718,7 @@ static HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 	if(validU32Handle==u32Handle)
 	{
 		HI_S_AVFrame* pstruAV  = (HI_S_AVFrame*)pu8Buffer;
+		
 		switch(*u32Status)
 		{
 		case RECORDSTART:
@@ -736,6 +739,7 @@ static HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 			break;
 		case RECORDVIDEO:
 		{
+			
 			if(u32WaitIFrame==1 && pstruAV->u32AVFrameFlag==HI_NET_DEV_VIDEO_FRAME_FLAG)
 			{
 				if(pstruAV->u32VFrameType==1)
@@ -758,6 +762,7 @@ static HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 				break;
 			if(pstruAV->u32AVFrameFlag==HI_NET_DEV_VIDEO_FRAME_FLAG)
 			{
+				//printf("pts=%d---\n",pstruAV->u32AVFramePTS);
 				//SaveRecordFile("Video.hx", (unsigned char*)(pu8Buffer+sizeof(HI_S_AVFrame)),u32Length-sizeof(HI_S_AVFrame));
 				if(pstruAV->u32VFrameType==1)
 				{
@@ -784,17 +789,16 @@ static HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 					for(i=0;i<(j-1) && h264HeaderPtr[i]!=NULL;i++)
 					{
 						//Mp4FileVideoEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)(h264HeaderPtr[i]),h264HeaderPtr[i+1]-h264HeaderPtr[i]);
-						int ret=g_quene->pushData(g_quene->_this,(void*)(h264HeaderPtr[i]),h264HeaderPtr[i+1]-h264HeaderPtr[i],RECORDVIDEO,0);
+						int ret=g_quene->pushData(g_quene->_this,(void*)(h264HeaderPtr[i]),h264HeaderPtr[i+1]-h264HeaderPtr[i],RECORDVIDEO,pstruAV->u32AVFramePTS);
 						if(ret!=0)
 						{
 							LOGOUT("pushData is error");
 						}
-
 					}
 					if((j-1)>0 && h264HeaderPtr[j-1]!=NULL)
 					{
 						//Mp4FileVideoEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)(h264HeaderPtr[j-1]),u32Length-(h264HeaderPtr[j-1]-pu8Buffer));
-						int ret=g_quene->pushData(g_quene->_this,(void*)(h264HeaderPtr[j-1]),u32Length-(h264HeaderPtr[j-1]-pu8Buffer),RECORDVIDEO,0);
+						int ret=g_quene->pushData(g_quene->_this,(void*)(h264HeaderPtr[j-1]),u32Length-(h264HeaderPtr[j-1]-pu8Buffer),RECORDVIDEO,pstruAV->u32AVFramePTS);
 						if(ret!=0)
 						{
 							LOGOUT("pushData is error");
@@ -804,7 +808,7 @@ static HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 				else
 				{	
 					//Mp4FileVideoEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)(pu8Buffer+sizeof(HI_S_AVFrame)),u32Length-sizeof(HI_S_AVFrame));
-					int ret=g_quene->pushData(g_quene->_this,(void*)(pu8Buffer+sizeof(HI_S_AVFrame)),u32Length-sizeof(HI_S_AVFrame),RECORDVIDEO,0);
+					int ret=g_quene->pushData(g_quene->_this,(void*)(pu8Buffer+sizeof(HI_S_AVFrame)),u32Length-sizeof(HI_S_AVFrame),RECORDVIDEO,pstruAV->u32AVFramePTS);
 					if(ret!=0)
 					{
 						LOGOUT("pushData is error");
@@ -816,7 +820,7 @@ static HI_S32 onRecordTask(HI_U32 u32Handle, /* ¾ä±ú */
 
 				int uSize=(u32Length-sizeof(HI_S_AVFrame)-4);
 				//Mp4FileAudioEncode(&joseph_aac_config,&joseph_mp4_config,(unsigned char*)(pu8Buffer+sizeof(HI_S_AVFrame)+4),u32Length-sizeof(HI_S_AVFrame)-4);
-				int ret=g_quene->pushData(g_quene->_this,(void*)(pu8Buffer+sizeof(HI_S_AVFrame)+4),u32Length-sizeof(HI_S_AVFrame)-4,RECORDAUDIO,0);
+				int ret=g_quene->pushData(g_quene->_this,(void*)(pu8Buffer+sizeof(HI_S_AVFrame)+4),u32Length-sizeof(HI_S_AVFrame)-4,RECORDAUDIO,pstruAV->u32AVFramePTS);
 				if(ret!=0)
 				{
 					LOGOUT("pushData is error");

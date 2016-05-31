@@ -29,6 +29,7 @@ void COSSConfigParamSet::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_AccessKeySecret,m_szAccessKeySecret);
 	DDX_Text(pDX, IDC_EDIT_VIDEOPATH,m_szVideoPath);
 	DDX_Text(pDX, IDC_EDIT_JPGPATH,m_szJpgPath);
+	DDX_Control(pDX, IDC_COMBO_LogUploadEnable,m_cbLogUploadEnable);
 }
 
 
@@ -43,6 +44,8 @@ BOOL COSSConfigParamSet::OnInitDialog()
 	// TODO:  在此添加额外的初始化
 	map<CString,CString> mapofparam;
 	map<CString,CString> mapofResult;
+	m_cbLogUploadEnable.AddString("是");
+	m_cbLogUploadEnable.AddString("否");
 	bool bRet=m_objTcpClient.TcpPost(mapofparam, mapofResult, 4002);
 	if(bRet)
 	{
@@ -52,6 +55,7 @@ BOOL COSSConfigParamSet::OnInitDialog()
 		m_szAccessKeySecret=mapofResult["AccessKeySecret"];
 		m_szVideoPath=mapofResult["VideoPath"];
 		m_szJpgPath=mapofResult["JpgPath"];
+		int iRet=m_cbLogUploadEnable.SelectString(0,(mapofResult["LogUploadEnable"]=="0")?"否":"是");
 	}
 	UpdateData(FALSE);
 	return TRUE;  // return TRUE unless you set the focus to a control
@@ -65,6 +69,7 @@ void COSSConfigParamSet::OnBnClickedOk()
 	// TODO:  在此添加额外的初始化
 	map<CString,CString> mapofparam;
 	map<CString,CString> mapofResult;
+	CString enbale="";
 
 	mapofparam["BuctetName"]=m_szBuctetName;				
 	mapofparam["OssEndPoint"]=m_szOssEndPoint;		
@@ -72,7 +77,8 @@ void COSSConfigParamSet::OnBnClickedOk()
 	mapofparam["AccessKeySecret"]=m_szAccessKeySecret;
 	mapofparam["VideoPath"]=m_szVideoPath;
 	mapofparam["JpgPath"]=m_szJpgPath;
-
+	m_cbLogUploadEnable.GetWindowText(enbale);
+	mapofparam["LogUploadEnable"]=(enbale=="是"?"1":"0");
 	bool bRet=m_objTcpClient.TcpPost(mapofparam, mapofResult, 4003);
 	if(bRet)
 	{

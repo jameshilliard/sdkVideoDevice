@@ -257,7 +257,7 @@ static const int8_t alaw_encode[2049] =
 
 static int g711Length=0;
 static int pcmAver=0;
-
+static unsigned int  m_u32AudioPTS, m_u32VideoPTS;
 int g711a_decode(void *pout_buf, int *pout_len, const void *pin_buf, const int  in_len)
 {
     int16_t *dst = (int16_t *)pout_buf;
@@ -420,7 +420,7 @@ int InitMp4Encoder(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *josep
 // 【mp4v2封装函数MP4WriteSample】
 // 此函数接收I/P nalu,该nalu需要用4字节的数据大小头替换原有的起始头，并且数据大小为big-endian格式
 //-------------------------------------------------------------------------------------------------
-int Mp4VEncode(JOSEPH_MP4_CONFIG* joseph_mp4_config, unsigned char* naluData, int naluSize)
+int Mp4VEncode(JOSEPH_MP4_CONFIG* joseph_mp4_config, unsigned char* naluData, int naluSize,unsigned int pts)
 {
 	int index = -1;
 	
@@ -488,6 +488,12 @@ int Mp4VEncode(JOSEPH_MP4_CONFIG* joseph_mp4_config, unsigned char* naluData, in
 			break;
 		case NALU_I: 
 			{
+				if(m_u32VideoPTS==0)
+				{
+					LOGOUT("the first key video %d",m_u32VideoPTS);
+					m_u32VideoPTS=pts;
+				}
+				
 				unsigned char* IFrameData = (unsigned char*)malloc((naluSize)* sizeof(unsigned char));
 				
 				IFrameData[0] = (naluSize-4) >>24;  
@@ -497,13 +503,14 @@ int Mp4VEncode(JOSEPH_MP4_CONFIG* joseph_mp4_config, unsigned char* naluData, in
 				
 				memcpy(IFrameData+4, naluData+4, naluSize-4);
 				//if(!MP4WriteSample(joseph_mp4_config->hFile, joseph_mp4_config->video, IFrameData, naluSize+1, m_vFrameDur/8000*90000, 0, 1))
-				if(!MP4WriteSample(joseph_mp4_config->hFile, joseph_mp4_config->video, IFrameData, naluSize, MP4_INVALID_DURATION, 0, 1))
+				if(!MP4WriteSample(joseph_mp4_config->hFile, joseph_mp4_config->video, IFrameData, naluSize, PTS2TIME_SCALE(pts, m_u32VideoPTS, VIDEO_TIME_SCALE),0,true))
 				{  
+					m_u32VideoPTS=pts;
 					free(IFrameData); 
 					IFrameData = NULL;
 					return -1;  
 				}  
-				
+				m_u32VideoPTS=pts;
 				//joseph_mp4_config->m_vFrameDur = 0;
 				free(IFrameData); 
 				IFrameData = NULL;
@@ -516,13 +523,19 @@ int Mp4VEncode(JOSEPH_MP4_CONFIG* joseph_mp4_config, unsigned char* naluData, in
 				naluData[1] = (naluSize-4) >>16;  
 				naluData[2] = (naluSize-4) >>8;  
 				naluData[3] = (naluSize-4) &0xff; 
-				
+				if(m_u32VideoPTS==0)
+				{
+					LOGOUT("the first p video %d",m_u32VideoPTS);
+					m_u32VideoPTS=pts;
+				}
+				//printf("---%d %d----%lld---\n",pts,m_u32VideoPTS,PTS2TIME_SCALE(pts, m_u32VideoPTS, VIDEO_TIME_SCALE));
 				//if(!MP4WriteSample(joseph_mp4_config->hFile, joseph_mp4_config->video, naluData, naluSize, m_vFrameDur/8000*90000, 0, 1))
-				if(!MP4WriteSample(joseph_mp4_config->hFile, joseph_mp4_config->video, naluData, naluSize, MP4_INVALID_DURATION, 0, 1))
+				if(!MP4WriteSample(joseph_mp4_config->hFile, joseph_mp4_config->video, naluData, naluSize, PTS2TIME_SCALE(pts, m_u32VideoPTS, VIDEO_TIME_SCALE), 0, false))
 				{  
+					m_u32VideoPTS=pts;
 					return -1;  
 				}
-				
+				m_u32VideoPTS=pts;
 				//joseph_mp4_config->m_vFrameDur = 0;
 				
 				break;
@@ -534,14 +547,20 @@ int Mp4VEncode(JOSEPH_MP4_CONFIG* joseph_mp4_config, unsigned char* naluData, in
 	return 0;
 }
 
-int Mp4AEncode(JOSEPH_MP4_CONFIG* joseph_mp4_config, unsigned char* aacData, int aacSize)
+int Mp4AEncode(JOSEPH_MP4_CONFIG* joseph_mp4_config, unsigned char* aacData, int aacSize,unsigned int pts)
 {
 	if(joseph_mp4_config->video == MP4_INVALID_TRACK_ID)
 	{
 		return -1;
 	}
-	MP4WriteSample(joseph_mp4_config->hFile, joseph_mp4_config->audio, aacData, aacSize , MP4_INVALID_DURATION, 0, 1);
-	
+	if(m_u32AudioPTS==0)
+	{
+		LOGOUT("the first key audio %d",m_u32AudioPTS);
+		m_u32AudioPTS=pts;
+	}
+
+	MP4WriteSample(joseph_mp4_config->hFile, joseph_mp4_config->audio, aacData, aacSize , PTS2TIME_SCALE(pts, m_u32AudioPTS, AUDIO_TIME_SCALE),0,true);
+	m_u32AudioPTS=pts;
 	//joseph_mp4_config->m_vFrameDur += 1024;
 	
 	return 0;
@@ -676,6 +695,7 @@ int InitAccEncoder(JOSEPH_ACC_CONFIG *joseph_aac_config)
 int InitMp4Module(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *joseph_mp4_config)
 {
 	int nRet = 0;
+
 	/*init aac */
 	if((nRet=InitAccEncoder(joseph_aac_config)) != 0)
 	{
@@ -691,6 +711,8 @@ int InitMp4Module(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *joseph
 	}	
 	g711Length=0;
 	pcmAver=0;
+	m_u32AudioPTS=0;
+	m_u32VideoPTS=0;
 	return 0;
 }
 
@@ -710,7 +732,7 @@ static void SaveRecordFile(char* pPath, unsigned char* pu8Buffer, unsigned int u
 	fclose(fp);
 }
 
-int Mp4FileAudioEncode(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *joseph_mp4_config,unsigned char* nBuffer,unsigned int length,unsigned int *power)
+int Mp4FileAudioEncode(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *joseph_mp4_config,unsigned char* nBuffer,unsigned int length,unsigned int *power,unsigned int pts)
 {
 	if(joseph_aac_config==NULL || joseph_mp4_config==NULL || nBuffer==NULL)
 		return -1;
@@ -822,7 +844,7 @@ int Mp4FileAudioEncode(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *j
 		}
 		//SaveRecordFile("my.aac",joseph_aac_config->pbAACBuffer, nRet);
 		/*write audio frame to mp4*/
-		if((nRet=Mp4AEncode(joseph_mp4_config, joseph_aac_config->pbAACBuffer, nRet)) < 0)
+		if((nRet=Mp4AEncode(joseph_mp4_config, joseph_aac_config->pbAACBuffer, nRet,pts)) < 0)
 		{
 			LOGOUT("write audio frame failed %d",nRet);
 			nRet=-4;
@@ -833,14 +855,14 @@ int Mp4FileAudioEncode(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *j
 	return nRet;
 }
 /*********************************************main**************************************************/
-int Mp4FileVideoEncode(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *joseph_mp4_config,unsigned char* nBuffer,unsigned int length)
+int Mp4FileVideoEncode(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *joseph_mp4_config,unsigned char* nBuffer,unsigned int length,unsigned int pts)
 {	
 	if(joseph_aac_config==NULL || joseph_mp4_config==NULL || nBuffer==NULL)
 		return -1;
 	int nRet = 0;
 	int i=0;
 	/*write video frame to mp4*/
-	if((nRet=Mp4VEncode(joseph_mp4_config,nBuffer,(int)length)) < 0)
+	if((nRet=Mp4VEncode(joseph_mp4_config,nBuffer,(int)length,pts)) < 0)
 	{
 		LOGOUT("write video frame failed %d",nRet);
 		return -1;
