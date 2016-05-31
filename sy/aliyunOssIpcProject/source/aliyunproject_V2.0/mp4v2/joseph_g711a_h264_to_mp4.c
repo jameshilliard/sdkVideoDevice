@@ -423,7 +423,8 @@ int InitMp4Encoder(JOSEPH_ACC_CONFIG* joseph_aac_config,JOSEPH_MP4_CONFIG *josep
 int Mp4VEncode(JOSEPH_MP4_CONFIG* joseph_mp4_config, unsigned char* naluData, int naluSize,unsigned int pts)
 {
 	int index = -1;
-	
+	int firstFlag=0;
+	bool bRet=0;
 	if(naluData[0]==0 && naluData[1]==0 && naluData[2]==0 && naluData[3]==1 && naluData[4]==0x67)
 	{
 		index = NALU_SPS;
@@ -492,6 +493,7 @@ int Mp4VEncode(JOSEPH_MP4_CONFIG* joseph_mp4_config, unsigned char* naluData, in
 				{
 					LOGOUT("the first key video %d",m_u32VideoPTS);
 					m_u32VideoPTS=pts;
+					firstFlag=1;
 				}
 				
 				unsigned char* IFrameData = (unsigned char*)malloc((naluSize)* sizeof(unsigned char));
@@ -502,8 +504,12 @@ int Mp4VEncode(JOSEPH_MP4_CONFIG* joseph_mp4_config, unsigned char* naluData, in
 				IFrameData[3] = (naluSize-4) &0xff;  
 				
 				memcpy(IFrameData+4, naluData+4, naluSize-4);
+				if(firstFlag==0)
+					bRet=MP4WriteSample(joseph_mp4_config->hFile, joseph_mp4_config->video, IFrameData, naluSize, PTS2TIME_SCALE(pts, m_u32VideoPTS, VIDEO_TIME_SCALE),0,1);
+				else
+					bRet=MP4WriteSample(joseph_mp4_config->hFile, joseph_mp4_config->video, IFrameData, naluSize, VIDEO_TIME_SCALE/joseph_mp4_config->fps,0,1);
 				//if(!MP4WriteSample(joseph_mp4_config->hFile, joseph_mp4_config->video, IFrameData, naluSize+1, m_vFrameDur/8000*90000, 0, 1))
-				if(!MP4WriteSample(joseph_mp4_config->hFile, joseph_mp4_config->video, IFrameData, naluSize, PTS2TIME_SCALE(pts, m_u32VideoPTS, VIDEO_TIME_SCALE),0,true))
+				if(!bRet)
 				{  
 					m_u32VideoPTS=pts;
 					free(IFrameData); 
@@ -527,10 +533,17 @@ int Mp4VEncode(JOSEPH_MP4_CONFIG* joseph_mp4_config, unsigned char* naluData, in
 				{
 					LOGOUT("the first p video %d",m_u32VideoPTS);
 					m_u32VideoPTS=pts;
+					firstFlag=1;
+					
 				}
 				//printf("---%d %d----%lld---\n",pts,m_u32VideoPTS,PTS2TIME_SCALE(pts, m_u32VideoPTS, VIDEO_TIME_SCALE));
+				
+				if(firstFlag==0)
+					bRet=MP4WriteSample(joseph_mp4_config->hFile, joseph_mp4_config->video, naluData, naluSize, PTS2TIME_SCALE(pts, m_u32VideoPTS, VIDEO_TIME_SCALE),0,1);
+				else
+					bRet=MP4WriteSample(joseph_mp4_config->hFile, joseph_mp4_config->video, naluData, naluSize, VIDEO_TIME_SCALE/joseph_mp4_config->fps,0,1);
 				//if(!MP4WriteSample(joseph_mp4_config->hFile, joseph_mp4_config->video, naluData, naluSize, m_vFrameDur/8000*90000, 0, 1))
-				if(!MP4WriteSample(joseph_mp4_config->hFile, joseph_mp4_config->video, naluData, naluSize, PTS2TIME_SCALE(pts, m_u32VideoPTS, VIDEO_TIME_SCALE), 0, false))
+				if(!bRet)
 				{  
 					m_u32VideoPTS=pts;
 					return -1;  
@@ -559,7 +572,7 @@ int Mp4AEncode(JOSEPH_MP4_CONFIG* joseph_mp4_config, unsigned char* aacData, int
 		m_u32AudioPTS=pts;
 	}
 
-	MP4WriteSample(joseph_mp4_config->hFile, joseph_mp4_config->audio, aacData, aacSize , PTS2TIME_SCALE(pts, m_u32AudioPTS, AUDIO_TIME_SCALE),0,true);
+	MP4WriteSample(joseph_mp4_config->hFile, joseph_mp4_config->audio, aacData, aacSize , PTS2TIME_SCALE(pts, m_u32AudioPTS, AUDIO_TIME_SCALE),0,1);
 	m_u32AudioPTS=pts;
 	//joseph_mp4_config->m_vFrameDur += 1024;
 	
