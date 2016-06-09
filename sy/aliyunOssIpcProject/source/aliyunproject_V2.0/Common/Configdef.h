@@ -34,7 +34,7 @@
 
 #define 	COMMVER1 					1
 #define 	COMMVER2 					2
-#define 	SDKVERSION 					COMMVER1
+#define 	SDKVERSION 					COMMVER2
 
 #if   SDKVERSION == COMMVER1
 #define SDK_SYSTEM_FWVERSION	"1.0.0052"	// SDK°æ±¾ºÅ
