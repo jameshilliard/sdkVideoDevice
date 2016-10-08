@@ -1,0 +1,111 @@
+#!/bin/sh
+
+rm_libs()
+{
+	rm /lib/libapr-1.so
+	rm /lib/libapr-1.so.0
+	rm /lib/libaprutil-1.so
+	rm /lib/libaprutil-1.so.0
+	rm /lib/libcurl.so
+	rm /lib/libcurl.so.4
+	rm /lib/libexpat.so
+	rm /lib/libexpat.so.0
+	rm /lib/libfaac.so
+	rm /lib/libfaac.so.0
+	rm /lib/libmp4v2.so
+	rm /lib/libmp4v2.so.2
+	rm /lib/libxml2.so
+	rm /lib/libxml2.so.2
+	rm /lib/liboss_c_sdk.so
+	rm /lib/libmxml.so.1
+	rm /lib/libutf8proc.so
+}
+
+ln_libs()
+{
+	#ln -s /mnt/mtd/ipc/tmpfs/lib/libapr-1.so.0.5.2 /lib/libapr-1.so
+	ln -s /mnt/mtd/ipc/tmpfs/lib/libapr-1.so.0.5.2 /lib/libapr-1.so.0
+	#ln -s /mnt/mtd/ipc/tmpfs/lib/libaprutil-1.so.0.5.4 /lib/libaprutil-1.so
+	ln -s /mnt/mtd/ipc/tmpfs/lib/libaprutil-1.so.0.5.4 /lib/libaprutil-1.so.0
+	#ln -s /mnt/mtd/ipc/tmpfs/lib/libcurl.so.4.3.0 /lib/libcurl.so
+	ln -s /mnt/mtd/ipc/tmpfs/lib/libcurl.so.4.3.0 /lib/libcurl.so.4
+	#ln -s /mnt/mtd/ipc/tmpfs/lib/libexpat.so.0.5.0 /lib/libexpat.so
+	ln -s /mnt/mtd/ipc/tmpfs/lib/libexpat.so.0.5.0 /lib/libexpat.so.0
+	#ln -s /mnt/mtd/ipc/tmpfs/lib/libfaac.so.0.0.0 /lib/libfaac.so
+	#ln -s /mnt/mtd/ipc/tmpfs/lib/libfaac.so.0.0.0 /lib/libfaac.so.0
+	#ln -s /mnt/mtd/ipc/tmpfs/lib/libmp4v2.so.2.0.0 /lib/libmp4v2.so
+	ln -s /mnt/mtd/ipc/tmpfs/lib/libmp4v2.so.2.0.0 /lib/libmp4v2.so.2
+	#ln -s /mnt/mtd/ipc/tmpfs/lib/libxml2.so.2.9.2 /lib/libxml2.so
+	#ln -s /mnt/mtd/ipc/tmpfs/lib/libxml2.so.2.9.2 /lib/libxml2.so.2
+	#ln -s /mnt/mtd/ipc/tmpfs/lib/libvo-aacenc.so.0.0.4 /lib/libvo-aacenc.so
+	ln -s /mnt/mtd/ipc/tmpfs/lib/libvo-aacenc.so.0.0.4 /lib/libvo-aacenc.so.0
+	ln -s /mnt/mtd/ipc/tmpfs/lib/liboss_c_sdk.so  /lib/liboss_c_sdk.so
+	ln -s /mnt/mtd/ipc/tmpfs/lib/libmxml.so.1.5   /lib/libmxml.so.1
+	#ln -s /mnt/mtd/ipc/tmpfs/lib/libmxml.so.1.5   /lib/libmxml.so 
+}
+
+watch_oss_bin()
+{
+##############watch aliyunOss.bin
+	if [ ! -f "/mnt/mtd/ipc/sykj/aliyunOss.bin" ]; then
+		if [ -f "/mnt/mtd/ipc/tmpfs/syflash/test.bin" ]; then
+			mv /mnt/mtd/ipc/tmpfs/syflash/test.bin /mnt/mtd/ipc/sykj/aliyunOss.bin
+		else
+			cp /mnt/mtd/ipc/tmpfs/aliyunOss.bin /mnt/mtd/ipc/sykj/aliyunOss.bin
+		fi
+	fi
+	ps | grep  aliyunOss.bin | grep -v  grep >> /dev/null
+	if [ $? -eq 1 ]; then
+		chmod 777 /mnt/mtd/ipc/sykj/*
+		tar zxvf /mnt/mtd/ipc/sykj/lib_curl.tar.gz  -C /mnt/mtd/ipc/tmpfs/
+		tar zxvf /mnt/mtd/ipc/sykj/lib.tar.gz  -C /mnt/mtd/ipc/tmpfs/
+		mkdir -p /mnt/mtd/ipc/tmpfs/syflash
+		tar zxvf /mnt/mtd/ipc/sykj/audio.tar.gz  -C /mnt/mtd/ipc/tmpfs/syflash
+		cp /mnt/mtd/ipc/sykj/aliyunOss.bin /mnt/mtd/ipc/tmpfs/aliyunOss.bin
+		/mnt/mtd/ipc/tmpfs/aliyunOss.bin & 
+		ps | grep  aliyunOss.bin | grep -v  grep >> /dev/null
+		if [ $? -eq 1 ]; then
+			rm_libs
+			ln_libs
+		fi
+	fi
+	
+}
+
+watch_ipcUpdate_bin()
+{
+##############watch ipcUpdate.bin
+	if [ ! -f "/mnt/mtd/ipc/sykj/ipcUpdate.bin" ]; then
+		if [ -f "/mnt/mtd/ipc/tmpfs/syflash/updateTest.bin" ]; then
+			mv /mnt/mtd/ipc/tmpfs/syflash/updateTest.bin /mnt/mtd/ipc/sykj/ipcUpdate.bin
+		else
+			cp /mnt/mtd/ipc/tmpfs/ipcUpdate.bin /mnt/mtd/ipc/sykj/ipcUpdate.bin
+		fi
+	fi
+	ps | grep  ipcUpdate.bin | grep -v  grep >> /dev/null
+	if [ $? -eq 1 ]; then
+		chmod 777 /mnt/mtd/ipc/sykj/*
+		cp /mnt/mtd/ipc/sykj/ipcUpdate.bin /mnt/mtd/ipc/tmpfs/ipcUpdate.bin
+		/mnt/mtd/ipc/tmpfs/ipcUpdate.bin & 
+	fi
+	
+}
+
+while [ 1 ]
+do
+pingtime=`ping -c 1 www.baidu.com | grep "1 packets received" | wc -l`
+if [ $pingtime -eq 1 ];then
+    	echo "ping www.baidu.com connect"
+	while [ 1 ]
+	do
+	watch_oss_bin
+	watch_ipcUpdate_bin
+	sleep 2
+	done
+else
+	echo "ping www.baidu.com not connnect"
+fi
+sleep 2
+done
+
+
